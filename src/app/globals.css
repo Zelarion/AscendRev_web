@@ -1,0 +1,219 @@
+/**
+ * Design tokens for AscendRev Corp. — the single source of truth. Every value
+ * here comes from DESIGN.md; components read these tokens (via the Tailwind
+ * utilities they generate, or directly with `var(--token)`), never a raw hex
+ * code or a magic number. See DESIGN.md §1–6 for the rationale behind each
+ * value; this file only transcribes it.
+ *
+ * Tailwind v4 is CSS-first: everything inside `@theme` becomes a real CSS
+ * custom property on `:root`. Keys under a recognised namespace
+ * (`--color-*`, `--font-*`, `--text-*`, `--ease-*`, …) additionally generate
+ * matching utility classes (e.g. `--color-navy-800` → `bg-navy-800`,
+ * `border-navy-800`, `text-navy-800`). Keys outside those namespaces (the
+ * z-index and motion-duration scale) still become plain CSS variables with no
+ * utility generated — components read those with `var(--z-modal)` etc.
+ */
+
+@import 'tailwindcss';
+
+@theme {
+  /* ---- Colour (DESIGN.md §1) -------------------------------------------- */
+  --color-navy-900: #0f1b33;
+  --color-navy-800: #192b51;
+  --color-navy-700: #23406c;
+  --color-steel-600: #326292;
+  --color-steel-400: #6e93bc;
+  --color-green-700: #174a37;
+  --color-green-600: #1e5e46;
+  --color-green-500: #286d50;
+  --color-bg: #fcfcfd;
+  --color-surface: #ffffff;
+  --color-ink: #111827;
+  --color-ink-muted: #4b5563;
+  --color-border: #e3e6eb;
+  --color-border-navy: rgba(255, 255, 255, 0.14);
+  --color-danger: #b42318;
+  --color-success: #174a37;
+
+  /* ---- Fonts (DESIGN.md §2) ----------------------------------------------
+   * The variable CSS custom properties (--font-newsreader etc.) are set on
+   * <html> by next/font in src/app/layout.tsx. Fallback stacks keep text
+   * visible and roughly on-metric if a font fails to load. */
+  --font-display: var(--font-newsreader), ui-serif, Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---- Type scale (DESIGN.md §2) -----------------------------------------
+   * Each `--text-<name>` pairs with `--text-<name>--line-height` and
+   * `--text-<name>--letter-spacing` (and `--font-weight` where the scale
+   * specifies one) — Tailwind v4's compound font-size utility applies all of
+   * them together via a single `text-<name>` class. Font *family* is not
+   * part of this compound (Tailwind has no such pairing for font-family) —
+   * pair `text-h1` with `font-display` explicitly at the call site; `text-h3`
+   * with `font-sans`, per DESIGN.md's pairing table. */
+  --text-display: clamp(2.75rem, 6vw, 4.75rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 500;
+
+  --text-h1: clamp(2.25rem, 4.5vw, 3.5rem);
+  --text-h1--line-height: 1.1;
+  --text-h1--letter-spacing: -0.025em;
+  --text-h1--font-weight: 500;
+
+  --text-h2: clamp(1.75rem, 3vw, 2.5rem);
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h2--font-weight: 500;
+
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h3--font-weight: 600;
+
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.65;
+  --text-body-lg--font-weight: 400;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.65;
+  --text-body--font-weight: 400;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.55;
+  --text-small--font-weight: 400;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.06em;
+  --text-label--font-weight: 500;
+
+  /* ---- Layout (DESIGN.md §3) ----------------------------------------------
+   * Spacing scale: DESIGN.md's 4px-based scale (4 8 12 16 24 32 48 64 96 128)
+   * is Tailwind's *default* spacing scale exactly (steps 1,2,3,4,6,8,12,16,
+   * 24,32 at the default 0.25rem/4px unit) — nothing to override here.
+   * Breakpoints (480/768/1024/1280) are likewise Tailwind's defaults for
+   * sm/md/lg/xl, so they are not redeclared. z-index has no Tailwind v4
+   * theme namespace, so these are plain variables read via `var(--z-modal)`
+   * or an arbitrary-value utility (`z-[var(--z-modal)]`). */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-backdrop: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+
+  /* ---- Motion (DESIGN.md §4) ----------------------------------------------
+   * --ease-* is a recognised Tailwind v4 namespace and generates
+   * `ease-out-quart` / `ease-out-expo` utilities for transition-timing-
+   * function. Durations have no matching utility namespace in v4, so they
+   * stay plain variables consumed by src/lib/motion.ts and by components
+   * directly (`transition-duration: var(--dur-base)`). */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 600ms;
+  --dur-exit: 170ms;
+}
+
+/*
+ * Aliases matching DESIGN.md's own token names exactly (--bg, --ink,
+ * --navy-800, …, without the `--color-` prefix Tailwind's utility-generation
+ * namespace requires). DESIGN.md is explicit that "components read tokens,
+ * never raw hex" — this keeps `var(--bg)` / `var(--navy-800)` valid for any
+ * component that reads the token directly, while `@theme` above still drives
+ * Tailwind's generated utility classes (`bg-navy-800`, `text-ink`, etc.) for
+ * components that prefer those.
+ */
+:root {
+  --navy-900: var(--color-navy-900);
+  --navy-800: var(--color-navy-800);
+  --navy-700: var(--color-navy-700);
+  --steel-600: var(--color-steel-600);
+  --steel-400: var(--color-steel-400);
+  --green-700: var(--color-green-700);
+  --green-600: var(--color-green-600);
+  --green-500: var(--color-green-500);
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --ink: var(--color-ink);
+  --ink-muted: var(--color-ink-muted);
+  --border: var(--color-border);
+  --border-navy: var(--color-border-navy);
+  --danger: var(--color-danger);
+  --success: var(--color-success);
+}
+
+/* ---- Base (DESIGN.md §2, §6) --------------------------------------------- */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/*
+ * Accessibility floor (DESIGN.md §6): visible focus ring, 3px solid
+ * steel-600, 2px offset, never removed. `:focus-visible` (not `:focus`) so
+ * it only shows for keyboard/assistive-tech navigation, not every mouse
+ * click — that distinction is what keeps a ring this heavy from feeling
+ * like a bug on pointer input while still being non-negotiable for keyboard
+ * users.
+ *
+ * DESIGN.md also calls for "a light ring on navy surfaces". The layout
+ * Section component (src/components/layout/Section.tsx, owned by another
+ * builder) takes a `tone: 'light' | 'navy'` prop; this rule assumes it marks
+ * navy sections with `data-tone="navy"` on the surface element so the lighter
+ * ring can target it by attribute rather than by a guessed class name. If
+ * Section ends up using a different marker, this selector needs updating to
+ * match — flagged in the completion report.
+ */
+:focus-visible {
+  outline: 3px solid var(--steel-600);
+  outline-offset: 2px;
+}
+
+[data-tone='navy'] :focus-visible {
+  outline-color: var(--steel-400);
+}
+
+/*
+ * Global reduced-motion guard (DESIGN.md §4): a real alternative, not a
+ * blanket `animation: none`. Component-level motion code (src/lib/motion.ts,
+ * owned by another builder) is expected to check
+ * `window.matchMedia('(prefers-reduced-motion: reduce)')` itself for
+ * JS-driven animation (scroll reveals, stagger, counters); this block covers
+ * CSS-driven transitions/animations so nothing here depends on that JS
+ * running first.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

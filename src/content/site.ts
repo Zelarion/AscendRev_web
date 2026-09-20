@@ -1,0 +1,89 @@
+/**
+ * Typed site-wide constants. SPEC.md §2: all client-facing copy lives in
+ * `src/content/*.ts`, never hard-coded in JSX, so a wording change is one file.
+ */
+
+export interface PostalAddress {
+  street: string;
+  city: string;
+  region: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface Site {
+  name: string;
+  legalName: string;
+  /**
+   * Display name for footer/legal fine print. Same string as `legalName`
+   * today (`src/components/layout/Footer.tsx`, owned by another builder,
+   * expects this exact field name) — kept as a separate field rather than an
+   * alias for `legalName` so a future rebrand can point the footer at a
+   * short display name without touching the legal entity name used
+   * elsewhere.
+   */
+  companyName: string;
+  domain: string;
+  url: string;
+  tagline: string;
+  phone: string;
+  /**
+   * Single-line formatted address, safe to render directly as text
+   * (`{site.address}`). `addressParts` below carries the same address as
+   * structured data for anything that needs the pieces rather than a
+   * rendered string — e.g. the `PostalAddress` JSON-LD block (SPEC.md §8),
+   * built in a later pass.
+   */
+  address: string;
+  addressParts: PostalAddress;
+  /**
+   * No LinkedIn URL appears in PRODUCT.md, DESIGN.md, or SPEC.md. Left
+   * unset rather than guessed — `Footer.tsx` already treats this as
+   * optional and skips the icon entirely when it's absent.
+   */
+  linkedinUrl?: string;
+  /**
+   * The footer's SLA/response-time line (DESIGN.md §2 permits the mono
+   * `label` style here). SPEC.md §7 item 7 explicitly bans the client's
+   * draft copy ("Data handled under executive compliance") as legally
+   * meaningless and requires a plain factual sentence plus a link to the
+   * privacy policy in its place — that is new copy this pass does not have
+   * authority to write. Left unset rather than invented; `Footer.tsx`
+   * already skips the line entirely when it's absent.
+   */
+  slaLine?: string;
+  /**
+   * SPEC.md §7 item 2: the client's requirements document lists
+   * `rio.vidal@ascendrev.ca` in the footer, but the client's actual registered
+   * domain is `ascend-rev.ca` (with the hyphen) — `ascendrev.ca` does not
+   * resolve. Published as written, every address on the site is wrong and
+   * every reply to an enquiry bounces. This also affects the enquiry form's
+   * recipient configuration (SPEC.md §6) and the JSON-LD structured data
+   * (SPEC.md §8). Do not guess a corrected address — this is an open blocker
+   * that must be confirmed by the client in writing before launch. Left as
+   * `null` on purpose; render call sites must handle the null case rather
+   * than falling back to an assumed value.
+   */
+  contactEmail: string | null;
+}
+
+const addressParts: PostalAddress = {
+  street: '256 Yorkstone Rise',
+  city: 'Calgary',
+  region: 'AB',
+  postalCode: 'T2X 5N7',
+  country: 'Canada',
+};
+
+export const site: Site = {
+  name: 'AscendRev',
+  legalName: 'AscendRev Outsourcing Services Corp.',
+  companyName: 'AscendRev Outsourcing Services Corp.',
+  domain: 'ascend-rev.ca',
+  url: 'https://ascend-rev.ca',
+  tagline: 'Lower Costs. Higher Efficiencies. Accelerate Revenue.',
+  phone: '+1 (403) 903-2912',
+  address: `${addressParts.street}, ${addressParts.city}, ${addressParts.region} ${addressParts.postalCode}, ${addressParts.country}`,
+  addressParts,
+  contactEmail: null,
+};

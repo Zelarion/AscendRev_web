@@ -1,0 +1,10 @@
+# Normalise line endings so the repo stays LF regardless of which machine
+# commits. Without this, Windows checkouts rewrite every file to CRLF and the
+# next diff on another machine shows every line as changed.
+* text=auto eol=lf
+
+# Binary assets: never touch these.
+*.png binary
+*.jpg binary
+*.woff2 binary
+*.ico binary

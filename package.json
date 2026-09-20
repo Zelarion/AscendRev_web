@@ -1,0 +1,35 @@
+{
+  "name": "ascendrev-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AscendRev Outsourcing Services Corp. — corporate site. Static export for cPanel hosting.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^15.5.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "motion": "^12.23.24",
+    "@phosphor-icons/react": "^2.1.10",
+    "react-hook-form": "^7.65.0",
+    "zod": "^3.25.76",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^24.7.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "tailwindcss": "^4.1.16",
+    "@tailwindcss/postcss": "^4.1.16",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "^15.5.4",
+    "@eslint/eslintrc": "^3.3.1"
+  }
+}

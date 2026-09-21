@@ -7,6 +7,7 @@ import { List, X } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { hoverTransitionStyle, stateTransitionStyle } from '@/lib/motion';
 import { navItems, ctaItem } from '@/content/nav';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 const SCROLL_THRESHOLD_PX = 80;
 
@@ -31,7 +32,7 @@ function isActiveRoute(pathname: string, href: string): boolean {
 // :focus-visible` override (steel-400), written unlayered so it beats any
 // Tailwind utility regardless of specificity. Marking this header
 // `data-tone="navy"` below is what wires every focusable element inside it
-// into that lighter ring automatically — no per-element focus class needed.
+// into that lighter ring automatically, no per-element focus class needed.
 
 export default function Header(): JSX.Element {
   const pathname = usePathname();
@@ -113,8 +114,8 @@ export default function Header(): JSX.Element {
         // mode disappears. Only the hairline animates on scroll.
         // `sticky` keeps the header in flow, so <main> needs no compensating
         // top padding and content can never slide underneath it.
-        'sticky top-0 z-[--z-sticky] border-b bg-[--navy-800] transition-[border-color]',
-        scrolled ? 'border-[--border-navy]' : 'border-transparent'
+        'sticky top-0 z-[var(--z-sticky)] border-b bg-[var(--navy-800)] transition-[border-color]',
+        scrolled ? 'border-[var(--border-navy)]' : 'border-transparent'
       )}
       style={stateTransitionStyle}
     >
@@ -156,16 +157,19 @@ export default function Header(): JSX.Element {
           })}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           <Link
             href={ctaItem.href}
-            className="inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[--green-600] px-5 text-sm font-medium text-white outline-none transition-colors hover:bg-[--green-500] active:scale-[0.98] active:bg-[--green-700]"
+            className="inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[var(--green-600)] px-5 text-sm font-medium text-white outline-none transition-colors hover:bg-[var(--green-500)] active:scale-[0.98] active:bg-[var(--green-700)]"
             style={hoverTransitionStyle}
           >
             {ctaItem.label}
           </Link>
         </div>
 
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
         <button
           ref={toggleRef}
           type="button"
@@ -177,6 +181,7 @@ export default function Header(): JSX.Element {
         >
           {menuOpen ? <X size={24} weight="regular" /> : <List size={24} weight="regular" />}
         </button>
+        </div>
       </div>
 
       {menuOpen && (
@@ -186,7 +191,7 @@ export default function Header(): JSX.Element {
           role="dialog"
           aria-modal="true"
           aria-label="Mobile navigation"
-          className="fixed inset-0 z-[--z-modal] flex flex-col bg-[--navy-800] px-[clamp(1.25rem,5vw,4rem)] pb-8 pt-28"
+          className="fixed inset-0 z-[var(--z-modal)] flex flex-col bg-[var(--navy-800)] px-[clamp(1.25rem,5vw,4rem)] pb-8 pt-28"
         >
           <nav aria-label="Mobile primary" className="flex flex-1 flex-col gap-6">
             {navItems.map((item, index) => {
@@ -209,7 +214,7 @@ export default function Header(): JSX.Element {
           <Link
             href={ctaItem.href}
             onClick={closeMenu}
-            className="inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[--green-600] px-5 py-3 text-center text-sm font-medium text-white outline-none transition-colors hover:bg-[--green-500] active:scale-[0.98] active:bg-[--green-700]"
+            className="inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[var(--green-600)] px-5 py-3 text-center text-sm font-medium text-white outline-none transition-colors hover:bg-[var(--green-500)] active:scale-[0.98] active:bg-[var(--green-700)]"
             style={hoverTransitionStyle}
           >
             {ctaItem.label}

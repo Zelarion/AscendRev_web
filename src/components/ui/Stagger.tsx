@@ -1,69 +1,40 @@
 'use client';
 
-import { type JSX, Children, useEffect, useState, type ReactNode } from 'react';
-import { motion } from 'motion/react';
+import { createElement, type JSX, type ReactNode } from 'react';
 import { useReveal } from '@/lib/useReveal';
-import {
-  revealTransition,
-  staggerContainerVariants,
-  staggerItemVariants,
-  STAGGER_MAX_ITEMS,
-  STAGGER_STEP,
-} from '@/lib/motion';
 import { cn } from '@/lib/cn';
+
+type StaggerElement = 'div' | 'ul' | 'ol' | 'section';
 
 interface StaggerProps {
   children: ReactNode;
+  as?: StaggerElement;
   className?: string;
 }
 
 /**
- * Orchestrates a list of children with a 60ms cascade, capped at 8 items —
- * beyond that, DESIGN.md §4 calls for instant (no cascade) rather than a
- * multi-second waterfall. Same visible-by-default guarantee as Reveal: see
- * the comment there for how `hasMounted` pins the pre-hydration state to
- * visible.
+ * Reveals its direct children on a 60ms cascade, capped at 8 items; past the
+ * cap every child reveals together, because a 60ms step across twenty cards
+ * is a waterfall rather than a reveal (DESIGN.md §4).
  *
- * `className` lands on the orchestrating container, so this composes
- * directly as a grid/flex parent, e.g.
- * `<Stagger className="grid grid-cols-3 gap-6">{cards}</Stagger>` — each
- * child becomes a grid item wrapped in its own animated `<div>`.
+ * Unlike the previous implementation, this does not wrap each child in an
+ * extra animated <div>. The children ARE the grid or list items, so
+ * `className` can carry the grid directly and the DOM stays the shape the
+ * section author wrote:
+ *
+ *   <Stagger className="grid gap-6 md:grid-cols-3">{cards}</Stagger>
+ *   <Stagger as="ul" className="flex flex-col gap-3">{items}</Stagger>
+ *
+ * That also fixes a real bug in the wrapper approach: an interposed <div>
+ * between a `<ul>` and its `<li>` children is invalid HTML and breaks the
+ * list semantics a screen reader announces.
+ *
+ * Same visible-by-default guarantee as Reveal: nothing is hidden by the
+ * server, children already on screen are never touched, and reduced motion
+ * skips the whole thing.
  */
-export default function Stagger({ children, className }: StaggerProps): JSX.Element {
-  const [hasMounted, setHasMounted] = useState(false);
-  const { ref, isRevealed, prefersReducedMotion } = useReveal<HTMLDivElement>();
+export default function Stagger({ children, as = 'div', className }: StaggerProps): JSX.Element {
+  const ref = useReveal<HTMLElement>({ stagger: true });
 
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  const items = Children.toArray(children);
-  const withinCap = items.length <= STAGGER_MAX_ITEMS;
-  const shouldAnimate = hasMounted && !prefersReducedMotion && withinCap;
-  const animateTarget = !shouldAnimate || isRevealed ? 'visible' : 'hidden';
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={false}
-      animate={animateTarget}
-      variants={staggerContainerVariants}
-      transition={{ staggerChildren: withinCap ? STAGGER_STEP : 0 }}
-      className={cn(className)}
-    >
-      {items.map((child, index) => (
-        <motion.div
-          // Static content list from the page's own data — order never
-          // changes at runtime, so an index key is safe here.
-          key={index}
-          initial={false}
-          animate={animateTarget}
-          variants={staggerItemVariants}
-          transition={revealTransition}
-        >
-          {child}
-        </motion.div>
-      ))}
-    </motion.div>
-  );
+  return createElement(as, { ref, className: cn(className) }, children);
 }

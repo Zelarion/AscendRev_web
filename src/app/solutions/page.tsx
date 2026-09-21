@@ -1,30 +1,33 @@
 import type { Metadata } from 'next';
-import Section from '@/components/layout/Section';
+import HiringStandard from '@/components/sections/solutions/HiringStandard';
+import ServiceGrid from '@/components/sections/solutions/ServiceGrid';
+import SolutionsClosing from '@/components/sections/solutions/SolutionsClosing';
+import SolutionsHero from '@/components/sections/solutions/SolutionsHero';
+import { solutions } from '@/content/solutions';
 
+/**
+ * `/solutions`, section order per SPEC.md §4.2: compact navy hero, the
+ * eight-function grid, the hiring standard, closing band.
+ *
+ * Title and description come from `solutions.meta` rather than being written
+ * again here, so the page's copy has exactly one source. The title is rendered
+ * through the root layout's `%s | AscendRev` template.
+ */
 export const metadata: Metadata = {
-  title: 'Solutions',
-  description:
-    'The infrastructure behind fast-growing North American enterprises — the outsourced functions AscendRev staffs and how teams are hired and screened.',
+  title: solutions.meta.title,
+  description: solutions.meta.description,
   alternates: {
     canonical: '/solutions/',
   },
 };
 
-/**
- * Solutions stub (SPEC.md §10 build order: this pass is scaffold only).
- * Real content — service grid (the eight functions), "No Warm Bodies"
- * hiring-standard section, closing band (SPEC.md §4.2) — lands once copy
- * exists in src/content/solutions.ts.
- */
 export default function SolutionsPage() {
   return (
-    <Section>
-      <h1>Solutions</h1>
-      <p>
-        This is a placeholder for the Solutions page. The service grid and
-        hiring-standard content land in a later build pass, once the approved
-        copy exists in <code>src/content/solutions.ts</code>.
-      </p>
-    </Section>
+    <>
+      <SolutionsHero />
+      <ServiceGrid />
+      <HiringStandard />
+      <SolutionsClosing />
+    </>
   );
 }

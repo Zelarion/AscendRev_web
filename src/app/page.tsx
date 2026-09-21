@@ -1,30 +1,51 @@
 import type { Metadata } from 'next';
-import Section from '@/components/layout/Section';
+import {
+  ClosingBand,
+  HeroSection,
+  IndustriesSection,
+  PillarsSection,
+  TrustBand,
+} from '@/components/sections/home';
+import SectionCraftStyles from '@/components/sections/shared/SectionCraftStyles';
+import { home } from '@/content/home';
 
+/**
+ * Title and description come from `home.meta` rather than being written here,
+ * because SPEC.md §2 puts every client-facing string in `src/content/*.ts` and
+ * the page title is one. The root layout applies the `%s | AscendRev` template
+ * (`src/app/layout.tsx`), which is why the brand name is absent from the title
+ * itself.
+ */
 export const metadata: Metadata = {
-  title: 'Outsourcing and Offshoring Teams for North American Businesses',
-  description:
-    'AscendRev places dedicated front-office and back-office teams — sales, support, help desk — with North American businesses, executed from the Philippines.',
+  title: home.meta.title,
+  description: home.meta.description,
   alternates: {
     canonical: '/',
   },
 };
 
 /**
- * Homepage stub (SPEC.md §10 build order: this pass is scaffold only).
- * Real sections — Hero, trust band, Pillars, Industries tabs, closing band
- * (SPEC.md §4.1) — land in a later pass, per the content-risk register
- * (SPEC.md §7) and once copy exists in src/content/home.ts.
+ * The homepage, in the order SPEC.md §4.1 specifies: hero, trust band,
+ * pillars, industries, closing band.
+ *
+ * Every visible string on this page comes from `src/content/home.ts`. Nothing
+ * here decides what the page says; it decides only where each piece sits and
+ * how it arrives.
+ *
+ * `SectionCraftStyles` carries the hero's keyframes and the document-level
+ * selection and scrollbar treatment. It is mounted here rather than in the
+ * root layout because the layout is owned by another pass; see the note in
+ * that file about promoting the two document-level blocks into globals.css.
  */
 export default function HomePage() {
   return (
-    <Section>
-      <h1>AscendRev</h1>
-      <p>
-        This is a placeholder for the AscendRev homepage. Hero, trust band,
-        Pillars, Industries, and closing band content land in a later build
-        pass, once the approved copy exists in <code>src/content/home.ts</code>.
-      </p>
-    </Section>
+    <>
+      <SectionCraftStyles />
+      <HeroSection content={home.hero} />
+      <TrustBand content={home.trustBand} />
+      <PillarsSection content={home.pillars} />
+      <IndustriesSection content={home.industries} />
+      <ClosingBand content={home.closing} />
+    </>
   );
 }

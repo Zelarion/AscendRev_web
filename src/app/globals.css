@@ -1,9 +1,8 @@
 /**
- * Design tokens for AscendRev Corp. — the single source of truth. Every value
+ * Design tokens for AscendRev Corp. This is the single source of truth. Every value
  * here comes from DESIGN.md; components read these tokens (via the Tailwind
  * utilities they generate, or directly with `var(--token)`), never a raw hex
- * code or a magic number. See DESIGN.md §1–6 for the rationale behind each
- * value; this file only transcribes it.
+ * code or a magic number.
  *
  * Tailwind v4 is CSS-first: everything inside `@theme` becomes a real CSS
  * custom property on `:root`. Keys under a recognised namespace
@@ -11,13 +10,26 @@
  * matching utility classes (e.g. `--color-navy-800` → `bg-navy-800`,
  * `border-navy-800`, `text-navy-800`). Keys outside those namespaces (the
  * z-index and motion-duration scale) still become plain CSS variables with no
- * utility generated — components read those with `var(--z-modal)` etc.
+ * utility generated, so components read those with `var(--z-modal)` etc.
+ *
+ * ---------------------------------------------------------------------------
+ * HOW THE THREE LAYERS FIT TOGETHER
+ *
+ *   1. `@theme`            the light palette, plus type, spacing and motion.
+ *   2. `:root`             DESIGN.md's own token names, mapped onto layer 1
+ *                          and onto the semantic names below.
+ *   3. dark overrides      the same names, redefined. Nothing else in the
+ *                          codebase changes for dark mode.
+ *
+ * A component never asks which theme is active. It asks for `--bg` or
+ * `--ink`, and the answer differs. That is the whole mechanism.
+ * ---------------------------------------------------------------------------
  */
 
 @import 'tailwindcss';
 
 @theme {
-  /* ---- Colour (DESIGN.md §1) -------------------------------------------- */
+  /* ---- Colour, light (DESIGN.md §1) -------------------------------------- */
   --color-navy-900: #0f1b33;
   --color-navy-800: #192b51;
   --color-navy-700: #23406c;
@@ -35,6 +47,14 @@
   --color-danger: #b42318;
   --color-success: #174a37;
 
+  /* Not in DESIGN.md's original table, added here because the table has no
+   * token that satisfies WCAG 2.2 SC 1.4.11 for a UI component boundary.
+   * `--border` is a 1.22:1 hairline, which is correct for separating bands
+   * and wrong for the edge of a text input, where the boundary is the only
+   * thing telling the reader where to type. This is the 3:1 counterpart,
+   * for input and control outlines only, never for dividers. */
+  --color-border-strong: #7e8899;
+
   /* ---- Fonts (DESIGN.md §2) ----------------------------------------------
    * The variable CSS custom properties (--font-newsreader etc.) are set on
    * <html> by next/font in src/app/layout.tsx. Fallback stacks keep text
@@ -46,9 +66,9 @@
   /* ---- Type scale (DESIGN.md §2) -----------------------------------------
    * Each `--text-<name>` pairs with `--text-<name>--line-height` and
    * `--text-<name>--letter-spacing` (and `--font-weight` where the scale
-   * specifies one) — Tailwind v4's compound font-size utility applies all of
+   * specifies one). Tailwind v4's compound font-size utility applies all of
    * them together via a single `text-<name>` class. Font *family* is not
-   * part of this compound (Tailwind has no such pairing for font-family) —
+   * part of this compound (Tailwind has no such pairing for font-family), so
    * pair `text-h1` with `font-display` explicitly at the call site; `text-h3`
    * with `font-sans`, per DESIGN.md's pairing table. */
   --text-display: clamp(2.75rem, 6vw, 4.75rem);
@@ -91,7 +111,7 @@
   /* ---- Layout (DESIGN.md §3) ----------------------------------------------
    * Spacing scale: DESIGN.md's 4px-based scale (4 8 12 16 24 32 48 64 96 128)
    * is Tailwind's *default* spacing scale exactly (steps 1,2,3,4,6,8,12,16,
-   * 24,32 at the default 0.25rem/4px unit) — nothing to override here.
+   * 24,32 at the default 0.25rem/4px unit), so there is nothing to override here.
    * Breakpoints (480/768/1024/1280) are likewise Tailwind's defaults for
    * sm/md/lg/xl, so they are not redeclared. z-index has no Tailwind v4
    * theme namespace, so these are plain variables read via `var(--z-modal)`
@@ -108,7 +128,9 @@
    * `ease-out-quart` / `ease-out-expo` utilities for transition-timing-
    * function. Durations have no matching utility namespace in v4, so they
    * stay plain variables consumed by src/lib/motion.ts and by components
-   * directly (`transition-duration: var(--dur-base)`). */
+   * directly (`transition-duration: var(--dur-base)`). The GSAP side of the
+   * motion layer registers the identical curves as named CustomEases, so the
+   * CSS transitions and the tweens cannot drift apart. */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 150ms;
@@ -117,32 +139,181 @@
   --dur-exit: 170ms;
 }
 
-/*
- * Aliases matching DESIGN.md's own token names exactly (--bg, --ink,
- * --navy-800, …, without the `--color-` prefix Tailwind's utility-generation
- * namespace requires). DESIGN.md is explicit that "components read tokens,
- * never raw hex" — this keeps `var(--bg)` / `var(--navy-800)` valid for any
- * component that reads the token directly, while `@theme` above still drives
- * Tailwind's generated utility classes (`bg-navy-800`, `text-ink`, etc.) for
- * components that prefer those.
- */
+/* ===========================================================================
+ * SEMANTIC TOKENS
+ *
+ * DESIGN.md names its tokens after the colours themselves (`--navy-800`,
+ * `--bg`), which reads fine in one theme and stops being true in two: in dark
+ * mode the band surface is not navy-800 any more, it is a desaturated slate
+ * that plays the same role.
+ *
+ * So there are two sets of names here, and they point at the same values:
+ *
+ *   --surface-band, --text-on-band, --accent, …   what the token is FOR
+ *   --navy-800, --ink, --green-600, …             what DESIGN.md calls it
+ *
+ * New work should use the semantic names. The DESIGN.md names are kept, and
+ * kept accurate, so that every existing call site and every line of DESIGN.md
+ * still resolve correctly.
+ * =========================================================================== */
+
 :root {
-  --navy-900: var(--color-navy-900);
-  --navy-800: var(--color-navy-800);
-  --navy-700: var(--color-navy-700);
-  --steel-600: var(--color-steel-600);
-  --steel-400: var(--color-steel-400);
-  --green-700: var(--color-green-700);
-  --green-600: var(--color-green-600);
-  --green-500: var(--color-green-500);
-  --bg: var(--color-bg);
-  --surface: var(--color-surface);
-  --ink: var(--color-ink);
-  --ink-muted: var(--color-ink-muted);
-  --border: var(--color-border);
-  --border-navy: var(--color-border-navy);
+  color-scheme: light;
+
+  /* -- Semantic layer ------------------------------------------------------
+   * Aliases only. Every value here resolves through a `--color-*` slot, and
+   * the dark blocks further down redefine those slots, so this layer is
+   * written once and is correct in both palettes.
+   *
+   * The `--color-*` slots keep the names DESIGN.md gave them, which describe
+   * the light-mode colour. This layer says what each slot is FOR, which is
+   * what stays true when the colour changes. */
+
+  /* Surfaces, from the page outward. */
+  --surface-page: var(--color-bg); /* the off-white band */
+  --surface-raised: var(--color-surface); /* cards and the form */
+  --surface-band: var(--color-navy-800); /* full-bleed feature band */
+  --surface-band-raised: var(--color-navy-700); /* raised inside a band */
+  --surface-band-deep: var(--color-navy-900); /* footer */
+
+  /* Text. */
+  --text-primary: var(--color-ink);
+  --text-muted: var(--color-ink-muted);
+  --text-on-band-muted: var(--color-steel-400);
+
+  /* White in both palettes, because the band is a deep surface in both. These
+   * two are the only colours here that are not theme-dependent, which is why
+   * they are literals with no slot behind them. */
+  --text-on-band: #ffffff;
+  --on-accent: #ffffff;
+
+  /* The single accent. Green appears on primary CTAs and nowhere else. */
+  --accent: var(--color-green-600);
+  --accent-hover: var(--color-green-500);
+  --accent-pressed: var(--color-green-700);
+
+  /* Lines, links, focus. */
+  --line: var(--color-border);
+  --line-strong: var(--color-border-strong);
+  --line-on-band: var(--color-border-navy);
+  --link: var(--color-steel-600);
+  --focus-ring: var(--color-steel-600);
+  --focus-ring-on-band: var(--color-steel-400);
+
+  /* -- DESIGN.md's own names, mapped onto the above ----------------------- */
+  --navy-900: var(--surface-band-deep);
+  --navy-800: var(--surface-band);
+  --navy-700: var(--surface-band-raised);
+  --steel-600: var(--link);
+  --steel-400: var(--text-on-band-muted);
+  --green-700: var(--accent-pressed);
+  --green-600: var(--accent);
+  --green-500: var(--accent-hover);
+  --bg: var(--surface-page);
+  --surface: var(--surface-raised);
+  --ink: var(--text-primary);
+  --ink-muted: var(--text-muted);
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+  --border-navy: var(--line-on-band);
   --danger: var(--color-danger);
   --success: var(--color-success);
+}
+
+/* ===========================================================================
+ * DARK MODE
+ *
+ * Not an inversion. The navy family is carried across as desaturated, lighter
+ * tonal variants, and every pair below was computed rather than judged by eye.
+ * Measured contrast (WCAG 2.x, sRGB):
+ *
+ *   text-primary   #e8ecf3  on page   #0b1018   15.9:1   body
+ *   text-primary   #e8ecf3  on raised #141c29   14.4:1   cards
+ *   text-primary   #e8ecf3  on band   #1b2433   12.5:1   feature band
+ *   text-muted     #97a3b7  on page   #0b1018    7.4:1   secondary
+ *   text-muted     #97a3b7  on band   #1b2433    5.8:1   secondary on band
+ *   text-on-band   #ffffff  on band   #1b2433   15.4:1   text on band
+ *   on-band-muted  #93a5c0  on band   #1b2433    5.9:1   muted on band
+ *   on-band-muted  #93a5c0  on deep   #070b12    7.8:1   footer body
+ *   on-accent      #ffffff  on accent #2a7d5c    5.0:1   CTA label
+ *   accent         #2a7d5c  vs band   #1b2433    3.1:1   CTA boundary
+ *   accent         #2a7d5c  vs page   #0b1018    3.8:1   CTA boundary
+ *   link           #7fa9d8  on page   #0b1018    7.7:1   links
+ *   link           #7fa9d8  on band   #1b2433    6.1:1   links on band
+ *   danger         #e5675a  on raised #141c29    5.2:1   form errors
+ *   success        #46b184  on raised #141c29    6.4:1   form success
+ *   line-strong    #606d86  vs raised #141c29    3.3:1   input boundary
+ *
+ * Every body pair clears 4.5:1 and every non-text boundary clears 3:1. The
+ * one figure below 3:1 is `--accent-pressed` against the band (2.6:1), which
+ * exists only while a pointer is held down on a button the reader is already
+ * touching and whose label stays at 5.9:1 throughout.
+ *
+ * Only the `--color-*` slots are redefined below. The semantic layer and
+ * DESIGN.md's short names are pure aliases onto those slots, so every one of
+ * them follows automatically and there is exactly one place per value where a
+ * dark-mode colour is written down.
+ *
+ * The two blocks are separated on purpose. The media query is scoped to
+ * `:not([data-theme='light'])`, so a reader on a dark machine gets the dark
+ * palette from CSS alone, before any JavaScript runs and therefore with no
+ * possible flash. The attribute block after it exists only for a reader whose
+ * explicit choice disagrees with their machine; it comes second so that an
+ * explicit choice always wins the cascade. See src/lib/theme.ts.
+ * =========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --color-bg: #0b1018;
+    --color-surface: #141c29;
+    --color-navy-800: #1b2433;
+    --color-navy-700: #2a3547;
+    --color-navy-900: #070b12;
+
+    --color-ink: #e8ecf3;
+    --color-ink-muted: #97a3b7;
+    --color-steel-400: #93a5c0;
+    --color-steel-600: #7fa9d8;
+
+    --color-green-600: #2a7d5c;
+    --color-green-500: #2c8462;
+    --color-green-700: #24714f;
+
+    --color-border: #2b3442;
+    --color-border-strong: #606d86;
+    --color-border-navy: rgba(255, 255, 255, 0.16);
+
+    --color-danger: #e5675a;
+    --color-success: #46b184;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-bg: #0b1018;
+  --color-surface: #141c29;
+  --color-navy-800: #1b2433;
+  --color-navy-700: #2a3547;
+  --color-navy-900: #070b12;
+
+  --color-ink: #e8ecf3;
+  --color-ink-muted: #97a3b7;
+  --color-steel-400: #93a5c0;
+  --color-steel-600: #7fa9d8;
+
+  --color-green-600: #2a7d5c;
+  --color-green-500: #2c8462;
+  --color-green-700: #24714f;
+
+  --color-border: #2b3442;
+  --color-border-strong: #606d86;
+  --color-border-navy: rgba(255, 255, 255, 0.16);
+
+  --color-danger: #e5675a;
+  --color-success: #46b184;
 }
 
 /* ---- Base (DESIGN.md §2, §6) --------------------------------------------- */
@@ -151,15 +322,24 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+ * Native smooth scrolling, but only while Lenis is not running. When
+ * SmoothScrollProvider is active it marks <html> and takes over the wheel, and
+ * leaving `scroll-behavior: smooth` on underneath it means two smoothing
+ * systems animating the same scroll position against each other, which reads
+ * as the page fighting the reader. Under reduced motion Lenis is never
+ * created, the class is never added, and this rule is switched off by the
+ * media query anyway.
+ */
 @media (prefers-reduced-motion: no-preference) {
-  html {
+  html:not(.has-lenis-scroll) {
     scroll-behavior: smooth;
   }
 }
 
 body {
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--surface-page);
+  color: var(--text-primary);
   font-family: var(--font-sans);
 }
 
@@ -174,39 +354,120 @@ p {
 }
 
 /*
- * Accessibility floor (DESIGN.md §6): visible focus ring, 3px solid
- * steel-600, 2px offset, never removed. `:focus-visible` (not `:focus`) so
- * it only shows for keyboard/assistive-tech navigation, not every mouse
- * click — that distinction is what keeps a ring this heavy from feeling
- * like a bug on pointer input while still being non-negotiable for keyboard
- * users.
+ * Accessibility floor (DESIGN.md §6): visible focus ring, 3px solid, 2px
+ * offset, never removed. `:focus-visible` (not `:focus`) so it only shows for
+ * keyboard and assistive-tech navigation, not on every mouse click. That
+ * distinction is what keeps a ring this heavy from feeling like a bug on
+ * pointer input while still being non-negotiable for keyboard users.
  *
- * DESIGN.md also calls for "a light ring on navy surfaces". The layout
- * Section component (src/components/layout/Section.tsx, owned by another
- * builder) takes a `tone: 'light' | 'navy'` prop; this rule assumes it marks
- * navy sections with `data-tone="navy"` on the surface element so the lighter
- * ring can target it by attribute rather than by a guessed class name. If
- * Section ends up using a different marker, this selector needs updating to
- * match — flagged in the completion report.
+ * The ring lightens on navy surfaces, keyed off the `data-tone="navy"`
+ * attribute that Section, Header and Footer already set. In dark mode both
+ * variables resolve to lighter blues, because steel-600 at its light-mode
+ * value is only 2.9:1 against the dark page and would be a ring you cannot
+ * see.
  */
 :focus-visible {
-  outline: 3px solid var(--steel-600);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
+
+  /*
+   * Tailwind's `transition-colors` includes `outline-color`, and nearly every
+   * interactive component in this codebase carries it. Without this line the
+   * ring fades in from the element's previous outline colour, which is
+   * `currentColor`: on the header's white-on-navy links that means 150ms of a
+   * white ring before it becomes steel, and on a light surface it means 150ms
+   * of a ring you cannot see. A focus indicator has to be at full strength on
+   * the frame focus lands, so outline-color is dropped from the transition
+   * list here. The rest of the list is Tailwind's `transition-colors`,
+   * unchanged, so hover and press still animate normally.
+   */
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
 }
 
 [data-tone='navy'] :focus-visible {
-  outline-color: var(--steel-400);
+  outline-color: var(--focus-ring-on-band);
 }
 
-/*
- * Global reduced-motion guard (DESIGN.md §4): a real alternative, not a
- * blanket `animation: none`. Component-level motion code (src/lib/motion.ts,
- * owned by another builder) is expected to check
- * `window.matchMedia('(prefers-reduced-motion: reduce)')` itself for
- * JS-driven animation (scroll reveals, stagger, counters); this block covers
- * CSS-driven transitions/animations so nothing here depends on that JS
- * running first.
- */
+/* ---- Theme toggle glyphs -------------------------------------------------
+ * ThemeToggle ships both icons and CSS shows one, keyed off exactly the same
+ * conditions that pick the palette. Doing it in CSS rather than in React is
+ * what makes the glyph correct in the server-rendered HTML and correct on the
+ * first paint: there is no frame in which a sun sits on a dark page.
+ *
+ * The icon shows the palette that is currently active; the button's title
+ * attribute says what pressing it will do. */
+
+.theme-icon-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .theme-icon-light {
+    display: none;
+  }
+
+  :root:not([data-theme='light']) .theme-icon-dark {
+    display: inline-block;
+  }
+}
+
+:root[data-theme='dark'] .theme-icon-light {
+  display: none;
+}
+
+:root[data-theme='dark'] .theme-icon-dark {
+  display: inline-block;
+}
+
+:root[data-theme='light'] .theme-icon-light {
+  display: inline-block;
+}
+
+:root[data-theme='light'] .theme-icon-dark {
+  display: none;
+}
+
+/* ---- Lenis ---------------------------------------------------------------
+ * The stylesheet Lenis needs in order to work, transcribed rather than
+ * imported from node_modules. It is five rules, it changes about once a year,
+ * and inlining it keeps the CSS build from depending on a package's internal
+ * file layout. All five are scoped to the `lenis` classes Lenis itself puts on
+ * <html>, so none of them apply when Lenis is not running, including under
+ * reduced motion, where it is never constructed. */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ---- Reduced motion ------------------------------------------------------
+ * DESIGN.md §4 requires a real alternative rather than a blanket
+ * `animation: none`, and this block is only half of that. The JavaScript half
+ * is the important half: src/lib/motion.ts exposes `prefersReducedMotion()`,
+ * every primitive in src/components/motion calls it and returns before
+ * creating any tween, and SmoothScrollProvider never constructs Lenis at all.
+ * Reveals therefore do not run fast, they do not run; counters show their
+ * final value because that is what the markup already contained.
+ *
+ * What is left for CSS is the hover, focus and press transitions that are
+ * declared directly on components. Those are collapsed rather than removed so
+ * that state still changes, just without the travel. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

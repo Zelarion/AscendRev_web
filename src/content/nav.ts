@@ -28,7 +28,7 @@ export const globalCta: NavItem = {
 /**
  * Alias for `globalCta`. `src/components/layout/Header.tsx` (owned by another
  * builder, written concurrently with this file) imports the CTA under the
- * name `ctaItem` — SPEC.md never pinned an exact export name for it, so both
+ * name `ctaItem`, SPEC.md never pinned an exact export name for it, so both
  * builders picked independently. Kept as an alias rather than renaming
  * `globalCta` so nothing that already imports the original name breaks;
  * flagged for the orchestrator to pick one canonical name and drop the other.

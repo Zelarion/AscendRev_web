@@ -3,11 +3,13 @@ import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from 'next/font/google';
 import SkipLink from '@/components/layout/SkipLink';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { SmoothScrollProvider, ThemeScript } from '@/components/motion';
+import CookieConsent from '@/components/ui/CookieConsent';
 import { site } from '@/content/site';
 import './globals.css';
 
 /**
- * Self-hosted via next/font at build time (DESIGN.md §2) — no render-blocking
+ * Self-hosted via next/font at build time (DESIGN.md §2), no render-blocking
  * request to Google and no third-party call from a PIPEDA-scoped page.
  * `display: 'swap'` so text is never invisible while the font loads.
  */
@@ -33,7 +35,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 /**
- * SPEC.md §8: canonical base `https://ascend-rev.ca` — WITH the hyphen. The
+ * SPEC.md §8: canonical base `https://ascend-rev.ca`, WITH the hyphen. The
  * client's own requirements document has this wrong in places (SPEC.md §7
  * item 2); every URL this build emits must use the correct domain, and
  * SPEC.md §9 gate 11 fails the production build if the hyphen-less form
@@ -46,7 +48,7 @@ export const metadata: Metadata = {
     template: `%s | ${site.name}`,
   },
   description:
-    'AscendRev places dedicated front-office and back-office teams — sales, support, help desk — with North American businesses, executed from the Philippines.',
+    'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
   applicationName: site.name,
   authors: [{ name: site.legalName }],
   openGraph: {
@@ -56,14 +58,14 @@ export const metadata: Metadata = {
     url: site.url,
     title: `${site.name} | ${site.tagline}`,
     description:
-      'AscendRev places dedicated front-office and back-office teams — sales, support, help desk — with North American businesses, executed from the Philippines.',
+      'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
     images: ['/og-image.png'],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${site.name} | ${site.tagline}`,
     description:
-      'AscendRev places dedicated front-office and back-office teams — sales, support, help desk — with North American businesses, executed from the Philippines.',
+      'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
     images: ['/og-image.png'],
   },
   alternates: {
@@ -80,12 +82,24 @@ export default function RootLayout({
     <html
       lang="en-CA"
       className={`${newsreader.variable} ${plexSans.variable} ${plexMono.variable}`}
+      // ThemeScript writes data-theme on this element before React hydrates, so
+      // the server and client markup differ by design. Without this, React logs a
+      // hydration mismatch on every load.
+      suppressHydrationWarning
     >
+      <head>
+        {/* Blocking, in head, on purpose: it has to run before first paint or a
+            reader who chose dark sees a white page flash first. */}
+        <ThemeScript />
+      </head>
       <body>
         <SkipLink />
         <Header />
-        <main id="main">{children}</main>
-        <Footer />
+        <SmoothScrollProvider>
+          <main id="main">{children}</main>
+          <Footer />
+        </SmoothScrollProvider>
+        <CookieConsent />
       </body>
     </html>
   );

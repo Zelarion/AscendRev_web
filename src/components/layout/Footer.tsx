@@ -18,26 +18,26 @@ import { site } from '@/content/site';
 //   };
 // Every field beyond `contactEmail` is read defensively (optional-chained /
 // conditionally rendered) so this component doesn't throw if content.ts
-// ships without one of them — but the shape above is the real contract.
+// ships without one of them, but the shape above is the real contract.
 // See the build report for why this couldn't be pinned any tighter.
 
 // Focus-ring colour comes from globals.css's `[data-tone='navy']
 // :focus-visible` rule (steel-400), triggered by the `data-tone="navy"`
-// attribute on <footer> below — not set per-link here. See Header.tsx for
+// attribute on <footer> below, not set per-link here. See Header.tsx for
 // the fuller explanation of why that rule wins over any Tailwind utility.
 const legalLinkClassName = 'outline-none transition-colors hover:text-white';
 
 export default function Footer(): JSX.Element {
   return (
-    <footer data-tone="navy" className="w-full bg-[--navy-900] text-[--steel-400]">
+    <footer data-tone="navy" className="w-full bg-[var(--navy-900)] text-[var(--steel-400)]">
       <div className="mx-auto max-w-[1200px] px-[clamp(1.25rem,5vw,4rem)] py-16">
-        <div className="grid gap-12 border-b border-[--border-navy] pb-12 md:grid-cols-3">
+        <div className="grid gap-12 border-b border-[var(--border-navy)] pb-12 md:grid-cols-3">
           <div>
             <p className="text-lg font-medium text-white">{site.companyName}</p>
 
             <div className="mt-4 space-y-2 text-sm">
               {/* site.contactEmail is deliberately null until §7 item 2 (the
-                  wrong-domain address) is resolved with the client — do not
+                  wrong-domain address) is resolved with the client, do not
                   invent or hardcode a fallback address here. */}
               {site.contactEmail && (
                 <p>
@@ -89,7 +89,7 @@ export default function Footer(): JSX.Element {
         {/* The SLA/response-time trust line, in the mono `label` style
             (DESIGN.md §2: Plex Mono 500, 0.75rem, tracking 0.06em,
             uppercase). Per SPEC.md §7 item 7, this must be a plain factual
-            sentence — "Data handled under executive compliance" is banned
+            sentence, "Data handled under executive compliance" is banned
             as meaningless copy, not this component's call to rewrite. */}
         {site.slaLine && (
           <p className="mt-8 font-mono text-[0.75rem] font-medium uppercase leading-[1.4] tracking-[0.06em]">

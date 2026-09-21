@@ -14,7 +14,7 @@ export default function SkipLink(): JSX.Element {
   return (
     <a
       href="#main"
-      className="fixed left-4 top-4 z-[--z-toast] -translate-y-[calc(100%+1rem)] bg-[--surface] px-4 py-3 text-sm font-medium text-[--ink] outline-none transition-transform focus:translate-y-0"
+      className="fixed left-4 top-4 z-[var(--z-toast)] -translate-y-[calc(100%+1rem)] bg-[var(--surface)] px-4 py-3 text-sm font-medium text-[var(--ink)] outline-none transition-transform focus:translate-y-0"
       style={{
         transitionDuration: 'var(--dur-fast)',
         transitionTimingFunction: 'var(--ease-out-quart)',

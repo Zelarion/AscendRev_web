@@ -13,5 +13,5 @@ interface ProseProps {
  * TS/csstype version in this toolchain is guaranteed to type `textWrap`.
  */
 export default function Prose({ children, className }: ProseProps): JSX.Element {
-  return <div className={cn('max-w-[68ch] text-[--ink] [text-wrap:pretty]', className)}>{children}</div>;
+  return <div className={cn('max-w-[68ch] text-[var(--ink)] [text-wrap:pretty]', className)}>{children}</div>;
 }

@@ -1,92 +1,102 @@
 'use client';
 
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useRef, type RefObject } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { registerMotion } from '@/components/motion/registerMotion';
+import {
+  DUR_SLOW,
+  EASE_OUT_EXPO,
+  isBelowRevealLine,
+  prefersReducedMotion,
+  REVEAL_START,
+  REVEAL_Y,
+  STAGGER_MAX_ITEMS,
+  STAGGER_STEP,
+} from '@/lib/motion';
 
 interface UseRevealOptions {
-  /** Fraction of the element that must be visible before it fires. */
-  threshold?: number;
-  /** IntersectionObserver rootMargin. Negative bottom margin fires the
-   * reveal slightly before the element reaches the very bottom edge of the
-   * viewport, which reads as more responsive on fast scroll. */
-  rootMargin?: string;
-}
-
-interface UseRevealResult<T extends HTMLElement> {
-  ref: RefObject<T | null>;
-  /** True once the element has intersected (or immediately, under reduced
-   * motion / no-IntersectionObserver environments). Fires once and never
-   * resets. */
-  isRevealed: boolean;
-  /** Live `prefers-reduced-motion: reduce` state, exposed so callers can
-   * choose an instant-vs-animated presentation rather than just a
-   * hidden-vs-visible one (e.g. stat counters skip the count-up entirely). */
-  prefersReducedMotion: boolean;
+  /** Seconds to hold before the reveal starts. */
+  delay?: number;
+  /**
+   * When set, the hook reveals the element's direct children on a cascade
+   * instead of the element itself. Past STAGGER_MAX_ITEMS the cascade is
+   * dropped and every child reveals together, because a 60ms step across
+   * twenty items is a waterfall, not a reveal (DESIGN.md §4).
+   */
+  stagger?: boolean;
 }
 
 /**
- * Scroll-reveal primitive shared by Reveal and Stagger. Fires once via
- * IntersectionObserver and always respects
- * `window.matchMedia('(prefers-reduced-motion: reduce)')` — when the user
- * has that preference, `isRevealed` resolves to `true` immediately instead
- * of waiting on intersection, so the caller's "hidden" state is never
- * applied at all.
+ * The scroll-reveal primitive shared by Reveal and Stagger: a 14px rise plus
+ * an opacity fade, 600ms on ease-out-expo, fired once (DESIGN.md §4).
  *
- * This hook only decides *whether* an enhancement should run. It does not
- * decide the element's default visibility — callers (Reveal, Stagger) are
- * responsible for shipping visible-by-default markup per DESIGN.md §4.
+ * Three things make this safe to put on server-rendered content, and all
+ * three are requirements rather than refinements:
+ *
+ *  1. Nothing is ever hidden by a class or a style the server emits. The
+ *     hidden state is written by GSAP, on the client, after hydration.
+ *  2. An element already on screen when the hook runs is left completely
+ *     alone (isBelowRevealLine). Hiding it to reveal it would be a blink, and
+ *     the reveal is meant to enhance an already-visible default.
+ *  3. Under `prefers-reduced-motion: reduce` the hook does nothing at all, so
+ *     content stays exactly as rendered.
+ *
+ * With JavaScript disabled, none of this runs and the page is complete.
+ *
+ * `useGSAP` reverts every tween it created, and kills the ScrollTriggers with
+ * them, when the component unmounts. That is why the cleanup here looks
+ * absent: it is the hook's contract, not an omission.
  */
 export function useReveal<T extends HTMLElement = HTMLDivElement>(
   options: UseRevealOptions = {}
-): UseRevealResult<T> {
-  const { threshold = 0.15, rootMargin = '0px 0px -10% 0px' } = options;
+): RefObject<T | null> {
+  const { delay = 0, stagger = false } = options;
   const ref = useRef<T | null>(null);
-  const [isRevealed, setIsRevealed] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
+  useGSAP(
+    () => {
+      const element = ref.current;
+      if (!element) return;
+      if (prefersReducedMotion()) return;
 
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches);
-    };
+      registerMotion();
 
-    // addEventListener is the modern API; Safari < 14 needs addListener, but
-    // the App Router's target browser matrix (per SPEC.md's Lighthouse/axe
-    // gates) does not require that fallback.
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+      // Staggering reveals the children; otherwise the element itself moves.
+      const targets: Element[] = stagger ? Array.from(element.children) : [element];
+      if (targets.length === 0) return;
 
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      setIsRevealed(true);
-      return;
-    }
+      // Measured against the element, not each child, so a grid whose first
+      // row is already on screen does not half-animate.
+      if (!isBelowRevealLine(element)) return;
 
-    const node = ref.current;
-    if (!node) return;
+      const withinCap = targets.length <= STAGGER_MAX_ITEMS;
 
-    if (typeof IntersectionObserver === 'undefined') {
-      // No observer support: fail open to visible rather than never firing.
-      setIsRevealed(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry?.isIntersecting) {
-          setIsRevealed(true);
-          observer.disconnect(); // fires once
+      gsap.fromTo(
+        targets,
+        { opacity: 0, y: REVEAL_Y },
+        {
+          opacity: 1,
+          y: 0,
+          duration: DUR_SLOW,
+          ease: EASE_OUT_EXPO,
+          delay,
+          stagger: stagger && withinCap ? STAGGER_STEP : 0,
+          // Clear the inline transform and opacity when the tween finishes so
+          // the element goes back to being plain markup. Leaving a residual
+          // `opacity: 1` and a transform behind would keep a compositor layer
+          // alive on every revealed element for the life of the page.
+          clearProps: 'opacity,transform',
+          scrollTrigger: {
+            trigger: element,
+            start: REVEAL_START,
+            once: true,
+          },
         }
-      },
-      { threshold, rootMargin }
-    );
+      );
+    },
+    { dependencies: [delay, stagger] }
+  );
 
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [prefersReducedMotion, threshold, rootMargin]);
-
-  return { ref, isRevealed, prefersReducedMotion };
+  return ref;
 }

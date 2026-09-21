@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AscendRev Outsourcing Services Corp.</title>
+<meta name="description" content="AscendRev Outsourcing Services Corp. provides fully managed front office and back office teams, based in the Philippines, for businesses across North America.">
+<link rel="canonical" href="https://ascend-rev.ca/">
+<meta name="theme-color" content="#0F1B33">
+<link rel="icon" href="favicon.png" sizes="any">
+<link rel="apple-touch-icon" href="favicon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AscendRev Outsourcing Services Corp.">
+<meta property="og:title" content="AscendRev Outsourcing Services Corp.">
+<meta property="og:description" content="Fully managed front office and back office teams, based in the Philippines, for businesses across North America.">
+<meta property="og:url" content="https://ascend-rev.ca/">
+<meta property="og:image" content="https://ascend-rev.ca/hero-desktop.jpg">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AscendRev Outsourcing Services Corp.">
+<meta name="twitter:description" content="Fully managed front office and back office teams, based in the Philippines, for businesses across North America.">
+<meta name="twitter:image" content="https://ascend-rev.ca/hero-desktop.jpg">
+
+<style>
+/* Colours sampled from the approved reference mockup rather than guessed:
+   the green rule reads #267455, the gold rule #EBCB89, the email line #E9BB75.
+   The navy family comes from the project design system so the full site, when
+   it replaces this page, is a continuation rather than a different brand. */
+:root{
+  --navy-900:#0F1B33;
+  --navy-800:#192B51;
+  --rule-green:#267455;
+  --rule-gold:#EBCB89;
+  --link-gold:#E9BB75;
+  --link-gold-hover:#F6C980;
+  --bg:#FCFCFD;
+  --ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+  --gutter:clamp(1.5rem,5.8vw,5.5rem);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  min-height:100dvh;
+  background:var(--navy-900);
+  color:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,"Noto Sans",sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+.stage{position:relative;min-height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.stage__media{position:absolute;inset:0;z-index:0}
+/* <picture> is display:inline by default and carries no dimensions, so a
+   percentage height on the <img> inside it has nothing to resolve against
+   and the image lays out at zero. display:contents removes the wrapper from
+   layout entirely so the <img> sizes against .stage__media as intended. */
+.stage__media picture{display:contents}
+.stage__media img{width:100%;height:100%;object-fit:cover;object-position:center 42%;display:block}
+
+/* The masked blur from the reference. A second copy of the same photograph sits
+   over the first, blurred, and is masked so it is absent in the middle and fully
+   present at the edges. The centre therefore stays sharp while the frame softens,
+   which is what holds the eye on the headline. Scaled up slightly so the blur
+   does not pull transparent pixels in from beyond the edge. */
+.stage__media--blur{
+  z-index:1;
+  filter:blur(22px);
+  transform:scale(1.08);
+  -webkit-mask-image:radial-gradient(ellipse 82% 76% at 46% 48%, rgba(0,0,0,0) 52%, rgba(0,0,0,.55) 80%, #000 100%);
+  mask-image:radial-gradient(ellipse 82% 76% at 46% 48%, rgba(0,0,0,0) 52%, rgba(0,0,0,.55) 80%, #000 100%);
+}
+
+/* White text over a city photograph fails contrast in the bright window clusters,
+   so the scrim is what makes the page readable rather than merely dark. */
+.stage__scrim{
+  position:absolute;inset:0;z-index:2;
+  /* Two stacked gradients MULTIPLY. The previous values compounded to 70 percent
+     navy at the lightest point and buried the photograph entirely, which the
+     contrast arithmetic did not catch because contrast was never the problem.
+     These keep the city legible in the open right side while staying heavy
+     enough behind the text on the lower left. */
+  background:
+    linear-gradient(180deg, rgba(15,27,51,.52) 0%, rgba(15,27,51,.20) 38%, rgba(15,27,51,.78) 100%),
+    linear-gradient(100deg, rgba(15,27,51,.70) 0%, rgba(15,27,51,.34) 46%, rgba(15,27,51,.10) 72%, rgba(15,27,51,.26) 100%);
+}
+
+.stage__inner{
+  position:relative;z-index:3;
+  flex:1;display:flex;flex-direction:column;
+  padding:clamp(2rem,5vh,3.5rem) var(--gutter) clamp(2rem,5vh,3.5rem);
+  max-width:1440px;width:100%;margin:0 auto;
+}
+
+.brand img{width:clamp(210px,27vw,340px);height:auto;display:block}
+
+main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:clamp(2rem,6vh,4rem) 0}
+
+h1{
+  font-family:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype","Times New Roman",serif;
+  font-weight:600;
+  font-size:clamp(2.75rem,8.2vw,5.75rem);
+  line-height:1.02;
+  letter-spacing:-0.022em;
+  margin:0;
+  text-wrap:balance;
+  max-width:14ch;
+}
+
+/* Measured from the reference: green 74px, gold 538px, 8px between them, which
+   puts the gold at roughly two thirds of the headline's own width. */
+.rules{
+  display:flex;align-items:center;gap:8px;
+  margin:clamp(1.4rem,3.4vh,2.1rem) 0 clamp(1.3rem,3vh,1.8rem);
+  max-width:min(612px,92%);
+}
+.rules span{display:block;height:3px;border-radius:1.5px}
+.rules span:first-child{width:74px;flex:none;background:var(--rule-green)}
+.rules span:last-child{flex:1;background:var(--rule-gold)}
+
+.lede{
+  margin:0;
+  font-size:clamp(1.0625rem,2vw,1.4rem);
+  line-height:1.5;
+  max-width:31ch;
+  text-wrap:pretty;
+}
+
+.contact{display:flex;align-items:center;gap:.72rem;margin-top:clamp(2rem,6vh,4rem)}
+.contact svg{flex:none;width:23px;height:23px;color:var(--link-gold)}
+.contact a{
+  color:var(--link-gold);
+  font-size:clamp(.9375rem,1.6vw,1.0625rem);
+  text-decoration:none;
+  border-bottom:1px solid rgba(233,187,117,.38);
+  padding-bottom:2px;
+  transition:color 180ms var(--ease-out-expo),border-color 180ms var(--ease-out-expo);
+}
+.contact a:hover{color:var(--link-gold-hover);border-bottom-color:var(--link-gold-hover)}
+
+a:focus-visible{outline:3px solid var(--bg);outline-offset:3px;border-radius:2px}
+.skip{position:absolute;left:-9999px;top:0;z-index:6;background:var(--navy-800);color:var(--bg);padding:.75rem 1.25rem;border-radius:4px}
+.skip:focus{left:var(--gutter);top:1rem}
+
+/* Entrance only. The page is complete and readable first, so a failed stylesheet
+   or a headless renderer still shows everything. */
+@media (prefers-reduced-motion: no-preference){
+  .rise{animation:rise 900ms var(--ease-out-expo) both}
+  .rise-1{animation-delay:80ms}
+  .rise-2{animation-delay:200ms}
+  .rise-3{animation-delay:320ms}
+  .rise-4{animation-delay:420ms}
+  .rise-5{animation-delay:540ms}
+  .stage__media img{animation:settle 2600ms var(--ease-out-expo) both}
+}
+@keyframes rise{from{opacity:0;transform:translate3d(0,18px,0)}to{opacity:1;transform:none}}
+@keyframes settle{from{transform:scale(1.06)}to{transform:scale(1)}}
+.stage__media--blur img{animation:none}
+
+@media (max-width:767px){
+  .brand{display:flex;justify-content:center}
+  main{text-align:center;align-items:center}
+  h1{max-width:11ch}
+  .rules{justify-content:center;max-width:82%}
+  .rules span:first-child{width:54px}
+  .lede{max-width:28ch}
+  .contact{justify-content:center}
+  .stage__media--blur{filter:blur(16px)}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<div class="stage">
+  <div class="stage__media">
+    <picture>
+      <source media="(max-width: 767px)" type="image/webp" srcset="hero-mobile.webp">
+      <source media="(max-width: 767px)" srcset="hero-mobile.jpg">
+      <source type="image/webp" srcset="hero-desktop.webp">
+      <img src="hero-desktop.jpg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
+    </picture>
+  </div>
+  <div class="stage__media stage__media--blur" aria-hidden="true">
+    <picture>
+      <source media="(max-width: 767px)" type="image/webp" srcset="hero-mobile.webp">
+      <source media="(max-width: 767px)" srcset="hero-mobile.jpg">
+      <source type="image/webp" srcset="hero-desktop.webp">
+      <img src="hero-desktop.jpg" alt="" width="1920" height="1080" decoding="async">
+    </picture>
+  </div>
+  <div class="stage__scrim"></div>
+
+  <div class="stage__inner">
+    <header class="brand rise rise-1">
+      <img src="logo.png" alt="AscendRev Outsourcing and Offshoring Solutions" width="640" height="263">
+    </header>
+
+    <main id="main">
+      <h1 class="rise rise-2">Work in progress</h1>
+      <div class="rules rise rise-3" aria-hidden="true"><span></span><span></span></div>
+      <p class="lede rise rise-4">Our new site is on the way. Please visit us again soon.</p>
+      <p class="contact rise rise-5">
+        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05L203.43,192H52.57ZM157.29,128,216,74.19V181.81Z"></path>
+        </svg>
+        <a href="mailto:rio.vidal@ascend-rev.ca">rio.vidal@ascend-rev.ca</a>
+      </p>
+    </main>
+  </div>
+</div>
+</body>
+</html>

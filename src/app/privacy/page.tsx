@@ -13,7 +13,7 @@ export const metadata: Metadata = {
  * Privacy stub (SPEC.md §10 build order: this pass is scaffold only).
  * SPEC.md §3: to be built from the document already prepared in
  * `requirements/`. SPEC.md §7 item 7 makes this page a hard prerequisite for
- * launch — the enquiry form collects personal information from people in
+ * launch, the enquiry form collects personal information from people in
  * Canada, so this cannot ship as a placeholder past the content pass.
  */
 export default function PrivacyPage() {

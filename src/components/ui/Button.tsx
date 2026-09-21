@@ -4,7 +4,7 @@ import { CircleNotch } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { hoverTransitionStyle } from '@/lib/motion';
 
-// No 'use client' directive: Button holds no state and calls no hooks — it
+// No 'use client' directive: Button holds no state and calls no hooks, it
 // is a pure, prop-driven leaf. That lets it render as plain static markup
 // when used from a server-rendered section, and work identically with
 // onClick/pending wired up when composed under a client parent (e.g. the
@@ -18,7 +18,7 @@ interface ButtonBaseProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   /** Real pending state: shows a spinner, sets aria-busy, and forces
-   * disabled=true. Not opacity alone — see DESIGN.md/SPEC.md §5. */
+   * disabled=true. Not opacity alone, see DESIGN.md/SPEC.md §5. */
   pending?: boolean;
   className?: string;
 }
@@ -45,12 +45,12 @@ const sizeClasses: Record<ButtonSize, string> = {
 // `:focus-visible` rule (steel-600) and its `[data-tone='navy']
 // :focus-visible` override (steel-400) already handle it, keyed off
 // whichever ancestor Section/Header/Footer sets `data-tone`. That's what
-// actually makes `secondary` correct "on navy" — it inherits the lighter
+// actually makes `secondary` correct "on navy", it inherits the lighter
 // ring from context instead of guessing its own background here.
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-[--green-600] text-white hover:bg-[--green-500] active:bg-[--green-700]',
+  primary: 'bg-[var(--green-600)] text-white hover:bg-[var(--green-500)] active:bg-[var(--green-700)]',
   secondary: 'border border-white bg-transparent text-white hover:bg-white/10',
-  ghost: 'bg-transparent text-[--ink] hover:bg-[--border]/50',
+  ghost: 'bg-transparent text-[var(--ink)] hover:bg-[var(--border)]/50',
 };
 
 export default function Button({

@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 /**
  * Contact stub (SPEC.md §10 build order: this pass is scaffold only).
- * Real content — "What to Expect" numbered sequence and the two-step
- * enquiry form (SPEC.md §4.4, §6) — lands in the pass that also builds
+ * Real content, "What to Expect" numbered sequence and the two-step
+ * enquiry form (SPEC.md §4.4, §6), lands in the pass that also builds
  * public/api/enquiry.php, once copy exists in src/content/contact.ts.
  */
 export default function ContactPage() {

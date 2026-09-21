@@ -1,70 +1,41 @@
 'use client';
 
-import { type JSX, useEffect, useState, type ReactNode } from 'react';
-import { motion } from 'motion/react';
+import { createElement, type JSX, type ReactNode } from 'react';
 import { useReveal } from '@/lib/useReveal';
-import { revealTransition, revealVariants } from '@/lib/motion';
 import { cn } from '@/lib/cn';
 
 type RevealElement = 'div' | 'section' | 'li' | 'article' | 'span';
 
 interface RevealProps {
   children: ReactNode;
+  /** Seconds to hold before the reveal starts. */
   delay?: number;
   as?: RevealElement;
   className?: string;
 }
 
 /**
- * DESIGN.md §4, non-negotiable: children render VISIBLE by default. The
- * hidden-then-revealed state is applied only after hydration confirms
- * motion is wanted — never as the element's shipped/initial state. A
- * headless render, a hidden tab, disabled JS, or a failed bundle must still
- * show complete, visible content.
+ * Wraps content in DESIGN.md §4's single scroll-reveal shape: a 14px rise and
+ * an opacity fade, 600ms on ease-out-expo, fired once.
  *
- * How this is guaranteed here: `hasMounted` starts false and is only ever
- * flipped true inside a `useEffect`, which never runs on the server and
- * never runs before first paint on the client. Until it flips,
- * `animateTarget` is hard-pinned to 'visible' regardless of scroll
- * position — so the server-rendered HTML, and the first client paint
- * before hydration completes, are always the fully visible state. Only
- * after mount does isRevealed/prefersReducedMotion (from useReveal) get a
- * say in whether to show the pre-reveal 'hidden' state while off-screen.
+ * The non-negotiable part of that section is that reveals enhance an
+ * already-visible default. This component emits exactly one plain element
+ * with the caller's className and nothing else. There is no hidden class, no
+ * zero-opacity initial style, and no wrapper that a transition later removes,
+ * so the server-rendered HTML is the finished, readable page. Everything the
+ * reveal needs is applied by GSAP after hydration, and only to elements still
+ * below the fold. See useReveal for why that distinction matters.
  */
-export default function Reveal({ children, delay = 0, as = 'div', className }: RevealProps): JSX.Element {
-  const [hasMounted, setHasMounted] = useState(false);
-  // Typed as HTMLElement (the shared base of div/section/li/article/span)
-  // rather than a specific tag, since `as` picks the concrete tag at
-  // runtime — IntersectionObserver only needs *an* Element, so this loses
-  // no real capability.
-  const { ref, isRevealed, prefersReducedMotion } = useReveal<HTMLElement>();
+export default function Reveal({
+  children,
+  delay = 0,
+  as = 'div',
+  className,
+}: RevealProps): JSX.Element {
+  const ref = useReveal<HTMLElement>({ delay });
 
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  const shouldAnimate = hasMounted && !prefersReducedMotion;
-  const animateTarget = !shouldAnimate || isRevealed ? 'visible' : 'hidden';
-
-  // `motion[as]` resolves to a different concrete component (and a
-  // differently-tag-typed `ref`) per value of `as`. Fully typing that
-  // polymorphism through to a single shared `ref` isn't worth the
-  // machinery for five known tags, so it's deliberately untyped at this
-  // one internal boundary; Reveal's own public props (above) stay strictly
-  // typed for callers, and the runtime behavior is identical for every tag.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MotionTag = motion[as] as any;
-
-  return (
-    <MotionTag
-      ref={ref}
-      initial={false}
-      animate={animateTarget}
-      variants={revealVariants}
-      transition={{ ...revealTransition, delay }}
-      className={cn(className)}
-    >
-      {children}
-    </MotionTag>
-  );
+  // createElement rather than a `motion[as]` lookup: `as` is a plain tag here,
+  // so there is no polymorphic component to resolve and no `any` to launder a
+  // mismatched ref type through.
+  return createElement(as, { ref, className: cn(className) }, children);
 }

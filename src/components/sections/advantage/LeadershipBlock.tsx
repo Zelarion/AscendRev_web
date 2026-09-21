@@ -1,8 +1,8 @@
 import type { JSX } from 'react';
+import Image from 'next/image';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import { WordReveal } from '@/components/motion';
-import ImagePlaceholder from '@/components/ui/ImagePlaceholder';
 import Reveal from '@/components/ui/Reveal';
 import Stagger from '@/components/ui/Stagger';
 import { advantage } from '@/content/advantage';
@@ -21,7 +21,8 @@ import { advantage } from '@/content/advantage';
  * either of these pages a rule is drawn in the text colour rather than in
  * `--border`. Everything below it is read through it.
  *
- * Structure is portrait left, narrative right, per the spec.
+ * Structure is visual left, narrative right, per the spec. The local city
+ * image is used as an editorial brand visual, not as a portrait.
  */
 
 /** Tracked mono label. Duplicated across this page's sections deliberately:
@@ -33,12 +34,14 @@ const RECORD_LABEL =
  * bottom rule anywhere, so a group reads as a set rather than as a stack of
  * boxed lines. */
 const SHEET_ROW = 'border-t border-[var(--border)] py-5';
+const BRAND_VISUAL_SRC = '/video/hero-poster.jpg';
+const BRAND_VISUAL_ALT =
+  'Nighttime city street used as an AscendRev editorial brand visual.';
 
 export default function LeadershipBlock(): JSX.Element {
   const {
     id,
     heading,
-    portrait,
     name,
     role,
     location,
@@ -65,12 +68,20 @@ export default function LeadershipBlock(): JSX.Element {
 
         <Stagger className="mt-14 grid gap-x-16 gap-y-12 md:grid-cols-12">
           <div className="md:col-span-5">
-            <ImagePlaceholder
-              label={portrait.label}
-              ratio={portrait.ratio}
-              minWidth={portrait.minWidth}
-              className="rounded-[10px]"
-            />
+            <figure>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--navy)]">
+                <Image
+                  src={BRAND_VISUAL_SRC}
+                  alt={BRAND_VISUAL_ALT}
+                  fill
+                  sizes="(min-width: 768px) 42vw, 100vw"
+                  className="object-cover brightness-[0.82] saturate-[0.78]"
+                />
+              </div>
+              <figcaption className="mt-4 text-small text-[var(--ink-muted)]">
+                Editorial brand visual, not a portrait.
+              </figcaption>
+            </figure>
             <p className="mt-8 text-h3 text-[var(--ink)]">{name}</p>
             <p className="mt-1 text-body text-[var(--ink-muted)]">{role}</p>
             <p className="mt-4 font-mono text-label uppercase text-[var(--ink-muted)]">

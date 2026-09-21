@@ -5,6 +5,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { SmoothScrollProvider, ThemeScript } from '@/components/motion';
 import CookieConsent from '@/components/ui/CookieConsent';
+import PageLoader from '@/components/ui/PageLoader';
 import { site } from '@/content/site';
 import './globals.css';
 
@@ -51,6 +52,11 @@ export const metadata: Metadata = {
     'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
   applicationName: site.name,
   authors: [{ name: site.legalName }],
+  icons: {
+    icon: [{ url: '/favicon.png', type: 'image/png' }],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
   openGraph: {
     type: 'website',
     siteName: site.name,
@@ -59,14 +65,14 @@ export const metadata: Metadata = {
     title: `${site.name} | ${site.tagline}`,
     description:
       'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
-    images: ['/og-image.png'],
+    images: ['/og-image.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${site.name} | ${site.tagline}`,
     description:
       'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
-    images: ['/og-image.png'],
+    images: ['/og-image.jpg'],
   },
   alternates: {
     canonical: '/',
@@ -93,6 +99,7 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body>
+        <PageLoader />
         <SkipLink />
         <Header />
         <SmoothScrollProvider>

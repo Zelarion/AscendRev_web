@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
+import Image from 'next/image';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
-import ImagePlaceholder from '@/components/ui/ImagePlaceholder';
 import Reveal from '@/components/ui/Reveal';
 import Stagger from '@/components/ui/Stagger';
 import { advantage } from '@/content/advantage';
@@ -17,16 +17,11 @@ import { advantage } from '@/content/advantage';
  *     attribution: full-strength `--ink`, weight 500, between ink hairlines.
  *     A reader who reads only the heading and the next block has still been
  *     told the facility is not built.
- *  2. The image slot renders `ImagePlaceholder`. No photograph of this
- *     workspace exists, and DESIGN.md §5 forbids substituting one that is not
- *     AscendRev's own. The placeholder is also what fails the production build
- *     (SPEC.md §9 gate 2) while the slot is unfilled, which is the intended
- *     behaviour.
- *  3. The slot is not styled as a hero image and is not captioned as though a
- *     photograph were imminent. It sits at a modest measure and carries the
- *     content's own note directly beneath it, which is a statement about what
- *     will never appear on this page. The empty frame and that sentence are
- *     meant to be read together.
+ *  2. The local city image is used as a restrained brand visual. It is not
+ *     presented as a photograph of AscendRev's workspace.
+ *  3. The visual sits at a modest measure and carries the content's own note
+ *     directly beneath it, which is a statement about what will never appear
+ *     on this page.
  *
  * The commitments are last, so the page states what is true before it states
  * what is promised.
@@ -34,9 +29,12 @@ import { advantage } from '@/content/advantage';
 
 const SECTION_LABEL =
   'font-mono text-small font-medium uppercase tracking-[0.3em] text-[var(--ink)]';
+const BRAND_VISUAL_SRC = '/video/hero-poster.jpg';
+const BRAND_VISUAL_ALT =
+  'Nighttime city street used as an AscendRev editorial brand visual.';
 
 export default function InfrastructureBlock(): JSX.Element {
-  const { heading, status, intro, image, commitmentsHeading, commitments, note } =
+  const { heading, status, intro, commitmentsHeading, commitments, note } =
     advantage.infrastructure;
 
   return (
@@ -55,14 +53,18 @@ export default function InfrastructureBlock(): JSX.Element {
 
         <Reveal as="div" className="mt-16">
           <figure className="max-w-[820px]">
-            <ImagePlaceholder
-              label={image.label}
-              ratio={image.ratio}
-              minWidth={image.minWidth}
-              className="rounded-[10px]"
-            />
+            <div className="relative aspect-[3/2] overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--navy)]">
+              <Image
+                src={BRAND_VISUAL_SRC}
+                alt={BRAND_VISUAL_ALT}
+                fill
+                sizes="(min-width: 1024px) 820px, 100vw"
+                className="object-cover brightness-[0.82] saturate-[0.78]"
+              />
+            </div>
             <figcaption className="mt-6 max-w-[68ch] text-body text-[var(--ink-muted)]">
-              {note}
+              <p>Editorial brand visual, not a photograph of an AscendRev facility.</p>
+              <p className="mt-3">{note}</p>
             </figcaption>
           </figure>
         </Reveal>

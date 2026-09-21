@@ -40,7 +40,7 @@ export default function Header(): JSX.Element {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
-  const firstMobileLinkRef = useRef<HTMLAnchorElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD_PX);
@@ -66,7 +66,7 @@ export default function Header(): JSX.Element {
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    firstMobileLinkRef.current?.focus();
+    closeButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -123,18 +123,29 @@ export default function Header(): JSX.Element {
         <Link
           href="/"
           aria-label="AscendRev home"
-          className="flex items-center outline-none"
+          className="flex min-h-11 items-center outline-none"
         >
-          {/* The client supplied a raster logo only. The scalable version is a
-              Zelarion deliverable on this engagement and does not exist yet, so
-              this points at the real PNG in the meantime: a missing /logo.svg
-              rendered a broken image on every page. Swap to /logo.svg once it
-              is produced (SPEC.md §10 step 7). */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- static export
-              runs with images.unoptimized, so next/image adds a wrapper and no
-              benefit. width/height match the source aspect (642x280) exactly,
-              so the reserved box is correct and the header adds no layout shift. */}
-          <img src="/logo.png" alt="AscendRev" width={92} height={40} className="h-8 w-auto" />
+          {/* This is the transparent holding-page asset, preserving the white
+              interior details of the supplied shield logo. */}
+          <span className="relative isolate inline-flex items-center justify-center">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-5 -z-10 rounded-full blur-[16px]"
+              style={{
+                background:
+                  'radial-gradient(ellipse 62% 78% at 50% 50%, rgba(255,255,255,.92) 0%, rgba(255,255,255,.48) 42%, rgba(255,255,255,0) 82%)',
+              }}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element -- static export
+                keeps the logo free of an image-optimizer dependency. */}
+            <img
+              src="/ascendrev-logo.png"
+              alt="AscendRev"
+              width={120}
+              height={52}
+              className="h-12 w-auto object-contain md:h-14"
+            />
+          </span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-8 md:flex">
@@ -146,7 +157,7 @@ export default function Header(): JSX.Element {
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'text-sm text-white outline-none transition-colors',
+                  'inline-flex min-h-11 items-center text-sm text-white outline-none transition-colors',
                   active ? 'font-semibold' : 'font-medium'
                 )}
                 style={hoverTransitionStyle}
@@ -170,17 +181,18 @@ export default function Header(): JSX.Element {
 
         <div className="flex items-center gap-1 md:hidden">
           <ThemeToggle />
-        <button
-          ref={toggleRef}
-          type="button"
-          aria-expanded={menuOpen}
-          aria-controls="mobile-nav-sheet"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          onClick={() => setMenuOpen((open) => !open)}
-          className="flex h-11 w-11 items-center justify-center text-white outline-none md:hidden"
-        >
-          {menuOpen ? <X size={24} weight="regular" /> : <List size={24} weight="regular" />}
-        </button>
+          <button
+            ref={toggleRef}
+            type="button"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav-sheet"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            onClick={() => setMenuOpen((open) => !open)}
+            className="flex h-11 w-11 items-center justify-center text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98] md:hidden"
+            style={hoverTransitionStyle}
+          >
+            {menuOpen ? <X size={24} weight="regular" /> : <List size={24} weight="regular" />}
+          </button>
         </div>
       </div>
 
@@ -191,19 +203,35 @@ export default function Header(): JSX.Element {
           role="dialog"
           aria-modal="true"
           aria-label="Mobile navigation"
-          className="fixed inset-0 z-[var(--z-modal)] flex flex-col bg-[var(--navy-800)] px-[clamp(1.25rem,5vw,4rem)] pb-8 pt-28"
+          className="fixed inset-x-0 bottom-0 top-20 z-[var(--z-modal)] flex min-h-0 flex-col bg-[var(--navy-800)] px-[clamp(1.25rem,5vw,4rem)] pb-6 pt-5 md:hidden"
         >
-          <nav aria-label="Mobile primary" className="flex flex-1 flex-col gap-6">
-            {navItems.map((item, index) => {
+          <div className="flex items-center justify-between border-b border-[var(--border-navy)] pb-4">
+            <p className="text-sm font-medium text-[var(--steel-400)]">Navigation</p>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={closeMenu}
+              className="inline-flex h-11 w-11 items-center justify-center text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98]"
+              aria-label="Close navigation"
+              style={hoverTransitionStyle}
+            >
+              <X size={24} weight="regular" />
+            </button>
+          </div>
+
+          <nav aria-label="Mobile primary" className="flex flex-1 flex-col gap-2 py-5">
+            {navItems.map((item) => {
               const active = isActiveRoute(pathname, item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  ref={index === 0 ? firstMobileLinkRef : undefined}
                   aria-current={active ? 'page' : undefined}
                   onClick={closeMenu}
-                  className={cn('text-2xl text-white outline-none', active ? 'font-semibold' : 'font-medium')}
+                  className={cn(
+                    'inline-flex min-h-11 items-center text-2xl text-white outline-none',
+                    active ? 'font-semibold' : 'font-medium'
+                  )}
                 >
                   {item.label}
                 </Link>
@@ -214,7 +242,7 @@ export default function Header(): JSX.Element {
           <Link
             href={ctaItem.href}
             onClick={closeMenu}
-            className="inline-flex min-h-11 items-center justify-center rounded-[6px] bg-[var(--green-600)] px-5 py-3 text-center text-sm font-medium text-white outline-none transition-colors hover:bg-[var(--green-500)] active:scale-[0.98] active:bg-[var(--green-700)]"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[6px] bg-[var(--green-600)] px-5 py-3 text-center text-sm font-medium text-white outline-none transition-colors hover:bg-[var(--green-500)] active:scale-[0.98] active:bg-[var(--green-700)]"
             style={hoverTransitionStyle}
           >
             {ctaItem.label}

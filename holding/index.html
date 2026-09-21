@@ -95,7 +95,15 @@ body{
   max-width:1440px;width:100%;margin:0 auto;
 }
 
-.brand img{width:clamp(210px,27vw,340px);height:auto;display:block}
+.brand{position:relative;width:fit-content;isolation:isolate}
+.brand::before{
+  content:"";position:absolute;z-index:0;pointer-events:none;
+  inset:-2.75rem -5rem;
+  background:
+    radial-gradient(ellipse 54% 58% at 50% 50%, rgba(255,255,255,.72) 0%, rgba(255,255,255,.38) 35%, rgba(255,255,255,.12) 60%, transparent 82%);
+  mix-blend-mode:screen;
+}
+.brand img{position:relative;z-index:1;width:clamp(210px,27vw,340px);height:auto;display:block}
 
 main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:clamp(2rem,6vh,4rem) 0}
 
@@ -161,7 +169,8 @@ a:focus-visible{outline:3px solid var(--bg);outline-offset:3px;border-radius:2px
 .stage__media--blur img{animation:none}
 
 @media (max-width:767px){
-  .brand{display:flex;justify-content:center}
+  .brand::before{inset:-2.25rem -2.75rem}
+  .brand{display:flex;width:100%;justify-content:center}
   main{text-align:center;align-items:center}
   h1{max-width:11ch}
   .rules{justify-content:center;max-width:82%}

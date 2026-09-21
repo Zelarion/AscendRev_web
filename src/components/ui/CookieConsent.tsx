@@ -136,17 +136,17 @@ export default function CookieConsent(): JSX.Element | null {
       aria-labelledby="cookie-consent-heading"
       aria-describedby="cookie-consent-body"
       tabIndex={-1}
-      className="fixed inset-x-0 bottom-0 z-[var(--z-toast)] border-t border-[var(--border)] bg-[var(--surface)] p-[clamp(1.25rem,5vw,2rem)] outline-none"
+      className="fixed inset-x-0 bottom-0 z-[var(--z-toast)] max-h-[100dvh] overflow-y-auto border-t border-[var(--border)] bg-[var(--surface)] p-[clamp(1.25rem,5vw,2rem)] outline-none"
     >
-      <div className="mx-auto flex max-w-[1200px] flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="max-w-[68ch]">
+      <div className="mx-auto flex w-full min-w-0 max-w-[1200px] flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0 max-w-[68ch]">
           <h2
             id="cookie-consent-heading"
             className="text-h3 font-sans font-semibold text-[var(--ink)]"
           >
             Cookies and site storage
           </h2>
-          <p id="cookie-consent-body" className="mt-2 text-small text-[var(--ink-muted)]">
+          <p id="cookie-consent-body" className="mt-2 break-words text-small text-[var(--ink-muted)]">
             This site runs no analytics, no advertising and no third party tracking, so nothing is
             loaded or blocked by your answer today. We ask now so your preference is already on
             record if non essential storage is ever added. Your answer, and whether you chose the
@@ -162,17 +162,14 @@ export default function CookieConsent(): JSX.Element | null {
           </p>
         </div>
 
-        {/* Identical styling on both, side by side, in reading order. The only
-            difference between them is the word on the face.
-            `min-w` matters more than it looks: without it each button sizes to
-            its own label and "Accept" renders a few pixels wider than
-            "Reject", which is a small thumb on the scale in exactly the place
-            a consent notice must not have one. */}
-        <div className="flex shrink-0 gap-3">
+        {/* Both choices retain identical styling and reading order. They stack
+            below the smallest breakpoint so neither label can force the notice
+            beyond the viewport. */}
+        <div className="grid w-full shrink-0 grid-cols-1 gap-3 sm:grid-cols-2 md:w-auto md:min-w-[15rem]">
           <button
             type="button"
             onClick={() => dismiss('accepted')}
-            className="inline-flex min-h-11 min-w-[7rem] flex-1 items-center justify-center rounded-[6px] border border-[var(--border-strong)] bg-transparent px-6 text-sm font-medium text-[var(--ink)] outline-none transition-colors hover:bg-[var(--border)] active:scale-[0.98] md:flex-none"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[6px] border border-[var(--border-strong)] bg-transparent px-6 text-sm font-medium text-[var(--ink)] outline-none transition-colors hover:bg-[var(--border)] active:scale-[0.98]"
             style={hoverTransitionStyle}
           >
             Accept
@@ -180,7 +177,7 @@ export default function CookieConsent(): JSX.Element | null {
           <button
             type="button"
             onClick={() => dismiss('rejected')}
-            className="inline-flex min-h-11 min-w-[7rem] flex-1 items-center justify-center rounded-[6px] border border-[var(--border-strong)] bg-transparent px-6 text-sm font-medium text-[var(--ink)] outline-none transition-colors hover:bg-[var(--border)] active:scale-[0.98] md:flex-none"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[6px] border border-[var(--border-strong)] bg-transparent px-6 text-sm font-medium text-[var(--ink)] outline-none transition-colors hover:bg-[var(--border)] active:scale-[0.98]"
             style={hoverTransitionStyle}
           >
             Reject

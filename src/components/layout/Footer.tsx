@@ -41,7 +41,7 @@ export default function Footer(): JSX.Element {
                   className="pointer-events-none absolute -inset-x-5 -inset-y-3 -z-10 rounded-full blur-[14px]"
                   style={{
                     background:
-                      'radial-gradient(ellipse at center, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.1) 42%, rgba(255,255,255,0) 76%)',
+                      'radial-gradient(ellipse at center, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.24) 42%, rgba(255,255,255,0.07) 66%, rgba(255,255,255,0) 82%)',
                   }}
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the transparent logo asset simple. */}

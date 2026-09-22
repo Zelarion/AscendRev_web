@@ -115,7 +115,7 @@ export default function Header(): JSX.Element {
               className="pointer-events-none absolute -inset-x-5 -inset-y-3 -z-10 rounded-full blur-[12px]"
               style={{
                 background:
-                  'radial-gradient(ellipse at center, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.14) 38%, rgba(255,255,255,0) 76%)',
+                  'radial-gradient(ellipse at center, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.28) 42%, rgba(255,255,255,0.08) 66%, rgba(255,255,255,0) 82%)',
               }}
             />
             {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the logo self-contained. */}

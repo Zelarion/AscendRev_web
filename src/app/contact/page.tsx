@@ -85,9 +85,6 @@ export default function ContactPage() {
                     <h3 className="mt-2 font-display text-[clamp(1.45rem,2.1vw,1.9rem)] font-medium leading-[1.05] tracking-[-0.02em] text-white/94">
                       {item.title}
                     </h3>
-                    <p className="mt-3 text-[13px] leading-6 text-white/48">
-                      {item.body}
-                    </p>
                   </div>
                 </div>
               ))}

@@ -26,7 +26,11 @@ export default function SolutionsClosing(): JSX.Element {
           <h2 className="max-w-[22ch] font-display text-h2 text-white">{heading}</h2>
           <p className="mt-6 max-w-[62ch] text-body-lg text-[var(--steel-400)]">{body}</p>
           <div className="mt-10">
-            <Button href={cta.href} size="lg">
+            <Button
+              href={cta.href}
+              size="lg"
+              className="border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] text-[var(--gold-ink)] shadow-[0_8px_22px_rgba(197,151,49,0.2)] transition-[transform,box-shadow,filter] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_12px_28px_rgba(197,151,49,0.28)] active:translate-y-0"
+            >
               {cta.label}
             </Button>
           </div>

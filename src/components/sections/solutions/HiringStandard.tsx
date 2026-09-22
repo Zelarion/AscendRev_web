@@ -78,7 +78,11 @@ export default function HiringStandard(): JSX.Element {
 
         <Reveal className="mt-16 flex flex-col gap-8 border-t border-[var(--border)] pt-10 md:flex-row md:items-center md:justify-between md:gap-12">
           <p className="max-w-[52ch] text-body-lg text-[var(--ink)]">{note}</p>
-          <Button href={cta.href} size="lg" className="self-start md:self-auto">
+          <Button
+            href={cta.href}
+            size="lg"
+            className="self-start border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] text-[var(--gold-ink)] shadow-[0_8px_22px_rgba(197,151,49,0.2)] transition-[transform,box-shadow,filter] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_12px_28px_rgba(197,151,49,0.28)] active:translate-y-0 md:self-auto"
+          >
             {cta.label}
           </Button>
         </Reveal>

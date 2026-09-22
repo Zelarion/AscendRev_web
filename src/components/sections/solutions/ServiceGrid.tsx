@@ -16,12 +16,8 @@ import { stateTransitionStyle } from '@/lib/motion';
  * nesting anything card-shaped inside it. A card here is a heading and a
  * paragraph, nothing else.
  *
- * `auto-fit minmax(300px, 1fr)` rather than a breakpoint ladder, per DESIGN.md
- * §3: the grid finds its own column count, which is 1 on a phone, 2 on a
- * tablet and 3 inside the 1200px container. Eight items across three columns
- * leaves a two-card final row that stretches to the full measure; that is the
- * grid behaving correctly, not a gap to be padded with a ninth invented
- * service.
+ * The layout is intentionally 1 column on mobile and 2 columns from tablet
+ * through desktop, so the eight services resolve into a clean 2 × 4 editorial grid.
  */
 export default function ServiceGrid(): JSX.Element {
   const { heading, intro, items } = solutions.services;
@@ -46,7 +42,7 @@ export default function ServiceGrid(): JSX.Element {
 
         <p className="mt-6 max-w-[68ch] text-body-lg text-[var(--ink-muted)]">{intro}</p>
 
-        <Stagger className="mt-16 grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
+        <Stagger className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2">
           {items.map((item) => (
             <article
               key={item.id}

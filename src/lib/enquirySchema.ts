@@ -163,11 +163,11 @@ const MESSAGES = {
   emailDisposable:
     'That is a disposable mailbox, so any reply we send would vanish before you read it. Use the address you actually work from.',
   companyRequired:
-    'Enter your company name. It tells us who we would be working for.',
-  companyTooShort:
-    'Two characters is not a company name we would recognise. Write it as it appears on your invoices.',
+    'Enter your company website URL so we can understand the business before we reply.',
+  companyMalformed:
+    'Enter a complete website URL, including https:// (for example, https://company.com).',
   companyTooLong:
-    'That is longer than 120 characters. The trading name on its own is enough.',
+    'That website URL is longer than 240 characters. Check it for a paste that went wrong.',
   bottleneckRequired:
     'Choose at least one function. If more than one is a problem choose them all, and we will start with the one costing you most.',
   bottleneckTooMany:
@@ -230,8 +230,8 @@ export const stepOneSchema = z
     company: requiredString(MESSAGES.companyRequired)
       .trim()
       .min(1, { message: MESSAGES.companyRequired })
-      .min(2, { message: MESSAGES.companyTooShort })
-      .max(120, { message: MESSAGES.companyTooLong }),
+      .max(240, { message: MESSAGES.companyTooLong })
+      .url({ message: MESSAGES.companyMalformed }),
 
     primaryBottleneck: z
       .array(

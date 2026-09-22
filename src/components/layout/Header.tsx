@@ -174,60 +174,105 @@ export default function Header(): JSX.Element {
             aria-controls="mobile-nav-sheet"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             onClick={() => setMenuOpen((open) => !open)}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98]"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98]"
             style={hoverTransitionStyle}
           >
-            {menuOpen ? <X size={24} weight="regular" /> : <List size={24} weight="regular" />}
+            <List
+              size={24}
+              weight="regular"
+              className={cn(
+                'absolute transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                menuOpen ? '-rotate-12 scale-90 opacity-0' : 'rotate-0 scale-100 opacity-100'
+              )}
+            />
+            <X
+              size={24}
+              weight="regular"
+              className={cn(
+                'absolute transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                menuOpen ? 'rotate-0 scale-100 opacity-100' : 'rotate-12 scale-90 opacity-0'
+              )}
+            />
           </button>
         </div>
       </div>
 
-      {menuOpen && (
+      <div
+        aria-hidden={!menuOpen}
+        className={cn(
+          'fixed inset-0 z-[1080] bg-black/40 backdrop-blur-[1px] transition-opacity duration-500 ease-out lg:hidden',
+          menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        )}
+        onClick={closeMenu}
+      />
+
+      <div
+        id="mobile-nav-sheet"
+        ref={sheetRef}
+        role="dialog"
+        aria-modal={menuOpen ? 'true' : undefined}
+        aria-hidden={!menuOpen}
+        aria-label="Mobile navigation"
+        className={cn(
+          'fixed inset-y-0 right-0 z-[1100] flex min-h-0 w-[calc(100%-0.75rem)] max-w-[620px] flex-col overflow-hidden border-l border-white/10 bg-[var(--nav-glass-scrolled)] px-5 pb-6 pt-5 shadow-[-18px_0_55px_rgba(0,0,0,0.32)] backdrop-blur-[24px] sm:w-[88vw] sm:px-7 sm:pb-7 sm:pt-6 md:w-[78vw] lg:hidden',
+          'transition-[transform,opacity] duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+          menuOpen
+            ? 'pointer-events-auto translate-x-0 opacity-100'
+            : 'pointer-events-none translate-x-full opacity-100'
+        )}
+      >
         <div
-          id="mobile-nav-sheet"
-          ref={sheetRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Mobile navigation"
-          className="fixed inset-x-3 bottom-3 top-[98px] z-[1100] flex min-h-0 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-[var(--nav-glass-scrolled)] px-5 pb-5 pt-4 shadow-2xl backdrop-blur-[24px] sm:inset-x-5 sm:top-[116px] lg:hidden"
+          className={cn(
+            'flex items-center justify-between border-b border-white/10 pb-4 transition-[opacity,transform] duration-400 ease-out motion-reduce:transition-none',
+            menuOpen ? 'translate-x-0 opacity-100 delay-150' : 'translate-x-3 opacity-0 delay-0'
+          )}
         >
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <p className="text-sm font-medium tracking-[0.16em] text-white/55 uppercase">Navigation</p>
-            <button
-              ref={closeButtonRef}
-              type="button"
-              onClick={closeMenu}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98]"
-              aria-label="Close navigation"
-              style={hoverTransitionStyle}
-            >
-              <X size={24} weight="regular" />
-            </button>
-          </div>
-
-          <nav aria-label="Mobile primary" className="flex flex-1 flex-col justify-center gap-2 py-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={closeMenu}
-                className="inline-flex min-h-12 items-center border-b border-white/8 py-3 font-display text-[clamp(1.9rem,8vw,3rem)] font-medium leading-none text-white outline-none transition-colors hover:text-[var(--gold-300)]"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          <Link
-            href={ctaItem.href}
+          <p className="text-sm font-medium tracking-[0.16em] text-white/55 uppercase">Navigation</p>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            tabIndex={menuOpen ? 0 : -1}
             onClick={closeMenu}
-            className="group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-5 text-center text-sm font-semibold text-[var(--gold-ink)] outline-none"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98]"
+            aria-label="Close navigation"
+            style={hoverTransitionStyle}
           >
-            <span>{ctaItem.label}</span>
-            <ArrowRight size={19} weight="regular" aria-hidden="true" />
-          </Link>
+            <X size={24} weight="regular" />
+          </button>
         </div>
-      )}
+
+        <nav aria-label="Mobile primary" className="flex flex-1 flex-col justify-center gap-2 py-6">
+          {navItems.map((item, index) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              tabIndex={menuOpen ? 0 : -1}
+              onClick={closeMenu}
+              className={cn(
+                'inline-flex min-h-12 items-center border-b border-white/8 py-3 font-display text-[clamp(1.9rem,8vw,3rem)] font-medium leading-none text-white outline-none transition-[color,opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--gold-300)] motion-reduce:transition-none',
+                menuOpen ? 'translate-x-0 opacity-100' : 'translate-x-5 opacity-0'
+              )}
+              style={{ transitionDelay: menuOpen ? `${210 + index * 70}ms` : '0ms' }}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <Link
+          href={ctaItem.href}
+          tabIndex={menuOpen ? 0 : -1}
+          onClick={closeMenu}
+          className={cn(
+            'group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-5 text-center text-sm font-semibold text-[var(--gold-ink)] outline-none transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+            menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+          )}
+          style={{ transitionDelay: menuOpen ? `${250 + navItems.length * 70}ms` : '0ms' }}
+        >
+          <span>{ctaItem.label}</span>
+          <ArrowRight size={19} weight="regular" aria-hidden="true" />
+        </Link>
+      </div>
     </header>
   );
 }

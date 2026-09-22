@@ -18,17 +18,17 @@ export default function Footer(): JSX.Element {
   return (
     <footer
       data-tone="navy"
-      className="sticky bottom-0 isolate z-0 w-full overflow-hidden bg-[var(--navy-900)] text-white"
+      className="relative isolate z-0 w-full overflow-hidden bg-[var(--navy-900)] text-white lg:sticky lg:bottom-0"
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-[-0.12em] -z-10 select-none whitespace-nowrap text-center font-display text-[clamp(6.5rem,17vw,20rem)] font-medium leading-[0.72] tracking-[-0.065em] text-white/[0.045]"
+        className="pointer-events-none absolute inset-x-0 bottom-[0.12rem] -z-10 select-none whitespace-nowrap text-center font-display text-[clamp(3.9rem,16vw,5.4rem)] font-medium leading-[0.78] tracking-[-0.06em] text-white/[0.05] sm:bottom-[-0.12em] sm:text-[clamp(6.5rem,17vw,20rem)] sm:leading-[0.72]"
       >
         ASCENDREV
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1540px] px-[clamp(1.25rem,5vw,5.5rem)] py-14 sm:py-16 lg:py-20">
-        <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[2fr_1fr_1fr] lg:gap-10 xl:gap-14">
+      <div className="relative z-10 mx-auto w-full max-w-[1540px] px-[clamp(1.25rem,5vw,5.5rem)] py-10 sm:py-16 lg:py-20">
+        <div className="grid gap-8 border-b border-white/10 pb-9 sm:gap-10 sm:pb-12 lg:grid-cols-[2fr_1fr_1fr] lg:gap-10 xl:gap-14">
           <div>
             <Link
               href="/"
@@ -55,12 +55,12 @@ export default function Footer(): JSX.Element {
               </span>
             </Link>
 
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-300)]">
                 Direct Contact
               </p>
 
-              <div className="mt-5 space-y-4 text-sm leading-relaxed text-white/72 sm:text-[15px]">
+              <div className="mt-4 space-y-3 text-sm leading-relaxed text-white/72 sm:mt-5 sm:space-y-4 sm:text-[15px]">
                 <a
                   href={`mailto:${site.contactEmail}`}
                   className={`flex max-w-fit items-start gap-3 ${footerLinkClassName}`}
@@ -87,7 +87,7 @@ export default function Footer(): JSX.Element {
             </div>
 
             {site.slaLine && (
-              <div className="mt-8 flex max-w-[760px] items-start gap-3 border-t border-white/10 pt-6 text-sm leading-relaxed text-white/72 sm:text-[15px]">
+              <div className="mt-6 flex max-w-[760px] items-start gap-3 border-t border-white/10 pt-5 text-sm leading-relaxed text-white/72 sm:mt-8 sm:pt-6 sm:text-[15px]">
                 <ShieldCheck size={22} weight="regular" aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--gold-300)]" />
                 <p className="font-medium text-white/88">{site.slaLine}</p>
               </div>
@@ -98,7 +98,7 @@ export default function Footer(): JSX.Element {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-300)]">
               Internal Sections
             </p>
-            <div className="mt-5 flex flex-col gap-3 text-sm text-white/64 sm:text-[15px]">
+            <div className="mt-4 flex flex-col gap-2.5 text-sm text-white/64 sm:mt-5 sm:gap-3 sm:text-[15px]">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -116,7 +116,7 @@ export default function Footer(): JSX.Element {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-300)]">
               Links
             </p>
-            <div className="mt-5 flex flex-col gap-3 text-sm text-white/64 sm:text-[15px]">
+            <div className="mt-4 flex flex-col gap-2.5 text-sm text-white/64 sm:mt-5 sm:gap-3 sm:text-[15px]">
               <Link href="/privacy" className={footerLinkClassName} style={hoverTransitionStyle}>
                 Privacy Policy
               </Link>
@@ -129,7 +129,7 @@ export default function Footer(): JSX.Element {
                   href={site.linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`mt-2 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/12 text-white/72 transition-[border-color,color,background-color] hover:border-white/30 hover:bg-white/5 hover:text-white ${footerLinkClassName}`}
+                  className={`mt-1 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-white/72 transition-[border-color,color,background-color] hover:border-white/30 hover:bg-white/5 hover:text-white sm:mt-2 sm:h-11 sm:w-11 ${footerLinkClassName}`}
                   style={hoverTransitionStyle}
                   aria-label="LinkedIn"
                 >
@@ -140,7 +140,7 @@ export default function Footer(): JSX.Element {
           </nav>
         </div>
 
-        <div className="flex flex-col gap-3 pt-7 text-xs text-white/38 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 pt-5 text-xs text-white/38 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-7">
           <p>© 2026 {site.companyName}. All rights reserved.</p>
           <p>Calgary, Alberta · Canada</p>
         </div>

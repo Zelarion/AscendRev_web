@@ -103,7 +103,9 @@ export default function RootLayout({
         <SkipLink />
         <Header />
         <SmoothScrollProvider>
-          <main id="main">{children}</main>
+          <main id="main" className="relative z-10">
+            {children}
+          </main>
           <Footer />
         </SmoothScrollProvider>
         <CookieConsent />

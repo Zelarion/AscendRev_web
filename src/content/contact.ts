@@ -206,9 +206,9 @@ export const contact: ContactContent = {
   },
 
   hero: {
-    headline: 'Tell Us Which Function Is Breaking.',
+    headline: "Let's Engineer Your Scaled Support Infrastructure.",
     subheadline:
-      'Two steps. The first takes about a minute and is enough for us to come back to you with something useful. The second is optional and turns the call into a costed plan instead of a conversation.',
+      'Go from strategic sign-off to a fully operational, elite dedicated team in 30-60 days.',
   },
 
   whatToExpect: {

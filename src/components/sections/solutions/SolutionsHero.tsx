@@ -13,7 +13,10 @@ export default function SolutionsHero(): JSX.Element {
   const { headline, subheadline } = solutions.hero;
 
   return (
-    <Section tone="navy" className="relative isolate overflow-hidden">
+    <Section
+      tone="navy"
+      className="relative isolate flex min-h-[520px] items-end overflow-hidden pt-[clamp(5rem,10vw,8rem)] pb-[clamp(2rem,3vw,2.75rem)]"
+    >
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-20 bg-cover bg-center"
@@ -28,7 +31,7 @@ export default function SolutionsHero(): JSX.Element {
       <Container>
         <div className="max-w-[900px]">
           <h1 className="max-w-[22ch] font-display text-h1 text-white">{headline}</h1>
-          <p className="mt-8 max-w-[58ch] text-body-lg leading-relaxed text-white/76">
+          <p className="mt-4 max-w-[58ch] text-body-lg leading-relaxed text-white/76">
             {subheadline}
           </p>
         </div>

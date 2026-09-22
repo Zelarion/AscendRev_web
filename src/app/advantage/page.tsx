@@ -27,7 +27,7 @@ export default function AdvantagePage() {
       <AdvantageHero />
       <LeadershipBlock />
       <InfrastructureBlock />
-      <AdvantageClosing />
+      {/* <AdvantageClosing /> */}
     </>
   );
 }

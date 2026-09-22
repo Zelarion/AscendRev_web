@@ -16,8 +16,18 @@ const footerLinkClassName =
 
 export default function Footer(): JSX.Element {
   return (
-    <footer data-tone="navy" className="w-full bg-[var(--navy-900)] text-white">
-      <div className="mx-auto w-full max-w-[1540px] px-[clamp(1.25rem,5vw,5.5rem)] py-14 sm:py-16 lg:py-20">
+    <footer
+      data-tone="navy"
+      className="sticky bottom-0 isolate z-0 w-full overflow-hidden bg-[var(--navy-900)] text-white"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-[-0.12em] -z-10 select-none whitespace-nowrap text-center font-display text-[clamp(6.5rem,17vw,20rem)] font-medium leading-[0.72] tracking-[-0.065em] text-white/[0.045]"
+      >
+        ASCENDREV
+      </div>
+
+      <div className="relative z-10 mx-auto w-full max-w-[1540px] px-[clamp(1.25rem,5vw,5.5rem)] py-14 sm:py-16 lg:py-20">
         <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[2fr_1fr_1fr] lg:gap-10 xl:gap-14">
           <div>
             <Link

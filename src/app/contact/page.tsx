@@ -24,10 +24,30 @@ export default function ContactPage() {
 
   return (
     <>
-      <Section tone="navy" size="large">
+      <Section
+        tone="navy"
+        className="relative isolate flex min-h-[500px] items-end overflow-hidden !pt-[clamp(5.5rem,8vw,7rem)] !pb-[clamp(2.5rem,4vw,3.5rem)]"
+      >
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              'url("https://homesteadaccountinggroup.com/assets/5ef4e42eab9e406fda20582c485ed67d7f56415f-BrfJDp0e.png")',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(3,12,24,0.88)_0%,rgba(3,12,24,0.74)_48%,rgba(3,12,24,0.52)_100%)]"
+        />
+
         <Container>
-          <h1 className="max-w-[18ch] font-display text-display text-white">{hero.headline}</h1>
-          <p className="mt-8 max-w-[62ch] text-body-lg text-[var(--steel-400)]">{hero.subheadline}</p>
+          <div className="max-w-[920px]">
+            <h1 className="max-w-[18ch] font-display text-h1 text-white">{hero.headline}</h1>
+            <p className="mt-4 max-w-[62ch] text-body-lg leading-relaxed text-[var(--steel-400)]">
+              {hero.subheadline}
+            </p>
+          </div>
         </Container>
       </Section>
 

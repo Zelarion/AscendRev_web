@@ -20,7 +20,6 @@ function isActiveRoute(pathname: string, href: string): boolean {
 
 export default function Header(): JSX.Element {
   const pathname = usePathname();
-  const isHome = pathname === '/';
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -91,17 +90,15 @@ export default function Header(): JSX.Element {
     <header
       data-tone="navy"
       className={cn(
-        'z-[var(--z-sticky)] w-full transition-[padding] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
-        isHome
-          ? cn('fixed inset-x-0 top-0', scrolled ? 'px-3 pt-3 sm:px-5 sm:pt-4 lg:px-7' : 'px-0 pt-0')
-          : 'sticky top-0 bg-[var(--navy-900)] px-0 pt-0'
+        'fixed inset-x-0 top-0 isolate z-[1000] w-full transition-[padding] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
+        scrolled ? 'px-3 pt-3 sm:px-5 sm:pt-4 lg:px-7' : 'px-0 pt-0'
       )}
     >
       <div
         className={cn(
           'ar-nav-shell mx-auto flex h-[76px] w-full items-center justify-between border px-4 backdrop-blur-[22px] sm:h-[86px] sm:px-6 lg:px-8 xl:px-10',
           'transition-[max-width,border-radius,background-color,border-color,box-shadow] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
-          isHome && scrolled
+          scrolled
             ? 'max-w-[1540px] rounded-[18px] border-white/14 bg-[var(--nav-glass-scrolled)] shadow-[0_18px_55px_rgba(0,0,0,0.24)]'
             : 'max-w-[100vw] rounded-none border-x-transparent border-t-transparent border-b-white/10 bg-[var(--nav-glass)] shadow-[0_8px_28px_rgba(0,0,0,0.12)]'
         )}
@@ -192,7 +189,7 @@ export default function Header(): JSX.Element {
           role="dialog"
           aria-modal="true"
           aria-label="Mobile navigation"
-          className="fixed inset-x-3 bottom-3 top-[98px] z-[var(--z-modal)] flex min-h-0 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-[var(--nav-glass-scrolled)] px-5 pb-5 pt-4 shadow-2xl backdrop-blur-[24px] sm:inset-x-5 sm:top-[116px] lg:hidden"
+          className="fixed inset-x-3 bottom-3 top-[98px] z-[1100] flex min-h-0 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-[var(--nav-glass-scrolled)] px-5 pb-5 pt-4 shadow-2xl backdrop-blur-[24px] sm:inset-x-5 sm:top-[116px] lg:hidden"
         >
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <p className="text-sm font-medium tracking-[0.16em] text-white/55 uppercase">Navigation</p>

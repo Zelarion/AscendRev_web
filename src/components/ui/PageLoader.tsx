@@ -81,7 +81,7 @@ export default function PageLoader(): JSX.Element | null {
         .page-loader {
           position: fixed;
           inset: 0;
-          z-index: var(--z-modal);
+          z-index: 2000;
           overflow: hidden;
           background: #0f1b33;
           pointer-events: auto;

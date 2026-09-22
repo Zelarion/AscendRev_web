@@ -116,17 +116,20 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
           <p className="mb-6 text-[11px] font-semibold tracking-[0.18em] text-white/48 sm:text-xs">
             {content.trustLead}
           </p>
-          <div className="grid grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-3 sm:gap-10 lg:w-[78%] lg:max-w-[1180px]">
+          <div className="grid grid-cols-1 gap-y-7 sm:grid-cols-3 sm:gap-10 lg:w-full lg:grid-cols-3 lg:gap-0">
             {content.proofItems.map((item, index) => {
               const Icon = PROOF_ICONS[index] ?? ShieldCheck;
               return (
-                <div key={item.eyebrow} className="flex min-w-0 items-center gap-3">
-                  <Icon size={34} weight="regular" aria-hidden="true" className="shrink-0 text-white/72" />
+                <div
+                  key={item.eyebrow}
+                  className="flex min-w-0 items-center gap-3 lg:min-h-[88px] lg:px-8 lg:first:pl-0 lg:last:pr-0 lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-white/10 xl:px-12"
+                >
+                  <Icon size={34} weight="regular" aria-hidden="true" className="h-[34px] w-[34px] shrink-0 text-white/72 lg:h-11 lg:w-11" />
                   <div className="min-w-0">
-                    <p className="text-[13px] font-semibold leading-tight text-white/90 sm:text-sm">
+                    <p className="text-[13px] font-semibold leading-tight text-white/90 sm:text-sm lg:text-[15px]">
                       {item.eyebrow}
                     </p>
-                    <p className="mt-1 text-[10px] leading-snug text-white/48 sm:text-xs">
+                    <p className="mt-1 text-[10px] leading-snug text-white/48 sm:text-xs lg:text-[13px]">
                       {item.detail}
                     </p>
                   </div>

@@ -219,12 +219,12 @@ export default function LeadershipBlock(): JSX.Element {
                     milestoneRefs.current[index] = node;
                   }}
                   data-founder-step={index}
-                  className="relative py-10 pl-16 sm:py-14 sm:pl-20 lg:py-16"
+                  className="relative py-12 pl-16 sm:py-16 sm:pl-20 lg:py-20"
                 >
                   <span
                     aria-hidden="true"
                     className={cn(
-                      'absolute left-[10px] top-[28px] z-[2] h-6 w-6 rounded-full border bg-[var(--navy-900)] transition-[border-color,box-shadow,background-color] duration-500 sm:left-[14px] sm:top-[44px] lg:top-[52px]',
+                      'absolute left-[10px] top-[36px] z-[2] h-6 w-6 rounded-full border bg-[var(--navy-900)] transition-[border-color,box-shadow,background-color] duration-500 sm:left-[14px] sm:top-[52px] lg:top-[68px]',
                       active
                         ? 'border-[var(--gold-300)] bg-[var(--gold-400)] shadow-[0_0_0_7px_rgba(223,184,79,0.08)]'
                         : completed

@@ -37,3 +37,6 @@ graphify-out/
 # Enquiry storage written by public/api/enquiry.php at runtime.
 # Contains submitted personal data - never commit.
 ascendrev-enquiries/
+
+# Demo/runtime config for the enquiry handler. Holds an SMTP password.
+ascendrev-enquiry.config.php

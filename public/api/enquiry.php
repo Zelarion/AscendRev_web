@@ -637,15 +637,15 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
     . '<tr><td align="center">'
     . '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(15,27,51,.10);">'
 
-    // Header band, brand navy, with the logo embedded by Content-ID so it
-    // displays without the recipient clicking "show images".
-    . '<tr><td style="background:#0F1B33;padding:26px 32px;">'
-    // 200px wide from a 400x200 source, so it stays sharp on a retina screen.
-    // The white halo is baked into the PNG rather than applied with CSS,
-    // because Outlook discards gradients and the navy wordmark would then sit
-    // invisibly on this navy band.
-    . '<img src="cid:ascendrev-logo" width="200" height="100" alt="AscendRev"'
-    . ' style="display:block;border:0;width:200px;height:auto;">'
+    // Header band, white. The wordmark is navy, so white is the background the
+    // logo was drawn for and it needs no treatment behind it. The logo is
+    // embedded by Content-ID rather than hotlinked, so it displays without the
+    // recipient clicking "show images".
+    //
+    // 230px wide from a 460px source, so it stays sharp on a retina screen.
+    . '<tr><td style="background:#ffffff;padding:24px 32px 20px;">'
+    . '<img src="cid:ascendrev-logo" width="230" height="95" alt="AscendRev"'
+    . ' style="display:block;border:0;width:230px;height:auto;">'
     . '</td></tr>'
 
     // The gold and green rule from the site, carried across so the email is

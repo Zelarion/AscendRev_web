@@ -160,6 +160,14 @@
 :root {
   color-scheme: light;
 
+  /* Approved AscendRev web direction: restrained metallic gold on deep navy. */
+  --gold-300: #f0d47b;
+  --gold-400: #dfb84f;
+  --gold-500: #c89731;
+  --gold-ink: #081321;
+  --nav-glass: rgba(5, 19, 36, 0.34);
+  --nav-glass-scrolled: rgba(4, 16, 31, 0.5);
+
   /* -- Semantic layer ------------------------------------------------------
    * Aliases only. Every value here resolves through a `--color-*` slot, and
    * the dark blocks further down redefine those slots, so this layer is

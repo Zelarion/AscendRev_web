@@ -1,7 +1,6 @@
 import type { JSX } from 'react';
-import Section from '@/components/layout/Section';
-import Container from '@/components/layout/Container';
-import Button from '@/components/ui/Button';
+import { ArrowRight } from '@phosphor-icons/react/dist/ssr';
+import Link from 'next/link';
 import RevealOnScroll from '@/components/sections/shared/RevealOnScroll';
 import type { ClosingBandContent } from '@/content/home';
 
@@ -9,58 +8,52 @@ interface ClosingBandProps {
   content: ClosingBandContent;
 }
 
-/**
- * The closing band, on navy, at the hero's vertical rhythm.
- *
- * HOW IT KEEPS ITS DISTANCE FROM THE SECTION ABOVE IT
- *
- * DESIGN.md §1 puts the hero, the proof band, the closing CTA and the footer
- * on navy, which means this band, the industries section above it and the
- * footer below it are three navy surfaces in a row. Colour cannot do the
- * separating, so density does: the industries section is the densest thing on
- * the page (a tab strip, five panels, two lists each), and this is the
- * emptiest (one sentence at display size and a single button). The drop in
- * information per square inch is what tells the reader the argument is over.
- *
- * It is also the page's only single-column section. Everything above it is
- * some kind of two-column split, so the full-measure heading reads as a change
- * of register rather than as one more row.
- */
 export default function ClosingBand({ content }: ClosingBandProps): JSX.Element {
   return (
-    <Section
-      tone="navy"
-      size="large"
-      // Measured: the industries band contributes 128px of bottom padding and
-      // this band's "large" rhythm contributes 176px of top padding. Between
-      // two bands of DIFFERENT tone that doubling is invisible, because the
-      // colour change marks the boundary. Between two navy bands it is 304px
-      // of empty navy with a hairline stranded in the middle of it. The top
-      // padding is cut here and the bottom padding left alone, so the air sits
-      // where it does work rather than where two sections happen to meet.
-      className="border-t border-[var(--border-navy)] pt-[clamp(4rem,8vw,7rem)]"
+    <section
+      data-tone="navy"
+      className="relative isolate min-h-[250px] overflow-hidden bg-[var(--navy-900)] text-white sm:min-h-[280px] lg:min-h-[300px]"
     >
-      <Container>
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/conversion-handshake.svg')" }}
+      />
+      <div aria-hidden="true" className="absolute inset-0 bg-[rgba(3,14,28,0.68)]" />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,14,28,0.88)_0%,rgba(3,14,28,0.72)_48%,rgba(3,14,28,0.78)_100%)]"
+      />
+      <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,rgba(2,10,20,0.42),transparent_58%)]" />
+
+      <div className="relative z-[1] mx-auto grid min-h-[250px] w-full max-w-[1280px] items-center gap-10 px-[clamp(1.5rem,5vw,4.5rem)] py-10 sm:min-h-[280px] sm:py-12 lg:min-h-[300px] lg:grid-cols-[1.08fr_0.92fr] lg:gap-20 lg:py-14">
         <RevealOnScroll>
-          {/* Short measure on purpose: the heading breaks into two or three
-              lines of display serif, which is the whole visual event here. */}
-          <h2 className="max-w-[18ch] font-display text-display text-white">{content.heading}</h2>
+          <p className="mb-4 text-[10px] font-semibold tracking-[0.2em] text-[var(--gold-300)] sm:text-[11px]">
+            LET&apos;S TALK
+          </p>
+          <h2 className="max-w-[18ch] font-display text-[clamp(2.35rem,4vw,4.65rem)] font-medium leading-[0.98] tracking-[-0.035em] text-white">
+            {content.heading}
+          </h2>
         </RevealOnScroll>
 
-        <RevealOnScroll
-          delayMs={80}
-          className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16"
-        >
-          <p className="max-w-[54ch] text-body-lg text-white/86">{content.body}</p>
-          {/* `shrink-0` keeps the label on one line once the row goes
-              horizontal; a wrapped CTA is a broken CTA. */}
-          <div className="shrink-0">
-            <Button href={content.cta.href} variant="primary" size="lg">
-              {content.cta.label}
-            </Button>
-          </div>
+        <RevealOnScroll delayMs={100} className="lg:max-w-[470px] lg:justify-self-end">
+          <p className="max-w-[42ch] text-[clamp(0.95rem,1.15vw,1.12rem)] leading-[1.6] text-white/84">
+            {content.body}
+          </p>
+          <Link
+            href={content.cta.href}
+            className="group mt-5 inline-flex min-h-12 items-center justify-center gap-3 rounded-[6px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-6 text-[14px] font-semibold text-[var(--gold-ink)] shadow-[0_8px_22px_rgba(197,151,49,0.2)] outline-none transition-[transform,box-shadow,filter] duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_12px_28px_rgba(197,151,49,0.28)] sm:text-[15px]"
+          >
+            <span>{content.cta.label}</span>
+            <ArrowRight
+              size={18}
+              weight="regular"
+              aria-hidden="true"
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </Link>
         </RevealOnScroll>
-      </Container>
-    </Section>
+      </div>
+    </section>
   );
 }

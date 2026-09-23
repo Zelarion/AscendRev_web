@@ -206,6 +206,7 @@ export const advantage: AdvantageContent = {
       alt: 'The AscendRev operations floor in the Philippines.',
     },
     commitmentsHeading: 'What we are committing to',
+    note: '',
     commitments: [
       {
         text: "A workspace AscendRev controls and supervises, so your account is not run from an arrangement we would have to take somebody's word for.",
@@ -226,7 +227,6 @@ export const advantage: AdvantageContent = {
         text: 'You will be told exactly where your team sits and who supervises them before you sign anything, and you are welcome to see it on a video call.',
       },
     ],
-    note: 'Three things you will not find on this page: a photograph of an office that is not ours, a facility specification we have not tested, and a customer count. When those exist they will appear here, with the date they became true.',
   },
 
   closing: {

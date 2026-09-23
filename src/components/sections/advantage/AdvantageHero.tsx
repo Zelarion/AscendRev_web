@@ -15,10 +15,13 @@ export default function AdvantageHero(): JSX.Element {
   const { headline, subheadline } = advantage.hero;
 
   return (
-    <Section tone="navy">
+    <Section
+      tone="navy"
+      className="flex min-h-[440px] items-end pt-[clamp(5rem,8vw,7rem)] pb-[clamp(3.5rem,5vw,4.5rem)]"
+    >
       <Container>
         <h1 className="max-w-[16ch] font-display text-h1 text-white">{headline}</h1>
-        <p className="mt-8 max-w-[58ch] text-body-lg text-[var(--steel-400)]">{subheadline}</p>
+        <p className="mt-4 max-w-[58ch] text-body-lg text-[var(--steel-400)]">{subheadline}</p>
       </Container>
     </Section>
   );

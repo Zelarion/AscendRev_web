@@ -6,6 +6,7 @@ import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { registerMotion } from '@/components/motion/registerMotion';
+import useScrollToTop from '@/components/motion/useScrollToTop';
 import { prefersReducedMotion } from '@/lib/motion';
 
 /** Marks <html> while Lenis owns the scroll, so globals.css can stand down its
@@ -63,6 +64,8 @@ interface SmoothScrollProviderProps {
 export default function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   const pathname = usePathname();
   const lenisRef = useRef<Lenis | null>(null);
+
+  useScrollToTop(lenisRef);
 
   useEffect(() => {
     if (prefersReducedMotion()) {

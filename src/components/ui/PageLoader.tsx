@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type JSX } from 'react';
+import { usePathname } from 'next/navigation';
 
 type LoaderPhase = 'entering' | 'leaving';
 
@@ -11,9 +12,12 @@ type LoaderPhase = 'entering' | 'leaving';
  * frame with a deliberate exit rather than leaving a permanent blocking layer.
  */
 export default function PageLoader(): JSX.Element | null {
+  const pathname = usePathname();
   const [phase, setPhase] = useState<LoaderPhase | null>(null);
 
   useEffect(() => {
+    if (pathname === '/') return;
+
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reducedMotion) return;
 
@@ -26,9 +30,9 @@ export default function PageLoader(): JSX.Element | null {
       window.clearTimeout(exitTimer);
       window.clearTimeout(removeTimer);
     };
-  }, []);
+  }, [pathname]);
 
-  if (!phase) return null;
+  if (pathname === '/' || !phase) return null;
 
   return (
     <div
@@ -47,6 +51,8 @@ export default function PageLoader(): JSX.Element | null {
         <source src="/video/hero-1280.mp4" media="(max-width: 767px)" type="video/mp4" />
         <source src="/video/hero-1920.mp4" type="video/mp4" />
       </video>
+
+      <div aria-hidden="true" className="absolute inset-0 z-[1] bg-black/25" />
 
       <div className="relative z-10 flex h-full w-full items-center justify-center px-6">
         <span className="loader-brand relative isolate inline-flex items-center justify-center">
@@ -75,7 +81,7 @@ export default function PageLoader(): JSX.Element | null {
         .page-loader {
           position: fixed;
           inset: 0;
-          z-index: var(--z-modal);
+          z-index: 2000;
           overflow: hidden;
           background: #0f1b33;
           pointer-events: auto;

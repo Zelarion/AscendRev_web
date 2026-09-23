@@ -74,6 +74,21 @@ const CSS = `
   to   { transform: scale(1); }
 }
 
+@keyframes ar-nav-enter {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ar-watch-enter {
+  from { opacity: 0; transform: translateY(-50%) translateX(18px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+@keyframes ar-watch-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(223, 184, 79, 0.12); }
+  50% { box-shadow: 0 0 0 11px rgba(223, 184, 79, 0); }
+}
+
 .ar-line-rise {
   animation: ar-line-rise ${HERO_LINE_DURATION_MS}ms var(--ar-ease-drama) backwards;
 }
@@ -84,6 +99,22 @@ const CSS = `
 
 .ar-media-settle {
   animation: ar-media-settle ${HERO_MEDIA_SETTLE_MS}ms var(--ar-ease-reveal) backwards;
+}
+
+.ar-nav-shell {
+  animation: ar-fade-rise 700ms var(--ar-ease-reveal) 40ms backwards;
+}
+
+.ar-nav-item {
+  animation: ar-nav-enter 620ms var(--ar-ease-reveal) backwards;
+}
+
+.ar-watch-entrance {
+  animation: ar-watch-enter 900ms var(--ar-ease-reveal) 1250ms backwards;
+}
+
+.ar-watch-pulse {
+  animation: ar-watch-pulse 2600ms ease-in-out 2200ms infinite;
 }
 
 /* ---- Text selection -----------------------------------------------------
@@ -136,7 +167,11 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) {
   .ar-line-rise,
   .ar-fade-rise,
-  .ar-media-settle {
+  .ar-media-settle,
+  .ar-nav-shell,
+  .ar-nav-item,
+  .ar-watch-entrance,
+  .ar-watch-pulse {
     animation: none !important;
   }
 }

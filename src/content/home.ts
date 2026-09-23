@@ -74,11 +74,20 @@ export interface ClosingBandContent {
   cta: Cta;
 }
 
+export interface HeroProofItem {
+  eyebrow: string;
+  detail: string;
+}
+
 export interface HeroContent {
+  eyebrow: string;
   headline: string;
   subheadline: string;
   primaryCta: Cta;
   secondaryCta: Cta;
+  trustLead: string;
+  proofItems: readonly HeroProofItem[];
+  sideWords: readonly string[];
 }
 
 export interface TrustItem extends PendingApproval {
@@ -157,13 +166,14 @@ export const home: HomeContent = {
   },
 
   hero: {
+    eyebrow: 'SCALABLE TEAMS. REAL IMPACT.',
     // Headline pinned by SPEC.md §4.1 and matches `site.tagline`.
     headline: 'Lower Costs. Higher Efficiencies. Accelerate Revenue.',
     // Rewritten per SPEC.md §7 item 1. The source brief opened with "Backed by
     // a track record of generating over CAD$1B+ in market revenue, we provide",
     // which attributes a career to a company registered on 11 September 2026.
     subheadline:
-      'AscendRev builds and runs dedicated sales, support and back office teams in the Philippines for North American companies. You get the people, the supervision and the reporting. You do not get the payroll taxes, the seat licences, the recruiting cycle or the lease.',
+      'Backed by a track record of generating over CAD$1B+ in market revenue, we provide fully managed front- and back-office teams that scale your business. We absorb the infrastructure costs, talent shortages, and administrative burdens—so you can focus entirely on growth.',
     primaryCta: { label: 'Build Your Dedicated Team', href: '/contact' },
     secondaryCta: {
       // The query param preselects the cost-analysis intent on the enquiry form
@@ -172,6 +182,13 @@ export const home: HomeContent = {
       label: 'Run a Cost-Savings Analysis',
       href: '/contact?intent=cost-analysis',
     },
+    trustLead: 'LED BY',
+    proofItems: [
+      { eyebrow: 'Harvard Business', detail: 'Impact Enterprise' },
+      { eyebrow: 'Lean Six Sigma', detail: 'Certified Expertise' },
+      { eyebrow: '100M Dollar Club', detail: 'Recognized' },
+    ],
+    sideWords: ['PEOPLE', 'PROCESS', 'PERFORMANCE'],
   },
 
   trustBand: {
@@ -198,12 +215,12 @@ export const home: HomeContent = {
     // Heading pinned by SPEC.md §4.1.
     heading: 'Stop Burning Capital on Local Turnover.',
     intro:
-      'A front office seat that turns over twice a year costs far more than the salary line suggests. There is the vacancy, the recruiter, the ramp, and the customer who did not get called back while the seat was empty.',
+      'AscendRev replaces fragmented operating costs with one managed growth model.',
     items: [
       {
         icon: 'cost',
-        heading: 'One rate, not nine cost lines.',
-        body: 'A local hire costs you salary, payroll taxes, benefits, software seats, recruiting fees, equipment and floor space. An AscendRev seat is one monthly rate that covers all of it. When the work changes the rate changes, and there is no severance conversation.',
+        heading: 'Radical Cost Reduction',
+        body: 'Reduce the fully loaded cost of local operations by consolidating salary, payroll taxes, benefits, recruiting, software seats, equipment and office overhead into one managed operating model.',
         quantifiedClaim: {
           // SPEC.md §7 item 5. The source brief said "Slash budgets by 30%-50%"
           // with nothing behind it. The sentence below is written and ready;
@@ -218,13 +235,13 @@ export const home: HomeContent = {
       },
       {
         icon: 'record',
-        heading: 'Built by someone who has carried the number.',
-        body: 'Rio Vidal has closed deals from CAD$500,000 to CAD$35,000,000 across Canada and Australia, and generated over CAD$1B in B2B revenue over his career. The call structure, the objection handling and the escalation paths your team works to are written and reviewed by him.',
+        heading: 'Proven Revenue Engine',
+        body: 'Built from sales systems shaped by over CAD$1B in generated B2B revenue across a career in Canada and Australia, with the operating discipline, call structure and accountability needed to support growth.',
       },
       {
         icon: 'accountability',
-        heading: 'The employment risk is ours.',
-        body: 'AscendRev employs the team in the Philippines, supervises it, and carries the attrition. You approve who joins your account and you tell us what good looks like. Everything underneath that is our problem, not a line item you inherit.',
+        heading: 'Tier-1 Infrastructure',
+        body: 'Deploy high-caliber professionals from premium, enterprise-ready facilities with the supervision, systems and operating standards required to represent your brand at scale.'
       },
     ],
   },
@@ -235,13 +252,13 @@ export const home: HomeContent = {
     // are the client's own, from the source brief.
     heading: "Built for Canada's Economic Engines.",
     intro:
-      'These are the sectors AscendRev is set up to serve. If yours is not listed the functions are the same, and fifteen minutes will tell us both whether it fits.',
+      'AscendRev supports the industries that keep Canada moving with tailored operational functions built for efficiency, scale, and measurable growth.',
     groups: [
       {
         id: 'fintech',
-        label: 'Fintech and SaaS',
-        body: 'Finance teams lose their evenings to chasing payables and receivables, and support queues spike the week after every release. We staff the collections calls, the reconciliation work inside your ERP and tier one support, so your engineers stop answering tickets.',
-        sectors: ['Fintech', 'SaaS', 'Payments', 'Financial services'],
+        label: 'Fintech & SaaS',
+        body: 'Support finance and software operations with dedicated teams handling core processes, system workflows, and scalable back-office execution.',
+        sectors: ['AP/AR Optimization', 'ERP Platforms', 'AI Integrations'],
         functions: [
           'Accounts payable and receivable',
           'ERP data entry and reconciliation',
@@ -251,9 +268,9 @@ export const home: HomeContent = {
       },
       {
         id: 'energy',
-        label: 'Energy and Industrial',
-        body: 'Field operations generate paperwork faster than an office can absorb it: purchase orders, dispatch confirmations, rental agreements, supplier follow up. None of that work needs to sit in your building, and most of it does not need to sit in your time zone.',
-        sectors: ['Oil and gas', 'Utilities', 'Supply chain', 'Equipment rental'],
+        label: 'Energy & Industrial',
+        body: 'Support operationally complex businesses with teams built around coordination, customer communication, administrative workflows, and scalable execution.',
+        sectors: ['Oil & Gas', 'Supply Chain', 'Equipment Rental'],
         functions: [
           'Purchase order and invoice processing',
           'Dispatch and scheduling support',
@@ -263,14 +280,14 @@ export const home: HomeContent = {
       },
       {
         id: 'construction',
-        label: 'Construction and Trades',
-        body: 'Estimators spend their day chasing permits, suppliers and unanswered quotes instead of pricing work. We take the chasing and the quote follow up, and we answer the after hours calls, so a burst pipe at 2am reaches a person rather than a voicemail box.',
+        label: 'Construction & Trades',
+        body: 'Extend your local team with operational support built for project-heavy businesses, trades, and field-service environments.',
         sectors: [
-          'Residential and commercial developers',
+          'Residential / Commercial Developers',
           'Earthworks',
           'HVAC',
           'Electrical',
-          'Roofing and siding',
+          'Roofing & Siding',
           'Drywall',
         ],
         functions: [
@@ -282,14 +299,14 @@ export const home: HomeContent = {
       },
       {
         id: 'retail',
-        label: 'Retail and Professional Services',
-        body: 'Booking, rebooking, chasing documents and answering the same twenty questions all day. This is high volume work with clear rules, which is exactly the work a trained and supervised team absorbs well, and exactly the work that burns out a local hire you cannot afford to lose.',
+        label: 'Retail & Professional Services',
+        body: 'Support customer-facing and administrative operations across businesses that depend on responsive communication, consistency, and process execution.',
         sectors: [
           'E-commerce',
           'Advertising',
-          'Medical groups',
-          'Real estate',
-          'Mortgage providers',
+          'Medical Groups',
+          'Real Estate',
+          'Mortgage Providers',
           'Wholesalers',
           'Automotive',
         ],
@@ -302,14 +319,14 @@ export const home: HomeContent = {
       },
       {
         id: 'transport',
-        label: 'Transport, Travel and Telecom',
-        body: 'Coverage is the whole job. Freight moves overnight, flights do not wait, and an outage does not book itself into business hours. A team fourteen hours ahead of Calgary is awake for all of it because it is the middle of their working day.',
+        label: 'Aviation / Travel / Telecommunication / Transportation / Freight & Logistics',
+        body: 'Support high-volume, time-sensitive operations where responsiveness, coordination, and extended coverage are critical.',
         sectors: [
           'Aviation',
-          'Travel and hospitality',
-          'Telecommunications',
+          'Travel / Hospitality',
+          'Telecommunication',
           'Transportation',
-          'Freight and logistics',
+          'Freight & Logistics',
         ],
         functions: [
           'Overnight dispatch and tracking',
@@ -326,7 +343,7 @@ export const home: HomeContent = {
     // brief. "Profit Center" keeps the client's spelling; flagged to the
     // founder as a Canadian-spelling question, not changed unilaterally.
     heading: 'Ready to Turn Operations Into a Profit Center?',
-    body: 'Book fifteen minutes with Rio Vidal. You get a straight read on whether the function you have in mind can be run offshore at all, and a written comparison of what it costs you now against what it would cost with us.',
+    body: 'Schedule a 15-minute operational cost analysis with our Canadian founder and leadership team.',
     cta: { label: 'Schedule Your Growth Briefing', href: '/contact' },
   },
 };

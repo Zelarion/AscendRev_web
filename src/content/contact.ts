@@ -57,25 +57,25 @@ export interface SelectOption<TValue extends string> {
  * canonical order rather than to object key order.
  */
 const bottleneckLabels: Record<BottleneckValue, string> = {
-  outbound: 'Outbound sales and SDR',
-  inbound: 'Inbound lead conversion',
-  'customer-support': 'Customer support',
-  'help-desk': 'Technical help desk',
-  'after-hours': 'After hours and overnight cover',
+  outbound: 'Outbound / SDR',
+  inbound: 'Inbound Closers',
+  'customer-support': 'Customer Support',
+  'help-desk': 'Tech Help Desk',
+  'after-hours': '24/7 After-Hours',
 };
 
 const revenueLabels: Record<RevenueValue, string> = {
-  'under-10m': 'Under CAD$10M',
-  '10m-to-50m': 'CAD$10M to CAD$50M',
-  '50m-to-250m': 'CAD$50M to CAD$250M',
-  '250m-plus': 'CAD$250M or more',
+  'under-10m': 'Under $10M',
+  '10m-to-50m': '$10M–$50M',
+  '50m-to-250m': '$50M–$250M',
+  '250m-plus': '$250M+',
 };
 
 const headcountLabels: Record<HeadcountValue, string> = {
-  '5-to-10': '5 to 10 people',
-  '11-to-15': '11 to 15 people',
-  '16-to-50': '16 to 50 people',
-  'over-50': 'More than 50 people',
+  '5-to-10': '5–10',
+  '11-to-15': '11–15',
+  '16-to-50': '16–50',
+  'over-50': '50+',
 };
 
 export const bottleneckOptions: readonly SelectOption<BottleneckValue>[] =
@@ -206,31 +206,27 @@ export const contact: ContactContent = {
   },
 
   hero: {
-    headline: 'Tell Us Which Function Is Breaking.',
+    headline: "Let's Engineer Your Scaled Support Infrastructure.",
     subheadline:
-      'Two steps. The first takes about a minute and is enough for us to come back to you with something useful. The second is optional and turns the call into a costed plan instead of a conversation.',
+      'Go from strategic sign-off to a fully operational, elite dedicated team in 30-60 days.',
   },
 
   whatToExpect: {
-    heading: 'What to Expect',
+    heading: 'The 15-Minute Blueprint.',
     intro:
-      'No sequence, no drip campaign, and no call from someone who has not read what you wrote.',
+      'A focused operational review designed to identify savings, define the right team structure, and map how AscendRev can integrate into your existing operation.',
     steps: [
       {
-        title: 'You send step one',
-        body: 'Five fields: your name, your work email, your company, and the function that is costing you most right now. None of it goes to a third party.',
+        title: 'Find where 30–50% savings may exist.',
+        body: 'Review your current operating model and identify where offshore execution can create meaningful savings.',
       },
       {
-        title: 'We reply within eight business hours',
-        body: 'From a person, with either a time for a call or an honest note that this is not a fit. The second one is more useful to you than a polite maybe.',
+        title: 'Define the right team.',
+        body: 'Map the functions, roles, headcount, and support structure that best fit your business.',
       },
       {
-        title: 'Fifteen minutes with Rio Vidal',
-        body: 'What the function costs you fully loaded today, what it would cost with a dedicated team, which roles are actually needed, and how that team would sit against the systems you already run. No deck.',
-      },
-      {
-        title: 'A written blueprint',
-        body: 'Roles, headcount, shift coverage, the monthly cost in Canadian dollars, and what we would need from you in the first month. It is yours whether or not you go ahead with us.',
+        title: 'Plug into your systems.',
+        body: 'Plan how the team connects with your existing tools, workflows, reporting, and operating processes.',
       },
     ],
     timeline: {
@@ -245,7 +241,7 @@ export const contact: ContactContent = {
   form: {
     heading: 'Request an Outsourcing Blueprint',
     intro:
-      'Step one is all we need in order to reply. Step two is what turns that reply into numbers.',
+      'Tell us where your operation stands today and what you need help solving.',
     requiredNote:
       'Everything in step one is required. In step two the two dropdowns are required if you continue, the rest is optional, and the whole step can be skipped.',
     intentNotice:
@@ -271,33 +267,24 @@ export const contact: ContactContent = {
       firstName: { label: 'First name' },
       lastName: { label: 'Last name' },
       corporateEmail: {
-        label: 'Work email',
-        helper:
-          'Your company address. Free mailboxes such as gmail.com and outlook.com are not accepted, because we cannot tie them to a business.',
+        label: 'Corporate Email',
+        helper: 'No free domains accepted.',
       },
       company: {
-        label: 'Company',
-        helper: 'The name as it appears on your invoices.',
+        label: 'Company Website URL',
       },
       primaryBottleneck: {
-        label: 'Primary bottleneck',
-        helper:
-          'Choose every function that is a problem. We will start with the one costing you most.',
+        label: 'Primary Bottleneck',
+        helper: 'Select one or more.',
       },
       annualRevenue: {
-        label: 'Annual revenue',
-        helper:
-          'A band is enough. It tells us the size of team that will actually fit.',
+        label: 'Current Annual Revenue',
       },
       headcount: {
-        label: 'Headcount needed',
-        helper:
-          'An estimate is fine. The blueprint will challenge it if it looks wrong.',
+        label: 'Estimated Headcount Needed',
       },
       budget: {
-        label: 'Monthly budget in CAD',
-        helper:
-          'A range is fine, and so is saying it is not set yet. Saying so does not disqualify you.',
+        label: 'Budget Allocation (CAD)',
       },
       message: {
         label: 'Anything else we should know',

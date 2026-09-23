@@ -14,7 +14,7 @@
 
 services:
   - type: web
-    name: ascendrev-preview
+    name: ascendrev-api
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -26,6 +26,9 @@ services:
     branch: main
     autoDeploy: true
 
+    # The service answers on /api/enquiry.php. A GET returns 405 by design,
+    # which Render would read as unhealthy, so the health check points at the
+    # site root that the image also serves.
     healthCheckPath: /
 
     envVars:
@@ -44,7 +47,10 @@ services:
       # Must include this service's own hostname or every submission is
       # refused with 403. The handler checks Origin/Referer, which is what
       # stands in for a CSRF token on a site with no server to issue one.
-      # Example: ascend-rev.ca,www.ascend-rev.ca,ascendrev-preview.onrender.com
+      # For the SPLIT deployment this is the VERCEL hostname, not this
+      # service's own. The browser sends the origin of the page the form is
+      # on, which is Vercel.
+      # Example: ascend-rev.ca,www.ascend-rev.ca,ascendrev-web.vercel.app
       - key: ASCENDREV_ALLOWED_HOSTS
         sync: false
 

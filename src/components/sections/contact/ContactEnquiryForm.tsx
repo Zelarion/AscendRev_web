@@ -56,6 +56,25 @@ function newIdempotencyKey(): string {
   return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
 }
 
+/**
+ * Where the enquiry is posted.
+ *
+ * Default is the relative path, which is what production uses: the handler is
+ * uploaded alongside the pages on the client's cPanel account, so same origin,
+ * no CORS, nothing to configure.
+ *
+ * `NEXT_PUBLIC_ENQUIRY_ENDPOINT` overrides it with an absolute URL for a split
+ * deployment, where the pages are served from a static host that cannot run
+ * PHP and the handler lives elsewhere. That host must then appear in the
+ * handler's `ASCENDREV_ALLOWED_HOSTS`, or every submission is refused with 403
+ * while the page itself looks perfectly fine.
+ *
+ * Read at build time, not runtime, because a static export has no runtime to
+ * read it in.
+ */
+const ENQUIRY_ENDPOINT =
+  process.env.NEXT_PUBLIC_ENQUIRY_ENDPOINT || '/api/enquiry.php';
+
 const inputClassName =
   'mt-2 block min-h-12 w-full rounded-[6px] border border-white/12 bg-white/[0.035] px-3.5 text-[14px] text-white outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-white/28 focus:border-[var(--gold-400)] focus:bg-white/[0.055] focus:shadow-[0_0_0_3px_rgba(223,184,79,0.10)]';
 
@@ -168,7 +187,7 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
     payload.append('idempotencyKey', idempotencyKey.current);
 
     try {
-      const response = await fetch('/api/enquiry.php', {
+      const response = await fetch(ENQUIRY_ENDPOINT, {
         method: 'POST',
         body: payload,
         headers: { Accept: 'application/json' },
@@ -232,7 +251,7 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
 
       {!completed && (
         <form
-          action="/api/enquiry.php"
+          action={ENQUIRY_ENDPOINT}
           method="post"
           // The whole form dims and settles back a fraction while the request
           // is in flight. Small enough to read as "working", not as a

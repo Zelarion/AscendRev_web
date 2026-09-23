@@ -169,9 +169,16 @@ const ALLOWED_FIELDS = [
 function respond(int $status, array $body): never
 {
     http_response_code($status);
-    header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store');
     header('X-Content-Type-Options: nosniff');
+
+    // 204 means "no content", so it must not carry one. Sending a body with it
+    // makes some clients treat the response as malformed.
+    if ($status === 204) {
+        exit;
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode($body, JSON_UNESCAPED_SLASHES);
     exit;
 }
@@ -194,16 +201,10 @@ function logLine(string $storageDir, string $message): void
 }
 
 /* ---------------------------------------------------------------------------
- * Gate 1 — method. Fail closed: anything that is not POST is refused.
- * ------------------------------------------------------------------------ */
-
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-    header('Allow: POST');
-    respond(405, ['ok' => false, 'error' => 'method_not_allowed']);
-}
-
-/* ---------------------------------------------------------------------------
- * Gate 2 — origin.
+ * Gate 1 — origin.
+ *
+ * Checked before the method, because a cross-origin browser request may arrive
+ * as an OPTIONS preflight that must be answered rather than refused.
  *
  * A static export cannot issue a per-session CSRF token, because there is no
  * server to issue one at page render. Checking that the request came from our
@@ -221,8 +222,53 @@ if ($origin !== '') {
     $sourceHost = (string) parse_url($referer, PHP_URL_HOST);
 }
 
-if ($sourceHost === '' || !in_array(strtolower($sourceHost), array_map('strtolower', $ALLOWED_HOSTS), true)) {
+$originAllowed = $sourceHost !== ''
+    && in_array(strtolower($sourceHost), array_map('strtolower', $ALLOWED_HOSTS), true);
+
+/**
+ * Cross-origin support, for the split deployment where the pages are served
+ * from one host and this handler from another.
+ *
+ * The allow-list is reused rather than duplicated, and the header echoes the
+ * one origin that passed it. A wildcard is never sent: this endpoint receives
+ * names, work addresses and business detail, and `*` would let any site on the
+ * internet post to it from a visitor's browser.
+ *
+ * `Vary: Origin` is not optional. Without it a shared cache can serve one
+ * origin's allow header to a different origin.
+ */
+if ($origin !== '' && $originAllowed) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Vary: Origin');
+}
+
+/**
+ * Preflight. The form posts FormData with only safelisted headers, so most
+ * browsers treat it as a simple request and never send OPTIONS. This is here
+ * so that adding a custom header later does not silently break submissions
+ * from the browser while continuing to work from curl.
+ */
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    if (!$originAllowed) {
+        respond(403, ['ok' => false, 'error' => 'forbidden_origin']);
+    }
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Accept, Content-Type');
+    header('Access-Control-Max-Age: 600');
+    respond(204, []);
+}
+
+if (!$originAllowed) {
     respond(403, ['ok' => false, 'error' => 'forbidden_origin']);
+}
+
+/* ---------------------------------------------------------------------------
+ * Gate 2 — method. Fail closed: anything that is not POST is refused.
+ * ------------------------------------------------------------------------ */
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    header('Allow: POST, OPTIONS');
+    respond(405, ['ok' => false, 'error' => 'method_not_allowed']);
 }
 
 /* ---------------------------------------------------------------------------

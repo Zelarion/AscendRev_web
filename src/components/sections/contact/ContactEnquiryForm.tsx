@@ -129,7 +129,14 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
     const payload = new FormData();
     for (const [key, value] of Object.entries(values)) {
       if (Array.isArray(value)) {
-        value.forEach((entry) => payload.append(key, entry));
+        // The `[]` suffix is not decoration. PHP only assembles repeated form
+        // keys into an array when the name ends in `[]`; without it `$_POST`
+        // keeps the LAST value and silently discards the rest, so a visitor
+        // who ticks three bottlenecks would have two of them thrown away
+        // between the browser and the handler. Verified both ways against the
+        // real handler. PHP strips the suffix, so the field arrives as
+        // `primaryBottleneck` and the handler's allow-list is unaffected.
+        value.forEach((entry) => payload.append(`${key}[]`, entry));
       } else {
         payload.append(key, value);
       }

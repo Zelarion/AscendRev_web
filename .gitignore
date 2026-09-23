@@ -33,3 +33,7 @@ next-env.d.ts
 # Build/scratch artifacts
 .next-stale-*/
 graphify-out/
+
+# Enquiry storage written by public/api/enquiry.php at runtime.
+# Contains submitted personal data - never commit.
+ascendrev-enquiries/

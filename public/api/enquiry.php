@@ -81,14 +81,43 @@ $STORAGE_DIR = config(
     dirname($_SERVER['DOCUMENT_ROOT'] ?? __DIR__) . '/ascendrev-enquiries'
 );
 
+/**
+ * Optional SMTP transport.
+ *
+ * On cPanel, `mail()` hands off to the host's local MTA and is the right
+ * answer: no credentials to store, no second service to depend on. But a
+ * machine with no local MTA — a Windows laptop running a demo, for instance —
+ * cannot deliver that way at all.
+ *
+ * So SMTP is used only when a host is configured, and `mail()` remains the
+ * default. Production behaviour is unchanged by the presence of this code.
+ *
+ * The password is read from the environment or the out-of-root config file and
+ * is never written to a log, never returned in a response, and never placed in
+ * a header.
+ */
+$SMTP_HOST   = config('ASCENDREV_SMTP_HOST', '');
+$SMTP_PORT   = (int) (config('ASCENDREV_SMTP_PORT', '587') ?: 587);
+$SMTP_USER   = config('ASCENDREV_SMTP_USER', '');
+$SMTP_PASS   = config('ASCENDREV_SMTP_PASS', '');
+
 /** Hosts allowed to submit. Origin/Referer must match one of these. */
 $ALLOWED_HOSTS = array_values(array_filter(array_map(
     'trim',
     explode(',', config('ASCENDREV_ALLOWED_HOSTS', 'ascend-rev.ca,www.ascend-rev.ca,localhost'))
 )));
 
-/** Rate limit: submissions per IP per window. */
-const RATE_LIMIT_MAX = 5;
+/**
+ * Rate limit: submissions per IP per window.
+ *
+ * Five an hour is right for production, where every visitor arrives with their
+ * own address. It is wrong behind a proxy or a tunnel that rewrites the source
+ * address, because then every visitor shares one bucket — measured during the
+ * review build, where a submission from the public tunnel and one from
+ * localhost produced an identical IP hash. Configurable for that case only;
+ * the default is unchanged and deployment should not set it.
+ */
+$RATE_LIMIT_MAX = max(1, (int) (config('ASCENDREV_RATE_LIMIT_MAX', '5') ?: 5));
 const RATE_LIMIT_WINDOW_SECONDS = 3600;
 
 /** How long an identical submission is treated as a duplicate, not a new lead. */
@@ -219,7 +248,7 @@ if (is_readable($rateFile)) {
     }
 }
 
-if (count($hits) >= RATE_LIMIT_MAX) {
+if (count($hits) >= $RATE_LIMIT_MAX) {
     logLine($STORAGE_DIR, 'rate_limited ip_hash=' . substr(hash('sha256', $clientIp), 0, 12));
     header('Retry-After: ' . RATE_LIMIT_WINDOW_SECONDS);
     respond(429, ['ok' => false, 'error' => 'rate_limited']);
@@ -509,13 +538,140 @@ $headers = implode("\r\n", [
     'X-Mailer: ascend-rev.ca',
 ]);
 
+/**
+ * Minimal SMTP submission over STARTTLS with AUTH LOGIN.
+ *
+ * Deliberately dependency-free: the site ships no Composer vendor tree, and
+ * pulling one in for a single send would be a new supply chain on the client's
+ * host. Returns true only when the server has accepted the message with a 250
+ * to the final dot, so a partial conversation never counts as delivered.
+ */
+function smtpSend(
+    string $host,
+    int $port,
+    string $user,
+    string $pass,
+    string $from,
+    string $to,
+    string $subject,
+    string $body,
+    string $headers
+): bool {
+    $socket = @stream_socket_client(
+        sprintf('tcp://%s:%d', $host, $port),
+        $errno,
+        $errstr,
+        20,
+        STREAM_CLIENT_CONNECT
+    );
+    if ($socket === false) {
+        return false;
+    }
+    stream_set_timeout($socket, 20);
+
+    /** Reads a full multiline reply. A line matching "NNN " ends it; "NNN-" continues. */
+    $read = static function () use ($socket): string {
+        $out = '';
+        while (($line = fgets($socket, 1024)) !== false) {
+            $out .= $line;
+            if (preg_match('/^\d{3} /', $line) === 1) {
+                break;
+            }
+        }
+        return $out;
+    };
+    $expect = static function (string $reply, string $code): bool {
+        return str_starts_with(trim($reply), $code);
+    };
+    $write = static function (string $line) use ($socket): void {
+        fwrite($socket, $line . "\r\n");
+    };
+
+    $ok = $expect($read(), '220');
+
+    if ($ok) {
+        $write('EHLO ascend-rev.ca');
+        $ok = $expect($read(), '250');
+    }
+    if ($ok) {
+        $write('STARTTLS');
+        $ok = $expect($read(), '220');
+    }
+    if ($ok) {
+        $ok = (bool) @stream_socket_enable_crypto(
+            $socket,
+            true,
+            STREAM_CRYPTO_METHOD_TLS_CLIENT
+        );
+    }
+    if ($ok) {
+        // EHLO again: the capability list before and after TLS are different
+        // sessions as far as the server is concerned.
+        $write('EHLO ascend-rev.ca');
+        $ok = $expect($read(), '250');
+    }
+    if ($ok && $user !== '') {
+        $write('AUTH LOGIN');
+        $ok = $expect($read(), '334');
+        if ($ok) {
+            $write(base64_encode($user));
+            $ok = $expect($read(), '334');
+        }
+        if ($ok) {
+            $write(base64_encode($pass));
+            $ok = $expect($read(), '235');
+        }
+    }
+    if ($ok) {
+        $write('MAIL FROM:<' . $from . '>');
+        $ok = $expect($read(), '250');
+    }
+    if ($ok) {
+        $write('RCPT TO:<' . $to . '>');
+        $ok = $expect($read(), '250');
+    }
+    if ($ok) {
+        $write('DATA');
+        $ok = $expect($read(), '354');
+    }
+    if ($ok) {
+        // Dot-stuffing: a line consisting of a single "." would otherwise end
+        // the message early.
+        $payload = preg_replace('/^\./m', '..', $body) ?? $body;
+        $write(
+            $headers . "\r\n"
+            . 'To: ' . $to . "\r\n"
+            . 'Subject: ' . $subject . "\r\n"
+            . 'Date: ' . gmdate('r') . "\r\n"
+            . "\r\n"
+            . str_replace("\n", "\r\n", $payload) . "\r\n."
+        );
+        $ok = $expect($read(), '250');
+    }
+
+    $write('QUIT');
+    fclose($socket);
+
+    return $ok;
+}
+
 $mailDelivered = false;
+$bodyText = implode("\n", $lines);
+
 foreach ($RECIPIENTS as $recipient) {
     $to = headerSafe($recipient);
     if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
         continue;
     }
-    if (@mail($to, $subject, implode("\n", $lines), $headers, '-f' . headerSafe($MAIL_FROM))) {
+
+    if ($SMTP_HOST !== '') {
+        if (smtpSend($SMTP_HOST, $SMTP_PORT, $SMTP_USER, $SMTP_PASS, headerSafe($MAIL_FROM), $to, $subject, $bodyText, $headers)) {
+            $mailDelivered = true;
+        }
+        continue;
+    }
+
+    if (@mail($to, $subject, $bodyText, $headers, '-f' . headerSafe($MAIL_FROM))) {
         $mailDelivered = true;
     }
 }

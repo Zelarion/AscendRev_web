@@ -1,0 +1,25 @@
+# Never let a credential or a lead into an image layer. Render builds from git
+# so these are already absent there, but a local `docker build` copies the
+# working directory as it is, and a layer keeps whatever it was handed even if
+# a later step deletes it.
+ascendrev-enquiry.config.php
+ascendrev-enquiries/
+.env
+.env.*
+*.env
+
+# Build output and caches. The image builds its own; copying these in makes the
+# context large and can shadow a fresh build with a stale one.
+node_modules/
+.next/
+.next-stale-*/
+out/
+graphify-out/
+
+# Not needed at runtime.
+.git/
+.github/
+*.md
+!public/**/*.md
+.vscode/
+.idea/

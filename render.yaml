@@ -1,0 +1,83 @@
+# Render blueprint for the AscendRev review environment.
+#
+# PREVIEW ONLY. The production site is a static export uploaded to AscendRev's
+# own cPanel account, per SPEC.md §1. This exists so the client can open the
+# site at any hour without a laptop and a tunnel staying awake, and so that
+# what they review behaves like the real host rather than like a static mock.
+#
+# A Docker web service rather than a static site, because the enquiry handler
+# is PHP and Render's static hosting is a CDN with no runtime. Render has no
+# native PHP runtime either, so Docker is the only route that keeps the form
+# working.
+#
+# Apply with: Render dashboard -> New -> Blueprint -> point at this repo.
+
+services:
+  - type: web
+    name: ascendrev-preview
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: singapore
+    # The free plan sleeps after inactivity and takes the better part of a
+    # minute to wake. For a client review that reads as a broken link, so this
+    # is deliberately not `free`. Drop the service when the review is done.
+    plan: starter
+    branch: main
+    autoDeploy: true
+
+    healthCheckPath: /
+
+    envVars:
+      # -- Where enquiries go -------------------------------------------------
+      # Review traffic, so NOT the client's real mailboxes. A review session
+      # generates test submissions and those should not land in Rio's inbox.
+      - key: ASCENDREV_ENQUIRY_TO
+        sync: false
+
+      # With Gmail SMTP this must be the authenticated account or a verified
+      # alias, or Gmail rewrites or rejects the envelope sender.
+      - key: ASCENDREV_ENQUIRY_FROM
+        sync: false
+
+      # -- Who may submit -----------------------------------------------------
+      # Must include this service's own hostname or every submission is
+      # refused with 403. The handler checks Origin/Referer, which is what
+      # stands in for a CSRF token on a site with no server to issue one.
+      # Example: ascend-rev.ca,www.ascend-rev.ca,ascendrev-preview.onrender.com
+      - key: ASCENDREV_ALLOWED_HOSTS
+        sync: false
+
+      # -- Mail transport -----------------------------------------------------
+      # The php:apache image has no local mail server, so mail() cannot deliver
+      # here. SMTP is required on Render. On cPanel these stay unset and the
+      # host's own mail() is used instead, which is the production path.
+      - key: ASCENDREV_SMTP_HOST
+        value: smtp.gmail.com
+      - key: ASCENDREV_SMTP_PORT
+        value: "587"
+      - key: ASCENDREV_SMTP_USER
+        sync: false
+      # sync: false keeps this out of the blueprint and out of git. Set it by
+      # hand in the dashboard, and use a Gmail App Password, never an account
+      # password.
+      - key: ASCENDREV_SMTP_PASS
+        sync: false
+
+      # -- Rate limit ---------------------------------------------------------
+      # Render sits behind a proxy, so every visitor arrives with the same
+      # source address as far as PHP is concerned and they share one bucket.
+      # Measured during this build: a submission through a public tunnel and
+      # one from localhost produced an identical IP hash. At the production
+      # default of 5 an hour the form would lock partway through a review.
+      # Deployment to cPanel must NOT set this.
+      - key: ASCENDREV_RATE_LIMIT_MAX
+        value: "100"
+
+      # -- Lead storage -------------------------------------------------------
+      # Outside the document root, matching the cPanel layout. Render's
+      # filesystem is wiped on every deploy unless a persistent disk is
+      # attached, so on this service the emailed copy is the record of truth
+      # and the CSV is a convenience. See RENDER.md.
+      - key: ASCENDREV_ENQUIRY_STORAGE
+        value: /var/www/ascendrev-enquiries

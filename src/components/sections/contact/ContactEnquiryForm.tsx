@@ -31,7 +31,30 @@ const visibleFields: readonly FieldName[] = [
   'primaryBottleneck',
   'headcount',
   'budget',
+  'message',
 ];
+
+/**
+ * An idempotency key identifies the visitor's *intent* to send this enquiry,
+ * not an individual HTTP attempt. It is generated once when the form is opened
+ * and only replaced after a submission has actually succeeded, so a retry over
+ * a dropped connection carries the same key and the handler replays the first
+ * outcome instead of creating a second lead and a second email.
+ *
+ * Generating it per attempt would defeat the entire mechanism, which is the
+ * usual way this gets built wrong.
+ */
+function newIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Older Safari has crypto but not randomUUID. getRandomValues is far older.
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+}
 
 const inputClassName =
   'mt-2 block min-h-12 w-full rounded-[6px] border border-white/12 bg-white/[0.035] px-3.5 text-[14px] text-white outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-white/28 focus:border-[var(--gold-400)] focus:bg-white/[0.055] focus:shadow-[0_0_0_3px_rgba(223,184,79,0.10)]';
@@ -45,6 +68,7 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<{ tone: 'error' | 'success'; message: string } | null>(null);
   const submissionInFlight = useRef(false);
+  const idempotencyKey = useRef<string>(newIdempotencyKey());
   const formId = useId();
   const summaryId = `${formId}-summary`;
 
@@ -141,6 +165,7 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
         payload.append(key, value);
       }
     }
+    payload.append('idempotencyKey', idempotencyKey.current);
 
     try {
       const response = await fetch('/api/enquiry.php', {
@@ -153,9 +178,17 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
         throw new Error(`Enquiry request failed with ${response.status}.`);
       }
 
+      // The enquiry is now recorded, so this intent is spent. A fresh key means
+      // that if the visitor sends a genuine second enquiry later it is treated
+      // as new rather than replayed as a duplicate of the first.
+      idempotencyKey.current = newIdempotencyKey();
+
       setCompleted(true);
       setStatus({ tone: 'success', message: content.states.successFinal });
     } catch {
+      // The key is deliberately NOT regenerated here. A failure may have been
+      // a lost response rather than a lost request, so the next attempt has to
+      // carry the same key for the handler to recognise it as a retry.
       setStatus({ tone: 'error', message: content.states.failure });
     } finally {
       submissionInFlight.current = false;
@@ -198,7 +231,17 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
       )}
 
       {!completed && (
-        <form action="/api/enquiry.php" method="post" className="mt-8" onSubmit={handleSubmit} noValidate>
+        <form
+          action="/api/enquiry.php"
+          method="post"
+          // The whole form dims and settles back a fraction while the request
+          // is in flight. Small enough to read as "working", not as a
+          // page-blocking overlay, and pointer events stay off so a second
+          // click cannot land on a field mid-submit.
+          className={`enquiry-form mt-8 ${submitting ? 'is-sending' : ''}`}
+          onSubmit={handleSubmit}
+          noValidate
+        >
           <input
             {...register('referralSource')}
             type="text"
@@ -346,14 +389,54 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
                 inputMode="decimal"
               />
             </div>
+
+            <div className="mt-5">
+              <TextAreaField
+                id={fieldId('message')}
+                label={content.fields.message.label}
+                helper={content.fields.message.helper}
+                helperId={helperId('message')}
+                error={errors.message?.message}
+                errorId={errorId('message')}
+                describedBy={describedBy('message', Boolean(content.fields.message.helper))}
+                registration={register('message')}
+              />
+            </div>
           </FormGroup>
 
+          {/*
+            The two labels are stacked on top of each other and cross-faded
+            rather than swapped, so the button never changes width and the row
+            below it never jumps. A sheen sweeps across while the request is in
+            flight, which reads as the request travelling rather than the page
+            hanging — this handler does a real SMTP round trip and can take a
+            couple of seconds.
+          */}
           <button
             type="submit"
             disabled={submitting}
-            className="mt-10 inline-flex min-h-13 w-full items-center justify-center rounded-[7px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-5 py-3.5 text-center text-[14px] font-semibold text-[var(--gold-ink)] shadow-[0_8px_22px_rgba(197,151,49,0.16)] outline-none transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_10px_25px_rgba(197,151,49,0.22)] focus-visible:shadow-[0_0_0_3px_rgba(240,212,123,0.28)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+            aria-busy={submitting}
+            data-sending={submitting ? 'true' : undefined}
+            className="enquiry-submit group relative mt-10 inline-flex min-h-13 w-full items-center justify-center overflow-hidden rounded-[7px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-5 py-3.5 text-center text-[14px] font-semibold text-[var(--gold-ink)] shadow-[0_8px_22px_rgba(197,151,49,0.16)] outline-none transition-[transform,box-shadow,filter] duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_10px_25px_rgba(197,151,49,0.22)] focus-visible:shadow-[0_0_0_3px_rgba(240,212,123,0.28)] disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
-            {submitting ? content.states.submitting : 'Request Strategic Capability Proposal →'}
+            <span aria-hidden="true" className="enquiry-submit__sheen" />
+
+            <span
+              aria-hidden={submitting ? 'true' : undefined}
+              className={`enquiry-submit__label ${submitting ? 'is-hidden' : ''}`}
+            >
+              Request Strategic Capability Proposal →
+            </span>
+
+            <span
+              aria-hidden={submitting ? undefined : 'true'}
+              className={`enquiry-submit__label enquiry-submit__label--sending ${
+                submitting ? '' : 'is-hidden'
+              }`}
+            >
+              <span className="enquiry-spinner" />
+              {content.states.submitting}
+            </span>
           </button>
 
           <div className="mt-4 flex items-start justify-center gap-2 text-center text-[11px] leading-5 text-white/42">
@@ -442,6 +525,62 @@ function TextField({
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedBy}
         className={inputClassName}
+      />
+      <FieldError id={errorId} error={error} />
+    </div>
+  );
+}
+
+interface TextAreaFieldProps {
+  id: string;
+  label: string;
+  helper?: string;
+  helperId?: string;
+  error?: string;
+  errorId: string;
+  describedBy?: string;
+  registration: UseFormRegisterReturn;
+}
+
+/**
+ * The only free-text field on the form, and the one that turns a qualified row
+ * of dropdown answers into something a person can actually reply to. It is
+ * optional: the schema accepts an empty value, and only enforces a ten
+ * character minimum once someone has started writing, so a stray keystroke
+ * does not block a submission.
+ */
+function TextAreaField({
+  id,
+  label,
+  helper,
+  helperId,
+  error,
+  errorId,
+  describedBy,
+  registration,
+}: TextAreaFieldProps) {
+  return (
+    <div>
+      <label htmlFor={id} className="text-[12px] font-semibold tracking-[0.02em] text-white/78">
+        {label}
+      </label>
+      {helper && helperId && (
+        <p id={helperId} className="mt-1.5 text-[11px] leading-4 text-white/36">
+          {helper}
+        </p>
+      )}
+      <textarea
+        {...registration}
+        id={id}
+        rows={4}
+        maxLength={2000}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={describedBy}
+        // `inputClassName` sets a fixed min-height sized for a single-line
+        // input, which would crop a textarea, so the height rules are replaced
+        // rather than inherited. `resize-y` keeps the horizontal axis fixed so
+        // dragging cannot break the column layout.
+        className={`${inputClassName} min-h-[7.5rem] resize-y py-3 leading-6`}
       />
       <FieldError id={errorId} error={error} />
     </div>

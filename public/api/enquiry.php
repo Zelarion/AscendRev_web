@@ -155,7 +155,7 @@ const FORBIDDEN_NAME_CHARACTERS = '0123456789@<>{}[]\\/|_=+*#$%^~`';
 const ALLOWED_FIELDS = [
     'firstName', 'lastName', 'corporateEmail', 'company', 'primaryBottleneck',
     'annualRevenue', 'headcount', 'budget', 'message',
-    'referralSource', 'formToken',
+    'referralSource', 'formToken', 'idempotencyKey',
 ];
 
 /* ---------------------------------------------------------------------------
@@ -407,29 +407,63 @@ if ($errors !== []) {
  * client that retries generates a fresh id and would defeat the check.
  * ------------------------------------------------------------------------ */
 
-$submissionKey = hash('sha256', implode("\x1f", [
-    strtolower($corporateEmail),
-    $firstName,
-    $lastName,
-    $company,
-    implode(',', $bottleneck),
-    $annualRevenue,
-    $headcount,
-    $budget,
-    $message,
-]));
+/**
+ * The browser generates an idempotency key once per intent to send, and keeps
+ * it across retries. When it is present it is authoritative, because it
+ * survives the case a content hash cannot: a visitor who edits one word and
+ * resends after a timeout is retrying the same intent, not filing a new lead.
+ *
+ * Length- and charset-constrained before use, because it becomes part of a
+ * filename. Anything unexpected falls back to the content hash rather than
+ * being trusted.
+ */
+$clientKey = field('idempotencyKey');
+$useClientKey = $clientKey !== ''
+    && strlen($clientKey) <= 64
+    && preg_match('/^[A-Za-z0-9._-]+$/', $clientKey) === 1;
+
+$submissionKey = $useClientKey
+    ? hash('sha256', 'client:' . $clientKey)
+    : hash('sha256', implode("\x1f", [
+        strtolower($corporateEmail),
+        $firstName,
+        $lastName,
+        $company,
+        implode(',', $bottleneck),
+        $annualRevenue,
+        $headcount,
+        $budget,
+        $message,
+    ]));
 
 $dedupeFile = $STORAGE_DIR . '/dedupe-' . $submissionKey . '.txt';
-if (is_readable($dedupeFile)) {
+
+/**
+ * The claim is made with an exclusive create rather than "check, then write".
+ * Two requests arriving at the same instant — a double-click, or a client that
+ * retries before the first response lands — would both pass a check-then-write
+ * and both send an email. `fopen` in 'x' mode can only succeed for one of
+ * them, so the side effects below run in the winner alone.
+ */
+$claim = @fopen($dedupeFile, 'x');
+
+if ($claim === false) {
     $seenAt = (int) @file_get_contents($dedupeFile);
+
     if ($seenAt > 0 && ($now - $seenAt) < DEDUPE_WINDOW_SECONDS) {
         // Reported as success. The visitor's intent was satisfied the first
         // time, and telling them it failed would invite a third attempt.
         logLine($STORAGE_DIR, 'duplicate_suppressed key=' . substr($submissionKey, 0, 12));
         respond(200, ['ok' => true, 'duplicate' => true]);
     }
+
+    // The marker is older than the window, so this is a genuine new intent
+    // that happens to hash the same. Take the marker over and continue.
+    @file_put_contents($dedupeFile, (string) $now, LOCK_EX);
+} else {
+    fwrite($claim, (string) $now);
+    fclose($claim);
 }
-@file_put_contents($dedupeFile, (string) $now, LOCK_EX);
 
 /* ---------------------------------------------------------------------------
  * Persist first, then send.
@@ -531,10 +565,187 @@ $subject = headerSafe(sprintf(
     $company
 ));
 
+/* ---------------------------------------------------------------------------
+ * HTML body.
+ *
+ * Built with nested tables and inline styles, not because that is good HTML
+ * but because it is the only markup Outlook's rendering engine handles
+ * predictably. A plain-text alternative is sent alongside it, so a client that
+ * cannot or will not render HTML still shows a readable enquiry rather than a
+ * wall of markup.
+ *
+ * Every value inserted below goes through htmlspecialchars. These values have
+ * already been validated, but an enquiry is attacker-controlled text arriving
+ * in someone's inbox, and escaping at the point of output is the only habit
+ * that survives a later change to the validation.
+ */
+
+/** Escapes for HTML output. */
+function e(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+/** One label/value row. Empty values render as a muted placeholder. */
+function row(string $label, string $value, bool $isLink = false): string
+{
+    $shown = $value !== ''
+        ? ($isLink
+            ? '<a href="' . e($value) . '" style="color:#0F1B33;text-decoration:underline;">' . e($value) . '</a>'
+            : e($value))
+        : '<span style="color:#9aa3b2;">Not provided</span>';
+
+    return '<tr>'
+        . '<td style="padding:11px 0;border-bottom:1px solid #e9ecf1;font:600 12px/16px Arial,Helvetica,sans-serif;'
+        . 'color:#6b7484;text-transform:uppercase;letter-spacing:.05em;width:150px;vertical-align:top;">'
+        . e($label) . '</td>'
+        . '<td style="padding:11px 0;border-bottom:1px solid #e9ecf1;font:400 15px/22px Arial,Helvetica,sans-serif;'
+        . 'color:#111827;vertical-align:top;">' . $shown . '</td>'
+        . '</tr>';
+}
+
+$revenueLabels = [
+    'under-10m'    => 'Under $10M',
+    '10m-to-50m'   => '$10M to $50M',
+    '50m-to-250m'  => '$50M to $250M',
+    '250m-plus'    => '$250M or more',
+];
+$headcountLabels = [
+    '5-to-10'   => '5 to 10',
+    '11-to-15'  => '11 to 15',
+    '16-to-50'  => '16 to 50',
+    'over-50'   => 'Over 50',
+];
+
+$needList = implode(', ', array_map(
+    static fn(string $v): string => $bottleneckLabels[$v] ?? $v,
+    $bottleneck
+));
+
+$html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    . '<title>New enquiry</title></head>'
+    . '<body style="margin:0;padding:0;background:#eef1f5;">'
+
+    // Preheader: the grey line inboxes show beside the subject. Hidden in the
+    // body itself, which is why it carries the zero-height styling.
+    . '<div style="display:none;max-height:0;overflow:hidden;opacity:0;">'
+    . e($firstName . ' ' . $lastName) . ' at ' . e($company) . ' &mdash; ' . e($needList)
+    . '</div>'
+
+    . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef1f5;padding:28px 12px;">'
+    . '<tr><td align="center">'
+    . '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(15,27,51,.10);">'
+
+    // Header band, brand navy, with the logo embedded by Content-ID so it
+    // displays without the recipient clicking "show images".
+    . '<tr><td style="background:#0F1B33;padding:26px 32px;">'
+    . '<img src="cid:ascendrev-logo" width="180" alt="AscendRev" style="display:block;border:0;width:180px;height:auto;">'
+    . '</td></tr>'
+
+    // The gold and green rule from the site, carried across so the email is
+    // recognisably the same brand as the page the enquiry came from.
+    . '<tr><td style="font-size:0;line-height:0;">'
+    . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
+    . '<td width="74" style="background:#267455;height:3px;font-size:0;line-height:0;">&nbsp;</td>'
+    . '<td style="background:#EBCB89;height:3px;font-size:0;line-height:0;">&nbsp;</td>'
+    . '</tr></table></td></tr>'
+
+    . '<tr><td style="padding:30px 32px 8px;">'
+    . '<p style="margin:0 0 4px;font:600 11px/16px Arial,Helvetica,sans-serif;color:#1E5E46;text-transform:uppercase;letter-spacing:.14em;">New enquiry</p>'
+    . '<h1 style="margin:0;font:400 26px/32px Georgia,\'Times New Roman\',serif;color:#0F1B33;">'
+    . e($firstName . ' ' . $lastName) . '</h1>'
+    . '<p style="margin:6px 0 0;font:400 15px/22px Arial,Helvetica,sans-serif;color:#4B5563;">'
+    . e($company) . '</p>'
+    . '</td></tr>'
+
+    . '<tr><td style="padding:14px 32px 4px;">'
+    . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">'
+    . row('Work email', $corporateEmail)
+    . row('Company', $company, true)
+    . row('Primary need', $needList)
+    . row('Annual revenue', $annualRevenue !== '' ? ($revenueLabels[$annualRevenue] ?? $annualRevenue) : '')
+    . row('Headcount', $headcount !== '' ? ($headcountLabels[$headcount] ?? $headcount) : '')
+    . row('Budget', $budget)
+    . '</table></td></tr>';
+
+if ($message !== '') {
+    $html .= '<tr><td style="padding:22px 32px 0;">'
+        . '<p style="margin:0 0 8px;font:600 12px/16px Arial,Helvetica,sans-serif;color:#6b7484;text-transform:uppercase;letter-spacing:.05em;">Message</p>'
+        . '<div style="background:#f6f8fa;border-left:3px solid #EBCB89;padding:14px 16px;border-radius:0 4px 4px 0;'
+        . 'font:400 15px/23px Arial,Helvetica,sans-serif;color:#111827;white-space:pre-wrap;">'
+        . e($message) . '</div></td></tr>';
+}
+
+$html .= '<tr><td style="padding:26px 32px 4px;">'
+    . '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+    . '<td style="background:#1E5E46;border-radius:6px;">'
+    . '<a href="mailto:' . e($corporateEmail) . '?subject=' . rawurlencode('Re: your enquiry to AscendRev')
+    . '" style="display:inline-block;padding:13px 26px;font:600 14px/18px Arial,Helvetica,sans-serif;'
+    . 'color:#ffffff;text-decoration:none;">Reply to ' . e($firstName) . '</a>'
+    . '</td></tr></table>'
+    . '<p style="margin:12px 0 0;font:400 12px/18px Arial,Helvetica,sans-serif;color:#6b7484;">'
+    . 'Replying to this email also reaches them directly.</p>'
+    . '</td></tr>'
+
+    . '<tr><td style="padding:24px 32px 28px;">'
+    . '<hr style="border:0;border-top:1px solid #e9ecf1;margin:0 0 14px;">'
+    . '<p style="margin:0;font:400 12px/18px Arial,Helvetica,sans-serif;color:#8a93a3;">'
+    . 'Submitted ' . e($submittedAt) . ' UTC via ascend-rev.ca<br>'
+    . ($csvWritten
+        ? 'Also recorded in enquiries.csv'
+        : '<span style="color:#B42318;font-weight:bold;">Warning: could not be written to enquiries.csv</span>')
+    . '</p></td></tr>'
+
+    . '</table></td></tr></table></body></html>';
+
+/* ---------------------------------------------------------------------------
+ * MIME assembly.
+ *
+ * multipart/related wraps a multipart/alternative (plain text + HTML) and the
+ * logo. "related" rather than "mixed" is what tells the client the image
+ * belongs to the HTML rather than being a file the recipient should download,
+ * which is why it appears in the layout and not as an attachment.
+ * ------------------------------------------------------------------------ */
+
+$boundaryRelated = 'rel_' . bin2hex(random_bytes(12));
+$boundaryAlt     = 'alt_' . bin2hex(random_bytes(12));
+
+$mime = '--' . $boundaryRelated . "\r\n"
+    . 'Content-Type: multipart/alternative; boundary="' . $boundaryAlt . '"' . "\r\n\r\n"
+
+    . '--' . $boundaryAlt . "\r\n"
+    . 'Content-Type: text/plain; charset=utf-8' . "\r\n"
+    . 'Content-Transfer-Encoding: 8bit' . "\r\n\r\n"
+    . implode("\n", $lines) . "\r\n\r\n"
+
+    . '--' . $boundaryAlt . "\r\n"
+    . 'Content-Type: text/html; charset=utf-8' . "\r\n"
+    . 'Content-Transfer-Encoding: 8bit' . "\r\n\r\n"
+    . $html . "\r\n\r\n"
+
+    . '--' . $boundaryAlt . '--' . "\r\n\r\n";
+
+$logoPath = __DIR__ . '/email-logo.png';
+if (is_readable($logoPath)) {
+    $logoData = @file_get_contents($logoPath);
+    if ($logoData !== false) {
+        $mime .= '--' . $boundaryRelated . "\r\n"
+            . 'Content-Type: image/png; name="ascendrev-logo.png"' . "\r\n"
+            . 'Content-Transfer-Encoding: base64' . "\r\n"
+            . 'Content-ID: <ascendrev-logo>' . "\r\n"
+            . 'Content-Disposition: inline; filename="ascendrev-logo.png"' . "\r\n\r\n"
+            . chunk_split(base64_encode($logoData), 76, "\r\n") . "\r\n";
+    }
+}
+
+$mime .= '--' . $boundaryRelated . '--' . "\r\n";
+
 $headers = implode("\r\n", [
     'From: AscendRev Website <' . headerSafe($MAIL_FROM) . '>',
     'Reply-To: ' . headerSafe($firstName . ' ' . $lastName) . ' <' . headerSafe($corporateEmail) . '>',
-    'Content-Type: text/plain; charset=utf-8',
+    'MIME-Version: 1.0',
+    'Content-Type: multipart/related; boundary="' . $boundaryRelated . '"',
     'X-Mailer: ascend-rev.ca',
 ]);
 
@@ -637,7 +848,16 @@ function smtpSend(
     if ($ok) {
         // Dot-stuffing: a line consisting of a single "." would otherwise end
         // the message early.
-        $payload = preg_replace('/^\./m', '..', $body) ?? $body;
+        // Normalise to CRLF exactly once. The body may already be CRLF
+        // (MIME) or LF (plain text); collapsing first makes both safe.
+        $normalised = str_replace("
+", "
+", $body);
+        $normalised = str_replace("
+", "
+", $normalised);
+        // Dot-stuffing: a line of a single "." would end the message early.
+        $payload = preg_replace('/^\./m', '..', $normalised) ?? $normalised;
         $write(
             $headers . "\r\n"
             . 'To: ' . $to . "\r\n"
@@ -656,7 +876,6 @@ function smtpSend(
 }
 
 $mailDelivered = false;
-$bodyText = implode("\n", $lines);
 
 foreach ($RECIPIENTS as $recipient) {
     $to = headerSafe($recipient);
@@ -665,13 +884,13 @@ foreach ($RECIPIENTS as $recipient) {
     }
 
     if ($SMTP_HOST !== '') {
-        if (smtpSend($SMTP_HOST, $SMTP_PORT, $SMTP_USER, $SMTP_PASS, headerSafe($MAIL_FROM), $to, $subject, $bodyText, $headers)) {
+        if (smtpSend($SMTP_HOST, $SMTP_PORT, $SMTP_USER, $SMTP_PASS, headerSafe($MAIL_FROM), $to, $subject, $mime, $headers)) {
             $mailDelivered = true;
         }
         continue;
     }
 
-    if (@mail($to, $subject, $bodyText, $headers, '-f' . headerSafe($MAIL_FROM))) {
+    if (@mail($to, $subject, $mime, $headers, '-f' . headerSafe($MAIL_FROM))) {
         $mailDelivered = true;
     }
 }

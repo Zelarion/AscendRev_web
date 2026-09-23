@@ -640,7 +640,12 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
     // Header band, brand navy, with the logo embedded by Content-ID so it
     // displays without the recipient clicking "show images".
     . '<tr><td style="background:#0F1B33;padding:26px 32px;">'
-    . '<img src="cid:ascendrev-logo" width="180" alt="AscendRev" style="display:block;border:0;width:180px;height:auto;">'
+    // 200px wide from a 400x200 source, so it stays sharp on a retina screen.
+    // The white halo is baked into the PNG rather than applied with CSS,
+    // because Outlook discards gradients and the navy wordmark would then sit
+    // invisibly on this navy band.
+    . '<img src="cid:ascendrev-logo" width="200" height="100" alt="AscendRev"'
+    . ' style="display:block;border:0;width:200px;height:auto;">'
     . '</td></tr>'
 
     // The gold and green rule from the site, carried across so the email is

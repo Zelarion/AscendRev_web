@@ -80,12 +80,13 @@ export const site: Site = {
   companyName: 'AscendRev Outsourcing Services Corp.',
   domain: 'ascend-rev.ca',
   url: 'https://ascend-rev.ca',
-  tagline: 'Lower Costs. Higher Efficiencies. Accelerate Revenue.',
+  tagline: 'Dedicated Team. Targeted Solutions. Accelerated Revenue.',
   phone: '+1 (403) 903-2912',
   address: `${addressParts.street}, ${addressParts.city}, ${addressParts.region} ${addressParts.postalCode}, ${addressParts.country}`,
   addressParts,
   contactEmail: 'rio.vidal@ascend-rev.ca',
   enquiryEmailSecondary: 'ralph.tomines@ascend-rev.ca',
   linkedinUrl: 'https://www.linkedin.com/in/rio-mendoza-vidal-56900210b/',
-  slaLine: 'Led by Harvard Business Impact Enterprise & Lean Six Sigma Certified Expertise | 100M Dollar Club Recognized',
+  slaLine:
+    "Founded and Led by Harvard Business Impact Enterprise & Lean Six Sigma Certified | 100M Dollar Club Recognized | 2X President's Club Winner",
 };

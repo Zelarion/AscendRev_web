@@ -96,7 +96,7 @@ export default function Header(): JSX.Element {
     >
       <div
         className={cn(
-          'ar-nav-shell mx-auto flex h-[76px] w-full items-center justify-between border px-4 backdrop-blur-[22px] sm:h-[86px] sm:px-6 lg:px-8 xl:px-10',
+          'ar-nav-shell mx-auto flex h-[88px] w-full items-center justify-between border px-4 backdrop-blur-[22px] sm:h-[100px] sm:px-6 lg:px-8 xl:px-10',
           'transition-[max-width,border-radius,background-color,border-color,box-shadow] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
           scrolled
             ? 'max-w-[1540px] rounded-[18px] border-white/14 bg-[var(--nav-glass-scrolled)] shadow-[0_18px_55px_rgba(0,0,0,0.24)]'
@@ -124,12 +124,12 @@ export default function Header(): JSX.Element {
               alt="AscendRev"
               width={206}
               height={68}
-              className="h-[48px] w-auto object-contain sm:h-[56px] lg:h-[60px]"
+              className="h-[60px] w-auto object-contain sm:h-[70px] lg:h-[78px]"
             />
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-8 lg:flex xl:gap-11">
+        <nav aria-label="Primary" className="hidden items-center gap-6 xl:flex xl:gap-7 2xl:gap-9">
           {navItems.map((item, index) => {
             const active = isActiveRoute(pathname, item.href);
             return (
@@ -146,7 +146,7 @@ export default function Header(): JSX.Element {
           })}
         </nav>
 
-        <div className="hidden items-center gap-4 lg:flex xl:gap-5">
+        <div className="hidden items-center gap-4 xl:flex xl:gap-5">
           <div className="ar-nav-item" style={{ animationDelay: '470ms' }}>
             <ThemeToggle className="rounded-full text-white/95 hover:bg-white/8" />
           </div>
@@ -165,7 +165,7 @@ export default function Header(): JSX.Element {
           </Link>
         </div>
 
-        <div className="flex items-center gap-1 lg:hidden">
+        <div className="flex items-center gap-1 xl:hidden">
           <ThemeToggle className="rounded-full text-white/95 hover:bg-white/8" />
           <button
             ref={toggleRef}
@@ -200,7 +200,7 @@ export default function Header(): JSX.Element {
       <div
         aria-hidden={!menuOpen}
         className={cn(
-          'fixed inset-0 z-[1080] bg-black/40 backdrop-blur-[1px] transition-opacity duration-500 ease-out lg:hidden',
+          'fixed inset-0 z-[1080] bg-black/40 backdrop-blur-[1px] transition-opacity duration-500 ease-out xl:hidden',
           menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={closeMenu}
@@ -214,7 +214,7 @@ export default function Header(): JSX.Element {
         aria-hidden={!menuOpen}
         aria-label="Mobile navigation"
         className={cn(
-          'fixed inset-y-0 right-0 z-[1100] flex min-h-0 w-[calc(100%-0.75rem)] max-w-[620px] flex-col overflow-hidden border-l border-white/10 bg-[var(--nav-glass-scrolled)] px-5 pb-6 pt-5 shadow-[-18px_0_55px_rgba(0,0,0,0.32)] backdrop-blur-[24px] sm:w-[88vw] sm:px-7 sm:pb-7 sm:pt-6 md:w-[78vw] lg:hidden',
+          'fixed inset-y-0 right-0 z-[1100] flex min-h-0 w-[calc(100%-0.75rem)] max-w-[620px] flex-col overflow-hidden border-l border-white/10 bg-[var(--nav-glass-scrolled)] px-5 pb-6 pt-5 shadow-[-18px_0_55px_rgba(0,0,0,0.32)] backdrop-blur-[24px] sm:w-[88vw] sm:px-7 sm:pb-7 sm:pt-6 md:w-[78vw] xl:hidden',
           'transition-[transform,opacity] duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
           menuOpen
             ? 'pointer-events-auto translate-x-0 opacity-100'

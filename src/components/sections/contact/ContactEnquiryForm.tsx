@@ -1,38 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { LockKey } from '@phosphor-icons/react/dist/ssr';
 import { useId, useRef, useState, type FormEvent } from 'react';
 import { useForm, type UseFormRegisterReturn } from 'react-hook-form';
 import type { EnquiryFormContent } from '@/content/contact';
-import { enquirySchema } from '@/lib/enquirySchema';
+import { ENQUIRY_FIELDS, enquirySchema } from '@/lib/enquirySchema';
 
 type FormValues = {
-  firstName: string;
-  lastName: string;
-  corporateEmail: string;
-  company: string;
-  primaryBottleneck: string[];
-  annualRevenue: string;
-  headcount: string;
-  budget: string;
-  message: string;
+  individualName: string;
+  businessEmail: string;
+  entityName: string;
+  bestNumberToCall: string;
+  comments: string;
   referralSource: string;
 };
 
 type FieldName = keyof FormValues;
-
-const visibleFields: readonly FieldName[] = [
-  'firstName',
-  'lastName',
-  'corporateEmail',
-  'company',
-  'annualRevenue',
-  'primaryBottleneck',
-  'headcount',
-  'budget',
-  'message',
-];
 
 /**
  * An idempotency key identifies the visitor's *intent* to send this enquiry,
@@ -101,20 +84,16 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
     watch,
   } = useForm<FormValues>({
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      corporateEmail: '',
-      company: '',
-      primaryBottleneck: [],
-      annualRevenue: '',
-      headcount: '',
-      budget: '',
-      message: '',
+      individualName: '',
+      businessEmail: '',
+      entityName: '',
+      bestNumberToCall: '',
+      comments: '',
       referralSource: '',
     },
   });
 
-  const selectedBottlenecks = watch('primaryBottleneck') ?? [];
+  const commentsValue = watch('comments') ?? '';
 
   function fieldId(name: FieldName): string {
     return `${formId}-${name}`;
@@ -128,8 +107,14 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
     return `${fieldId(name)}-error`;
   }
 
-  function describedBy(name: FieldName, hasHelper = false): string | undefined {
-    const ids = [hasHelper ? helperId(name) : null, errors[name] ? errorId(name) : null].filter(Boolean);
+  function counterId(name: FieldName): string {
+    return `${fieldId(name)}-counter`;
+  }
+
+  function describedBy(name: FieldName, extraIds: readonly (string | null | undefined)[] = []): string | undefined {
+    const ids = [...extraIds, errors[name] ? errorId(name) : null].filter(
+      (id): id is string => Boolean(id)
+    );
     return ids.length ? ids.join(' ') : undefined;
   }
 
@@ -141,14 +126,14 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
     }
 
     clearErrors();
-    for (const field of visibleFields) {
+    for (const field of ENQUIRY_FIELDS) {
       const issue = result.error.issues.find((candidate) => candidate.path[0] === field);
       if (issue) {
         setError(field, { type: 'validate', message: issue.message });
       }
     }
 
-    const firstInvalid = visibleFields.find((field) =>
+    const firstInvalid = ENQUIRY_FIELDS.find((field) =>
       result.error.issues.some((issue) => issue.path[0] === field)
     );
     if (firstInvalid) {
@@ -171,18 +156,7 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
     const values = getValues();
     const payload = new FormData();
     for (const [key, value] of Object.entries(values)) {
-      if (Array.isArray(value)) {
-        // The `[]` suffix is not decoration. PHP only assembles repeated form
-        // keys into an array when the name ends in `[]`; without it `$_POST`
-        // keeps the LAST value and silently discards the rest, so a visitor
-        // who ticks three bottlenecks would have two of them thrown away
-        // between the browser and the handler. Verified both ways against the
-        // real handler. PHP strips the suffix, so the field arrives as
-        // `primaryBottleneck` and the handler's allow-list is unaffected.
-        value.forEach((entry) => payload.append(`${key}[]`, entry));
-      } else {
-        payload.append(key, value);
-      }
+      payload.append(key, value);
     }
     payload.append('idempotencyKey', idempotencyKey.current);
 
@@ -203,7 +177,7 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
       idempotencyKey.current = newIdempotencyKey();
 
       setCompleted(true);
-      setStatus({ tone: 'success', message: content.states.successFinal });
+      setStatus({ tone: 'success', message: content.states.success });
     } catch {
       // The key is deliberately NOT regenerated here. A failure may have been
       // a lost response rather than a lost request, so the next attempt has to
@@ -231,6 +205,9 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
         </h2>
         <p className="mt-4 max-w-[56ch] text-[14px] leading-6 text-white/52">
           {content.intro}
+        </p>
+        <p className="mt-2 text-[12px] leading-5 text-white/38">
+          {content.requiredNote}
         </p>
       </div>
 
@@ -270,158 +247,68 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
             className="absolute h-px w-px overflow-hidden opacity-0"
           />
 
-          <FormGroup number="01" title="COMPANY">
-            <div className="grid gap-5 sm:grid-cols-2">
-              <TextField
-                id={fieldId('firstName')}
-                label={content.fields.firstName.label}
-                error={errors.firstName?.message}
-                errorId={errorId('firstName')}
-                describedBy={describedBy('firstName')}
-                registration={register('firstName')}
-                autoComplete="given-name"
-              />
-              <TextField
-                id={fieldId('lastName')}
-                label={content.fields.lastName.label}
-                error={errors.lastName?.message}
-                errorId={errorId('lastName')}
-                describedBy={describedBy('lastName')}
-                registration={register('lastName')}
-                autoComplete="family-name"
-              />
-            </div>
+          <div className="grid gap-5">
+            <TextField
+              id={fieldId('individualName')}
+              label={content.fields.individualName.label}
+              error={errors.individualName?.message}
+              errorId={errorId('individualName')}
+              describedBy={describedBy('individualName')}
+              registration={register('individualName')}
+              autoComplete="name"
+            />
 
-            <div className="mt-5">
-              <TextField
-                id={fieldId('corporateEmail')}
-                label={content.fields.corporateEmail.label}
-                helper={content.fields.corporateEmail.helper}
-                helperId={helperId('corporateEmail')}
-                error={errors.corporateEmail?.message}
-                errorId={errorId('corporateEmail')}
-                describedBy={describedBy('corporateEmail', true)}
-                registration={register('corporateEmail')}
-                type="email"
-                autoComplete="email"
-              />
-            </div>
+            <TextField
+              id={fieldId('businessEmail')}
+              label={content.fields.businessEmail.label}
+              helper={content.fields.businessEmail.helper}
+              helperId={helperId('businessEmail')}
+              error={errors.businessEmail?.message}
+              errorId={errorId('businessEmail')}
+              describedBy={describedBy('businessEmail', [helperId('businessEmail')])}
+              registration={register('businessEmail')}
+              type="email"
+              autoComplete="email"
+            />
 
-            <div className="mt-5">
-              <TextField
-                id={fieldId('company')}
-                label={content.fields.company.label}
-                error={errors.company?.message}
-                errorId={errorId('company')}
-                describedBy={describedBy('company')}
-                registration={register('company')}
-                type="url"
-                autoComplete="url"
-              />
-            </div>
+            <TextField
+              id={fieldId('entityName')}
+              label={content.fields.entityName.label}
+              error={errors.entityName?.message}
+              errorId={errorId('entityName')}
+              describedBy={describedBy('entityName')}
+              registration={register('entityName')}
+              autoComplete="organization"
+            />
 
-            <div className="mt-5">
-              <SelectField
-                id={fieldId('annualRevenue')}
-                label={content.fields.annualRevenue.label}
-                error={errors.annualRevenue?.message}
-                errorId={errorId('annualRevenue')}
-                describedBy={describedBy('annualRevenue')}
-                registration={register('annualRevenue')}
-                options={content.options.annualRevenue}
-              />
-            </div>
-          </FormGroup>
+            <TextField
+              id={fieldId('bestNumberToCall')}
+              label={content.fields.bestNumberToCall.label}
+              error={errors.bestNumberToCall?.message}
+              errorId={errorId('bestNumberToCall')}
+              describedBy={describedBy('bestNumberToCall')}
+              registration={register('bestNumberToCall')}
+              type="tel"
+              autoComplete="tel"
+            />
 
-          <FormGroup number="02" title="REQUIREMENTS" className="mt-10 border-t border-white/[0.08] pt-10">
-            <fieldset>
-              <legend className="text-[12px] font-semibold tracking-[0.02em] text-white/78">
-                {content.fields.primaryBottleneck.label}
-              </legend>
-              {content.fields.primaryBottleneck.helper && (
-                <p id={helperId('primaryBottleneck')} className="mt-1.5 text-[12px] text-white/38">
-                  {content.fields.primaryBottleneck.helper}
-                </p>
-              )}
-
-              <div
-                className="mt-4 grid gap-2.5 sm:grid-cols-2"
-                aria-describedby={describedBy('primaryBottleneck', true)}
-              >
-                {content.options.primaryBottleneck.map((option) => {
-                  const optionId = `${fieldId('primaryBottleneck')}-${option.value}`;
-                  const selected = selectedBottlenecks.includes(option.value);
-                  return (
-                    <label key={option.value} htmlFor={optionId} className="relative cursor-pointer">
-                      <input
-                        {...register('primaryBottleneck')}
-                        id={optionId}
-                        type="checkbox"
-                        value={option.value}
-                        className="peer sr-only"
-                      />
-                      <span
-                        className={`flex min-h-12 items-center justify-between gap-3 rounded-[6px] border px-3.5 text-[13px] transition-[border-color,background-color,color] duration-200 peer-focus-visible:shadow-[0_0_0_3px_rgba(223,184,79,0.12)] ${
-                          selected
-                            ? 'border-[var(--gold-400)]/65 bg-[var(--gold-400)]/[0.07] text-white'
-                            : 'border-white/10 bg-white/[0.02] text-white/62 hover:border-white/18 hover:bg-white/[0.035]'
-                        }`}
-                      >
-                        <span>{option.label}</span>
-                        <span
-                          aria-hidden="true"
-                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border text-[10px] ${
-                            selected
-                              ? 'border-[var(--gold-400)] bg-[var(--gold-400)] text-[var(--gold-ink)]'
-                              : 'border-white/22 text-transparent'
-                          }`}
-                        >
-                          ✓
-                        </span>
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-              <FieldError id={errorId('primaryBottleneck')} error={errors.primaryBottleneck?.message} />
-            </fieldset>
-          </FormGroup>
-
-          <FormGroup number="03" title="SCALE & BUDGET" className="mt-10 border-t border-white/[0.08] pt-10">
-            <div className="grid gap-5 sm:grid-cols-2">
-              <SelectField
-                id={fieldId('headcount')}
-                label={content.fields.headcount.label}
-                error={errors.headcount?.message}
-                errorId={errorId('headcount')}
-                describedBy={describedBy('headcount')}
-                registration={register('headcount')}
-                options={content.options.headcount}
-              />
-              <TextField
-                id={fieldId('budget')}
-                label={content.fields.budget.label}
-                error={errors.budget?.message}
-                errorId={errorId('budget')}
-                describedBy={describedBy('budget')}
-                registration={register('budget')}
-                inputMode="decimal"
-              />
-            </div>
-
-            <div className="mt-5">
-              <TextAreaField
-                id={fieldId('message')}
-                label={content.fields.message.label}
-                helper={content.fields.message.helper}
-                helperId={helperId('message')}
-                error={errors.message?.message}
-                errorId={errorId('message')}
-                describedBy={describedBy('message', Boolean(content.fields.message.helper))}
-                registration={register('message')}
-              />
-            </div>
-          </FormGroup>
+            <TextAreaField
+              id={fieldId('comments')}
+              label={content.fields.comments.label}
+              helper={content.fields.comments.helper}
+              helperId={helperId('comments')}
+              error={errors.comments?.message}
+              errorId={errorId('comments')}
+              describedBy={describedBy('comments', [
+                content.fields.comments.helper ? helperId('comments') : null,
+                counterId('comments'),
+              ])}
+              registration={register('comments')}
+              maxLength={content.commentsMaxLength}
+              value={commentsValue}
+              counterId={counterId('comments')}
+            />
+          </div>
 
           {/*
             The two labels are stacked on top of each other and cross-faded
@@ -444,7 +331,7 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
               aria-hidden={submitting ? 'true' : undefined}
               className={`enquiry-submit__label ${submitting ? 'is-hidden' : ''}`}
             >
-              Request Strategic Capability Proposal →
+              {content.submitLabel} →
             </span>
 
             <span
@@ -458,10 +345,9 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
             </span>
           </button>
 
-          <div className="mt-4 flex items-start justify-center gap-2 text-center text-[11px] leading-5 text-white/42">
-            <LockKey size={14} weight="regular" aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--gold-300)]/75" />
-            <span>Data handled under executive compliance. Zero inbox spam.</span>
-          </div>
+          <p className="mt-4 text-center text-[11px] leading-5 text-white/42">
+            {content.consent.text}
+          </p>
 
           <p className="mt-3 text-center text-[10px] leading-4 text-white/28">
             <Link
@@ -477,27 +363,6 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
   );
 }
 
-function FormGroup({
-  number,
-  title,
-  className = '',
-  children,
-}: {
-  number: string;
-  title: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={className}>
-      <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--gold-300)]">
-        {number} / {title}
-      </p>
-      {children}
-    </section>
-  );
-}
-
 interface TextFieldProps {
   id: string;
   label: string;
@@ -507,9 +372,8 @@ interface TextFieldProps {
   errorId: string;
   describedBy?: string;
   registration: UseFormRegisterReturn;
-  type?: 'email' | 'text' | 'url';
+  type?: 'email' | 'text' | 'tel';
   autoComplete?: string;
-  inputMode?: 'text' | 'decimal';
 }
 
 function TextField({
@@ -523,7 +387,6 @@ function TextField({
   registration,
   type = 'text',
   autoComplete,
-  inputMode,
 }: TextFieldProps) {
   return (
     <div>
@@ -539,7 +402,6 @@ function TextField({
         {...registration}
         id={id}
         type={type}
-        inputMode={inputMode}
         autoComplete={autoComplete}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedBy}
@@ -559,14 +421,19 @@ interface TextAreaFieldProps {
   errorId: string;
   describedBy?: string;
   registration: UseFormRegisterReturn;
+  maxLength: number;
+  value: string;
+  counterId: string;
 }
 
 /**
- * The only free-text field on the form, and the one that turns a qualified row
- * of dropdown answers into something a person can actually reply to. It is
- * optional: the schema accepts an empty value, and only enforces a ten
- * character minimum once someone has started writing, so a stray keystroke
- * does not block a submission.
+ * The only free-text field on the form. Optional, and capped at
+ * `maxLength` both by the browser (the `maxLength` attribute, so a visitor
+ * physically cannot type past it) and by the schema server side.
+ *
+ * The counter's live region is `aria-live="polite"` rather than "assertive"
+ * so a screen reader finishes its current sentence and picks up the latest
+ * count when it next has a gap, instead of interrupting on every keystroke.
  */
 function TextAreaField({
   id,
@@ -577,12 +444,25 @@ function TextAreaField({
   errorId,
   describedBy,
   registration,
+  maxLength,
+  value,
+  counterId,
 }: TextAreaFieldProps) {
   return (
     <div>
-      <label htmlFor={id} className="text-[12px] font-semibold tracking-[0.02em] text-white/78">
-        {label}
-      </label>
+      <div className="flex items-baseline justify-between gap-3">
+        <label htmlFor={id} className="text-[12px] font-semibold tracking-[0.02em] text-white/78">
+          {label}
+        </label>
+        <span
+          id={counterId}
+          aria-live="polite"
+          aria-atomic="true"
+          className="shrink-0 text-[11px] tabular-nums text-white/36"
+        >
+          {value.length} / {maxLength}
+        </span>
+      </div>
       {helper && helperId && (
         <p id={helperId} className="mt-1.5 text-[11px] leading-4 text-white/36">
           {helper}
@@ -592,7 +472,7 @@ function TextAreaField({
         {...registration}
         id={id}
         rows={4}
-        maxLength={2000}
+        maxLength={maxLength}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedBy}
         // `inputClassName` sets a fixed min-height sized for a single-line
@@ -601,51 +481,6 @@ function TextAreaField({
         // dragging cannot break the column layout.
         className={`${inputClassName} min-h-[7.5rem] resize-y py-3 leading-6`}
       />
-      <FieldError id={errorId} error={error} />
-    </div>
-  );
-}
-
-interface SelectFieldProps {
-  id: string;
-  label: string;
-  error?: string;
-  errorId: string;
-  describedBy?: string;
-  registration: UseFormRegisterReturn;
-  options: readonly { value: string; label: string }[];
-}
-
-function SelectField({
-  id,
-  label,
-  error,
-  errorId,
-  describedBy,
-  registration,
-  options,
-}: SelectFieldProps) {
-  return (
-    <div>
-      <label htmlFor={id} className="text-[12px] font-semibold tracking-[0.02em] text-white/78">
-        {label}
-      </label>
-      <select
-        {...registration}
-        id={id}
-        aria-invalid={error ? 'true' : undefined}
-        aria-describedby={describedBy}
-        className={`${inputClassName} cursor-pointer`}
-      >
-        <option value="" className="bg-[#111c2c] text-white" hidden>
-          Select an option
-        </option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value} className="bg-[#111c2c] text-white">
-            {option.label}
-          </option>
-        ))}
-      </select>
       <FieldError id={errorId} error={error} />
     </div>
   );

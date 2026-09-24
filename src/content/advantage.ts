@@ -17,6 +17,13 @@
  * unfilled (SPEC.md §9 gate 2), which is the intended behaviour: the
  * alternative was photographs of somebody else's offices, and that is the
  * exact thing a buyer who has been burned before goes looking for.
+ *
+ * Client revision, 2026-09-24: page retitled "The AscendRev Difference",
+ * leadership section split into "Career Experience" (narrative) and
+ * "PROVEN COMMERCIAL EXPERIENCE" (four stat cards). Copy is treated as
+ * verbatim throughout per the client's own instruction not to change the
+ * wording; the one exception is "Career Experience" itself, corrected from
+ * the client's "Carrer Experience" typo and flagged back for confirmation.
  */
 
 import type {
@@ -53,9 +60,24 @@ export interface Credential extends PendingApproval {
   note?: string;
 }
 
+/**
+ * One of the four "PROVEN COMMERCIAL EXPERIENCE" stat cards (client revision,
+ * 2026-09-24). `icon` is a plain-text glyph; the component decides how to
+ * render it (a Phosphor line icon for the trophy mark, the glyph character
+ * itself for the rest) inside a small bordered container, never as a large
+ * emoji.
+ */
+export interface CommercialStat {
+  icon: string;
+  label: string;
+  description: string;
+}
+
 export interface LeadershipContent {
   /** Anchor target: the nav resolves Leadership to `#leadership` on this page (SPEC.md §3). */
   id: string;
+  /** Overline above `heading`, client copy verbatim: "Career Experience". */
+  sectionLabel: string;
   heading: string;
   portrait: ImageSlot;
   name: string;
@@ -71,6 +93,9 @@ export interface LeadershipContent {
   credentials: readonly Credential[];
   /** Attribution line printed with the record. Not decoration: it is the point. */
   attribution: string;
+  /** "PROVEN COMMERCIAL EXPERIENCE" heading, client copy verbatim. */
+  commercialHeading: string;
+  commercialStats: readonly CommercialStat[];
 }
 
 export interface CommitmentItem extends PendingApproval {
@@ -98,21 +123,29 @@ export interface AdvantageContent {
 
 export const advantage: AdvantageContent = {
   meta: {
-    title: 'Who Runs AscendRev, and What Exists Today',
+    // Client revision, 2026-09-24: page retitled "The AscendRev Difference".
+    title: 'The AscendRev Difference',
     description:
       "Rio Vidal's career record, what stands behind AscendRev, and what the Philippine operation actually is right now. Registered in Canada on 11 September 2026.",
   },
 
   hero: {
-    headline: 'Who You Are Actually Dealing With.',
-    subheadline:
-      'AscendRev is a young company with an experienced founder. Both of those facts matter to you, so both of them are on this page, in that order.',
+    // Client revision, 2026-09-24: title and strapline verbatim, no full stop after "Impact".
+    headline: 'The AscendRev Difference',
+    subheadline: 'Right Talent. Purpose-Built Teams. Disciplined Execution. Measurable Impact',
   },
 
   leadership: {
     id: 'leadership',
-    // Heading verbatim from the client's brief.
-    heading: 'Engineered by a Proven Player-Coach.',
+    // Client revision, 2026-09-24. The client's brief spelled this "Carrer
+    // Experience"; corrected to "Career Experience" because a misspelling in
+    // a section heading is a credibility problem, not a wording preference.
+    // Flagged back to the client for confirmation per the build brief.
+    sectionLabel: 'Career Experience',
+    // Heading verbatim from the client's 2026-09-24 brief. Replaces the prior
+    // "Engineered by a Proven Player-Coach." heading, which covered the same
+    // section and would otherwise sit as a duplicate heading directly above it.
+    heading: 'Built by a Leader Who Has Lived the Revenue Journey.',
     portrait: {
       label:
         'Portrait of Rio Vidal, Founder. Head and shoulders, plain background, natural light, business dress. Taken for AscendRev, not a profile photo cropped from somewhere else.',
@@ -123,15 +156,25 @@ export const advantage: AdvantageContent = {
     name: 'Rio Vidal',
     role: 'Founder',
     location: 'Calgary, Alberta',
+    // Client revision, 2026-09-24: replaces the prior three-paragraph
+    // narrative, which told the same "who is Rio Vidal" story and would
+    // otherwise duplicate this copy immediately below the new heading.
     narrative: [
-      'Rio Vidal spent his career in B2B sales across Canada and Australia, carrying a quota himself long before he managed anyone else who carried one. He founded AscendRev because he kept meeting companies that needed five more people in a seat they could not justify filling locally, and had nobody credible to call.',
-      'He runs the Canadian side of every account personally. The scripts your team reads, the way a call gets escalated, and the standard a conversation is judged against are his, and he keeps reviewing them once your team is live rather than handing them over at launch.',
-      'The record below is his, earned before AscendRev existed. The company itself was registered on 11 September 2026 and has no track record of its own yet. You would rather hear that from us now than work it out later, and we would rather be the ones who said it.',
+      'Rio Vidal brings more than a decade of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated $1B+ in sales revenue, managed commercial opportunities and deal sizes from 10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
+      "Growth requires more than strategy. It requires the capacity to execute. AscendRev provides dedicated professionals and purpose-built teams that extend your organization's sales, customer, and operational capabilities—allowing your internal leaders to focus on strategy, relationships, and growth.",
     ],
     // The client's own line, from the source brief, quoted as written.
     commitment:
       'Every script, workflow and playbook deployed in the Philippines is built and calibrated under direct onshore supervision.',
     recordHeading: 'Career record',
+    // FLAG for founder/client confirmation, 2026-09-24: three different deal
+    // size ranges now exist on this page and were not reconciled by the
+    // client's brief: this row (CAD$500,000-$35,000,000), the new narrative
+    // paragraph above ("10K to $35M", no currency given), and the new
+    // commercialStats entry below ("$10M-$35M CAD"). Implemented each exactly
+    // as given rather than guessing which is correct or deleting this row as
+    // a duplicate, since the lower bound differs by three orders of magnitude
+    // across the three mentions.
     facts: [
       {
         label: 'B2B revenue generated',
@@ -151,21 +194,14 @@ export const advantage: AdvantageContent = {
       },
     ],
     credentialsHeading: 'Recognition and training',
+    // Client revision, 2026-09-24: "100M Dollar Club" (issuer American
+    // Express) and "President's Award, awarded twice" removed from this list
+    // because they duplicate the new "$100M+ Dollar Recognition" and "2X
+    // President's Club" cards in `commercialStats` below. Lean Six Sigma and
+    // the Harvard programme are untouched: the client's new copy does not
+    // mention either, so SPEC.md §7 item 4's pending-approval gate on them
+    // still stands.
     credentials: [
-      {
-        name: '100M Dollar Club',
-        issuer: 'American Express',
-        awarded: null,
-      },
-      {
-        name: "President's Award",
-        issuer: null,
-        awarded: null,
-        note: 'Awarded twice.',
-        pendingApproval: true,
-        pendingReason:
-          "SPEC.md §7 item 4. The awarding organisation is not named anywhere in the client's brief. An award named without its issuer cannot be checked by a buyer and reads as filler. AscendRev must supply who granted it and in which years before it is published.",
-      },
       {
         name: 'Lean Six Sigma',
         issuer: null,
@@ -185,6 +221,32 @@ export const advantage: AdvantageContent = {
     ],
     attribution:
       "These are Rio Vidal's personal achievements, earned across his career before AscendRev was founded. They are not claims about the company.",
+
+    // Client revision, 2026-09-24. Four stat cards, copy verbatim including
+    // the client's own en dashes in "60–80" and "$10M–$35M CAD".
+    commercialHeading: 'PROVEN COMMERCIAL EXPERIENCE',
+    commercialStats: [
+      {
+        icon: '🏆',
+        label: "2X President's Club",
+        description: 'Recognized for exceptional sales performance and leadership.',
+      },
+      {
+        icon: '◇',
+        label: '$100M+ Dollar Recognition',
+        description: 'Enterprise recognition for 400% revenue contribution.',
+      },
+      {
+        icon: '▤',
+        label: '60–80 Deals Annually',
+        description: 'Demonstrated consistency in complex B2B sales.',
+      },
+      {
+        icon: '◆',
+        label: '$10M–$35M CAD Deal Sizes',
+        description: 'Experience with substantial commercial transactions.',
+      },
+    ],
   },
 
   infrastructure: {

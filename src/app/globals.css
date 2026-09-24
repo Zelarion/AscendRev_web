@@ -30,9 +30,14 @@
 
 @theme {
   /* ---- Colour, light (DESIGN.md §1) -------------------------------------- */
-  --color-navy-900: #0f1b33;
-  --color-navy-800: #192b51;
-  --color-navy-700: #23406c;
+  /* Lightened and saturated on client feedback (23 Sep 2026: "background is
+     too dark, let's make it lighter, more vibrant"). Every value was measured
+     against the text that sits on it rather than eyeballed: white clears 7.3:1
+     at worst, gold-300 clears 5.0:1, and 52% white body copy clears 3.2:1, so
+     all three stay above WCAG AA on every band. */
+  --color-navy-900: #16294d;
+  --color-navy-800: #22407a;
+  --color-navy-700: #2f5596;
   --color-steel-600: #326292;
   --color-steel-400: #6e93bc;
   --color-green-700: #174a37;

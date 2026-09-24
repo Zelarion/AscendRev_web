@@ -83,7 +83,7 @@ export default function PageLoader(): JSX.Element | null {
           inset: 0;
           z-index: 2000;
           overflow: hidden;
-          background: #0f1b33;
+          background: var(--color-navy-900);
           pointer-events: auto;
         }
 

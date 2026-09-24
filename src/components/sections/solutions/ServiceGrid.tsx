@@ -5,19 +5,16 @@ import { WordReveal } from '@/components/motion';
 import Stagger from '@/components/ui/Stagger';
 import { solutions } from '@/content/solutions';
 import { stateTransitionStyle } from '@/lib/motion';
+import GlyphIcon, { GLYPH_ACCENT_CYCLE } from './GlyphIcon';
 
 /**
- * The eight-function grid (SPEC.md §4.2, item 2).
+ * The nine-function grid (SPEC.md §4.2, item 2).
  *
- * This is the one place on the site where an identical card grid is the honest
- * affordance: eight peer services, no ranking between them, each one a thing
- * the reader might be shopping for. DESIGN.md §3 still constrains how the card
- * looks, 1px border, 10px radius, no shadow, generous padding, and forbids
- * nesting anything card-shaped inside it. A card here is a heading and a
- * paragraph, nothing else.
- *
- * The layout is intentionally 1 column on mobile and 2 columns from tablet
- * through desktop, so the eight services resolve into a clean 2 × 4 editorial grid.
+ * Client revision, 2026-09-24: the per-service description paragraph is
+ * removed. A card here is now a small icon plus its label, nothing else, so
+ * the grid runs 3-wide on desktop rather than the old 2-wide layout — a
+ * tighter grid to match the shorter content, not a stretched-out list.
+ * DESIGN.md §3's card rules (1px border, 10px radius, no shadow) still apply.
  */
 export default function ServiceGrid(): JSX.Element {
   const { heading, intro, items } = solutions.services;
@@ -42,19 +39,19 @@ export default function ServiceGrid(): JSX.Element {
 
         <p className="mt-6 max-w-[68ch] text-body-lg text-[var(--ink-muted)]">{intro}</p>
 
-        <Stagger className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {items.map((item) => (
+        <Stagger className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {items.map((item, index) => (
             <article
               key={item.id}
-              // Hover deepens the hairline and lifts the card 2px (DESIGN.md
-              // §4). No shadow bloom, and the transform is dropped under
-              // reduced motion so the border still answers the pointer while
-              // nothing travels.
-              className="rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-8 transition-[transform,border-color] hover:-translate-y-[2px] hover:border-[var(--border-strong)] motion-reduce:hover:translate-y-0"
+              // Hover deepens the hairline (DESIGN.md §4). No shadow bloom.
+              className="flex items-center gap-4 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-5 transition-[border-color] hover:border-[var(--border-strong)]"
               style={stateTransitionStyle}
             >
-              <h3 className="text-h3 text-[var(--ink)]">{item.title}</h3>
-              <p className="mt-3 text-body text-[var(--ink-muted)]">{item.body}</p>
+              <GlyphIcon
+                glyph={item.glyph}
+                accent={GLYPH_ACCENT_CYCLE[index % GLYPH_ACCENT_CYCLE.length]}
+              />
+              <h3 className="text-body font-medium text-[var(--ink)]">{item.label}</h3>
             </article>
           ))}
         </Stagger>

@@ -28,7 +28,7 @@ const LENIS_OPTIONS = {
   /** Touch devices keep their native scroll physics. Smoothing a touch scroll
    * fights the platform's own inertia and reads as lag on a phone. */
   syncTouch: false,
-  /** In-page anchors (`/#industries` from the nav) land below the sticky
+  /** In-page anchors (`/#revenue-impact` from the nav) land below the sticky
    * header rather than underneath it. The header is h-20, which is 80px. */
   anchors: { offset: 80 },
 } as const;

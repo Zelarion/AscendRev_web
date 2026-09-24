@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
+import ImagePlaceholder from '@/components/ui/ImagePlaceholder';
 import { advantage } from '@/content/advantage';
 
 type ProofKind = 'location' | 'infrastructure' | 'workplace';
@@ -16,16 +17,15 @@ interface ProofMoment {
 }
 
 function FacilityImage({
-  src,
-  alt,
+  placeholderLabel,
   label,
   aspect = 'aspect-[16/7]',
   annotations,
   active,
   registerTiltTarget,
 }: {
-  src: string;
-  alt: string;
+  /** What belongs in this slot, per SPEC.md §5: specific enough to brief a photographer. */
+  placeholderLabel: string;
   label: string;
   aspect?: string;
   annotations?: readonly string[];
@@ -41,13 +41,18 @@ function FacilityImage({
           aspect
         )}
       >
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
+      {/*
+        No stock photography here on purpose (build brief, 2026-09-24): this
+        block previously hotlinked Pexels images of somebody else's offices,
+        which is exactly what the honesty framing on this page argues against.
+        `ImagePlaceholder` is the same unfilled-slot component the rest of the
+        site uses once a real, AscendRev-owned photograph exists.
+      */}
+      <ImagePlaceholder
+        label={placeholderLabel}
         className={cn(
-          'absolute inset-0 h-full w-full object-cover transition-[filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-          active ? 'brightness-100 saturate-100' : 'brightness-[0.48] saturate-[0.78]'
+          'absolute inset-0 h-full w-full border-white/15 bg-transparent text-white/70 transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+          active ? 'opacity-100' : 'opacity-60'
         )}
       />
       <div
@@ -280,19 +285,12 @@ export default function InfrastructureBlock(): JSX.Element {
 
                 <div className={cn('md:pl-5', reverse && 'md:order-1 md:pl-0 md:pr-5')}>
                   <FacilityImage
-                    src={
+                    placeholderLabel={
                       moment.id === 'location'
-                        ? 'https://images.pexels.com/photos/19826202/pexels-photo-19826202.jpeg?auto=compress&cs=tinysrgb&w=1600'
+                        ? "Photograph of AscendRev's own Philippine site once the location is confirmed. Must be our own premises, not a stock building photo."
                         : moment.id === 'workplace'
-                          ? 'https://images.pexels.com/photos/35856465/pexels-photo-35856465.jpeg?auto=compress&cs=tinysrgb&w=1600'
-                          : 'https://images.pexels.com/photos/4508751/pexels-photo-4508751.jpeg?auto=compress&cs=tinysrgb&w=1600'
-                    }
-                    alt={
-                      moment.id === 'location'
-                        ? 'Modern glass office building in Makati, Philippines.'
-                        : moment.id === 'workplace'
-                          ? 'Modern office workspace overlooking Makati, Philippines.'
-                          : 'Modern enterprise data center infrastructure.'
+                          ? "Photograph of AscendRev's own workspace, taken after fit out. Must be our own premises, not a stock office photo."
+                          : "Photograph of AscendRev's own infrastructure setup once installed. Not a stock data center photo."
                     }
                     label={
                       moment.id === 'location'

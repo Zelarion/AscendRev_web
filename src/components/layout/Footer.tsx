@@ -50,7 +50,7 @@ export default function Footer(): JSX.Element {
                   alt="AscendRev"
                   width={220}
                   height={72}
-                  className="h-[58px] w-auto object-contain sm:h-[64px]"
+                  className="h-[74px] w-auto object-contain sm:h-[86px]"
                 />
               </span>
             </Link>

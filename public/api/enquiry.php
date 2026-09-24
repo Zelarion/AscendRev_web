@@ -10,8 +10,6 @@
  *
  * Contract with the client (`ContactEnquiryForm.tsx`):
  *   POST multipart/form-data, `Accept: application/json`.
- *   Array fields arrive as repeated keys, so `primaryBottleneck` is read
- *   through `$_POST` as an array.
  *   The form treats any 2xx as success and does not parse the body, so the
  *   status code carries the meaning and the JSON is for operators and future
  *   clients.
@@ -124,12 +122,8 @@ const RATE_LIMIT_WINDOW_SECONDS = 3600;
 const DEDUPE_WINDOW_SECONDS = 900;
 
 /* ---------------------------------------------------------------------------
- * Vocabularies — must match src/content/contact.ts exactly.
+ * Vocabularies — must match src/lib/enquirySchema.ts exactly.
  * ------------------------------------------------------------------------ */
-
-const BOTTLENECK_VALUES = ['outbound', 'inbound', 'customer-support', 'help-desk', 'after-hours'];
-const REVENUE_VALUES    = ['under-10m', '10m-to-50m', '50m-to-250m', '250m-plus'];
-const HEADCOUNT_VALUES  = ['5-to-10', '11-to-15', '16-to-50', 'over-50'];
 
 /** Must match FREE_MAILBOX_DOMAINS in src/lib/enquirySchema.ts. */
 const FREE_MAILBOX_DOMAINS = [
@@ -151,10 +145,12 @@ const DISPOSABLE_MAILBOX_DOMAINS = [
 /** Characters that cannot belong in a name. Mirrors the client rule exactly. */
 const FORBIDDEN_NAME_CHARACTERS = '0123456789@<>{}[]\\/|_=+*#$%^~`';
 
+/** Characters a phone number may contain. Mirrors PHONE_CHARACTERS_PATTERN in src/lib/enquirySchema.ts. */
+const PHONE_ALLOWED_PATTERN = '/^[0-9 ()+.-]+$/';
+
 /** The complete set of accepted field names. Anything else is rejected. */
 const ALLOWED_FIELDS = [
-    'firstName', 'lastName', 'corporateEmail', 'company', 'primaryBottleneck',
-    'annualRevenue', 'headcount', 'budget', 'message',
+    'individualName', 'businessEmail', 'entityName', 'bestNumberToCall', 'comments',
     'referralSource', 'formToken', 'idempotencyKey',
 ];
 
@@ -342,7 +338,7 @@ function field(string $name): string
  *  whitelist of letters — a whitelist rejects Garcia-Lopez and O'Brien too. */
 function nameIsValid(string $value): bool
 {
-    if ($value === '' || mb_strlen($value) > 60) {
+    if ($value === '' || mb_strlen($value) > 120) {
         return false;
     }
     foreach (str_split(FORBIDDEN_NAME_CHARACTERS) as $character) {
@@ -353,90 +349,62 @@ function nameIsValid(string $value): bool
     return true;
 }
 
+/** 7 to 32 characters, digits/spaces/+()-. only. Mirrors the zod check exactly,
+ *  including the order: too short is checked before the character set. */
+function phoneIsValid(string $value): bool
+{
+    if (mb_strlen($value) < 7 || mb_strlen($value) > 32) {
+        return false;
+    }
+    return preg_match(PHONE_ALLOWED_PATTERN, $value) === 1;
+}
+
 $errors = [];
 
-$firstName = field('firstName');
-if (!nameIsValid($firstName)) {
-    $errors[] = 'firstName';
+$individualName = field('individualName');
+if (!nameIsValid($individualName)) {
+    $errors[] = 'individualName';
 }
 
-$lastName = field('lastName');
-if (!nameIsValid($lastName)) {
-    $errors[] = 'lastName';
-}
-
-$corporateEmail = field('corporateEmail');
+$businessEmail = field('businessEmail');
 $emailDomain = '';
-$separator = strrpos($corporateEmail, '@');
+$separator = strrpos($businessEmail, '@');
 if ($separator !== false) {
-    $emailDomain = strtolower(trim(substr($corporateEmail, $separator + 1)));
+    $emailDomain = strtolower(trim(substr($businessEmail, $separator + 1)));
 }
 
 if (
-    $corporateEmail === ''
-    || mb_strlen($corporateEmail) > 254
-    || !filter_var($corporateEmail, FILTER_VALIDATE_EMAIL)
+    $businessEmail === ''
+    || mb_strlen($businessEmail) > 254
+    || !filter_var($businessEmail, FILTER_VALIDATE_EMAIL)
     || $emailDomain === ''
     || in_array($emailDomain, DISPOSABLE_MAILBOX_DOMAINS, true)
     || in_array($emailDomain, FREE_MAILBOX_DOMAINS, true)
 ) {
-    $errors[] = 'corporateEmail';
+    $errors[] = 'businessEmail';
 }
 
 // Header injection: an address containing CR or LF can forge extra headers.
 // FILTER_VALIDATE_EMAIL rejects these, but the check is explicit because this
 // value is later placed in a Reply-To.
-if (preg_match('/[\r\n]/', $corporateEmail) === 1) {
-    $errors[] = 'corporateEmail';
+if (preg_match('/[\r\n]/', $businessEmail) === 1) {
+    $errors[] = 'businessEmail';
 }
 
-$company = field('company');
-if (
-    $company === ''
-    || mb_strlen($company) > 240
-    || !filter_var($company, FILTER_VALIDATE_URL)
-) {
-    $errors[] = 'company';
+$entityName = field('entityName');
+if ($entityName === '' || mb_strlen($entityName) > 240) {
+    $errors[] = 'entityName';
 }
 
-$bottleneckRaw = $_POST['primaryBottleneck'] ?? [];
-$bottleneck = is_array($bottleneckRaw) ? $bottleneckRaw : [$bottleneckRaw];
-$bottleneck = array_values(array_unique(array_filter(
-    array_map(static fn($v): string => is_string($v) ? trim($v) : '', $bottleneck),
-    static fn(string $v): bool => $v !== ''
-)));
-
-if (
-    count($bottleneck) < 1
-    || count($bottleneck) > count(BOTTLENECK_VALUES)
-    || array_diff($bottleneck, BOTTLENECK_VALUES) !== []
-) {
-    $errors[] = 'primaryBottleneck';
+$bestNumberToCall = field('bestNumberToCall');
+if (!phoneIsValid($bestNumberToCall)) {
+    $errors[] = 'bestNumberToCall';
 }
 
-/**
- * Step two is optional: the form offers a Skip control and step one submits on
- * its own. So these are validated only when present. Present-but-wrong is
- * still a rejection — fail closed on an unrecognised value.
- */
-$annualRevenue = field('annualRevenue');
-if ($annualRevenue !== '' && !in_array($annualRevenue, REVENUE_VALUES, true)) {
-    $errors[] = 'annualRevenue';
-}
-
-$headcount = field('headcount');
-if ($headcount !== '' && !in_array($headcount, HEADCOUNT_VALUES, true)) {
-    $errors[] = 'headcount';
-}
-
-$budget = field('budget');
-if (mb_strlen($budget) > 120) {
-    $errors[] = 'budget';
-}
-
-$message = field('message');
-if (mb_strlen($message) > 2000 || ($message !== '' && mb_strlen($message) < 10)) {
-    $errors[] = 'message';
+/** Optional, so validated only for its upper bound. */
+$comments = field('comments');
+if (mb_strlen($comments) > 200) {
+    $errors[] = 'comments';
 }
 
 if ($errors !== []) {
@@ -471,15 +439,11 @@ $useClientKey = $clientKey !== ''
 $submissionKey = $useClientKey
     ? hash('sha256', 'client:' . $clientKey)
     : hash('sha256', implode("\x1f", [
-        strtolower($corporateEmail),
-        $firstName,
-        $lastName,
-        $company,
-        implode(',', $bottleneck),
-        $annualRevenue,
-        $headcount,
-        $budget,
-        $message,
+        strtolower($businessEmail),
+        $individualName,
+        $entityName,
+        $bestNumberToCall,
+        $comments,
     ]));
 
 $dedupeFile = $STORAGE_DIR . '/dedupe-' . $submissionKey . '.txt';
@@ -519,41 +483,113 @@ if ($claim === false) {
  * only ever lived in an SMTP conversation is a lead that can be lost silently.
  * ------------------------------------------------------------------------ */
 
+/** Current column order. A contract revision can still change this again. */
+const CSV_HEADER = [
+    'submitted_at_utc', 'individual_name', 'business_email', 'entity_name',
+    'best_number_to_call', 'comments', 'ip_hash',
+];
+
 $submittedAt = gmdate('c');
 $csvPath = $STORAGE_DIR . '/enquiries.csv';
-$csvIsNew = !file_exists($csvPath);
 
 $row = [
     $submittedAt,
-    $firstName,
-    $lastName,
-    $corporateEmail,
-    $company,
-    implode('|', $bottleneck),
-    $annualRevenue,
-    $headcount,
-    $budget,
-    $message,
+    $individualName,
+    $businessEmail,
+    $entityName,
+    $bestNumberToCall,
+    $comments,
     substr(hash('sha256', $clientIp), 0, 16),
 ];
 
+/**
+ * True when a file does not yet exist, is empty, or its first row already
+ * matches the header this version writes. False only when there is a real
+ * schema mismatch to rotate away from. A file that cannot be read is treated
+ * as matching, so a permissions problem surfaces later as the existing
+ * csv_write_failed path rather than as a spurious rotation.
+ */
+function csvHeaderMatches(string $path, array $expectedHeader): bool
+{
+    if (!file_exists($path) || filesize($path) === 0) {
+        return true;
+    }
+    $handle = @fopen($path, 'r');
+    if ($handle === false) {
+        return true;
+    }
+    $firstLine = fgetcsv($handle);
+    fclose($handle);
+    return is_array($firstLine) && $firstLine === $expectedHeader;
+}
+
+/**
+ * Renames an old-schema enquiries.csv out of the way. Never deleted or
+ * truncated: it holds leads, and the whole reason this file exists is that a
+ * lead must survive things going wrong, including the field set changing
+ * between one revision round and the next.
+ *
+ * Named after the stale file's own last-modified time, not "now", so the
+ * archive name reflects when that schema was actually retired. Colons are
+ * excluded from the stamp because they are illegal in a Windows filename.
+ */
+function rotateStaleCsv(string $path, string $storageDir): bool
+{
+    $modifiedAt = @filemtime($path);
+    $stamp = gmdate('Y-m-d\THis\Z', $modifiedAt !== false ? $modifiedAt : time());
+
+    $archivePath = $storageDir . '/enquiries-' . $stamp . '.csv';
+    $suffix = 2;
+    while (file_exists($archivePath)) {
+        $archivePath = $storageDir . '/enquiries-' . $stamp . '-' . $suffix . '.csv';
+        $suffix++;
+    }
+
+    return @rename($path, $archivePath);
+}
+
+/**
+ * The mutex is a dedicated file rather than enquiries.csv itself, so that
+ * rotating the CSV (a rename) never has to happen while a handle to that
+ * exact path is open and locked. Windows refuses to rename a file that has
+ * an open handle unless the opener requested share-delete, and relying on
+ * that across PHP and OS versions is fragile; a separate lock file avoids
+ * the question while still serialising every writer through one exclusive
+ * lock, so two concurrent submissions cannot both decide to rotate.
+ */
+$csvLockPath = $STORAGE_DIR . '/enquiries.csv.lock';
+$lockHandle = @fopen($csvLockPath, 'c');
+
 $csvWritten = false;
-$handle = @fopen($csvPath, 'a');
-if ($handle !== false) {
-    if (flock($handle, LOCK_EX)) {
+
+if ($lockHandle !== false && flock($lockHandle, LOCK_EX)) {
+    if (!csvHeaderMatches($csvPath, CSV_HEADER)) {
+        if (!rotateStaleCsv($csvPath, $STORAGE_DIR)) {
+            // Rotation failing (e.g. a permissions problem) must not lose the
+            // lead. Fall through and append below: a new-schema row under a
+            // stale header is still a recoverable lead, which is the same
+            // trade-off the pre-existing csv_write_failed path makes.
+            logLine($STORAGE_DIR, 'csv_rotate_failed path=' . basename($csvPath));
+        }
+    }
+
+    $csvIsNew = !file_exists($csvPath);
+    $handle = @fopen($csvPath, 'a');
+    if ($handle !== false) {
         if ($csvIsNew) {
-            fputcsv($handle, [
-                'submitted_at_utc', 'first_name', 'last_name', 'corporate_email',
-                'company_url', 'primary_bottleneck', 'annual_revenue', 'headcount',
-                'budget', 'message', 'ip_hash',
-            ]);
+            fputcsv($handle, CSV_HEADER);
         }
         fputcsv($handle, $row);
         fflush($handle);
-        flock($handle, LOCK_UN);
+        fclose($handle);
         $csvWritten = true;
     }
-    fclose($handle);
+
+    flock($lockHandle, LOCK_UN);
+}
+
+if ($lockHandle !== false) {
+    fclose($lockHandle);
 }
 
 if (!$csvWritten) {
@@ -574,30 +610,16 @@ function headerSafe(string $value): string
     return trim(str_replace(["\r", "\n", "\0"], '', $value));
 }
 
-$bottleneckLabels = [
-    'outbound'         => 'Outbound',
-    'inbound'          => 'Inbound',
-    'customer-support' => 'Customer support',
-    'help-desk'        => 'Help desk',
-    'after-hours'      => 'After hours',
-];
-
 $lines = [
     'A new enquiry was submitted on ascend-rev.ca.',
     '',
-    'Name             : ' . $firstName . ' ' . $lastName,
-    'Work email       : ' . $corporateEmail,
-    'Company          : ' . $company,
-    'Primary need     : ' . implode(', ', array_map(
-        static fn(string $v): string => $bottleneckLabels[$v] ?? $v,
-        $bottleneck
-    )),
-    'Annual revenue   : ' . ($annualRevenue !== '' ? $annualRevenue : 'not provided'),
-    'Headcount        : ' . ($headcount !== '' ? $headcount : 'not provided'),
-    'Budget           : ' . ($budget !== '' ? $budget : 'not provided'),
+    'Name             : ' . $individualName,
+    'Business email   : ' . $businessEmail,
+    'Entity           : ' . $entityName,
+    'Phone            : ' . $bestNumberToCall,
     '',
-    'Message:',
-    $message !== '' ? $message : '(none)',
+    'Comments:',
+    $comments !== '' ? $comments : '(none)',
     '',
     '---',
     'Submitted ' . $submittedAt . ' UTC',
@@ -605,10 +627,9 @@ $lines = [
 ];
 
 $subject = headerSafe(sprintf(
-    '[AscendRev] Enquiry from %s %s at %s',
-    $firstName,
-    $lastName,
-    $company
+    '[AscendRev] Enquiry from %s at %s',
+    $individualName,
+    $entityName
 ));
 
 /* ---------------------------------------------------------------------------
@@ -650,24 +671,6 @@ function row(string $label, string $value, bool $isLink = false): string
         . '</tr>';
 }
 
-$revenueLabels = [
-    'under-10m'    => 'Under $10M',
-    '10m-to-50m'   => '$10M to $50M',
-    '50m-to-250m'  => '$50M to $250M',
-    '250m-plus'    => '$250M or more',
-];
-$headcountLabels = [
-    '5-to-10'   => '5 to 10',
-    '11-to-15'  => '11 to 15',
-    '16-to-50'  => '16 to 50',
-    'over-50'   => 'Over 50',
-];
-
-$needList = implode(', ', array_map(
-    static fn(string $v): string => $bottleneckLabels[$v] ?? $v,
-    $bottleneck
-));
-
 $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
     . '<meta name="viewport" content="width=device-width,initial-scale=1">'
     . '<title>New enquiry</title></head>'
@@ -676,7 +679,7 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
     // Preheader: the grey line inboxes show beside the subject. Hidden in the
     // body itself, which is why it carries the zero-height styling.
     . '<div style="display:none;max-height:0;overflow:hidden;opacity:0;">'
-    . e($firstName . ' ' . $lastName) . ' at ' . e($company) . ' &mdash; ' . e($needList)
+    . e($individualName) . ' at ' . e($entityName)
     . '</div>'
 
     . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef1f5;padding:28px 12px;">'
@@ -705,35 +708,32 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
     . '<tr><td style="padding:30px 32px 8px;">'
     . '<p style="margin:0 0 4px;font:600 11px/16px Arial,Helvetica,sans-serif;color:#1E5E46;text-transform:uppercase;letter-spacing:.14em;">New enquiry</p>'
     . '<h1 style="margin:0;font:400 26px/32px Georgia,\'Times New Roman\',serif;color:#0F1B33;">'
-    . e($firstName . ' ' . $lastName) . '</h1>'
+    . e($individualName) . '</h1>'
     . '<p style="margin:6px 0 0;font:400 15px/22px Arial,Helvetica,sans-serif;color:#4B5563;">'
-    . e($company) . '</p>'
+    . e($entityName) . '</p>'
     . '</td></tr>'
 
     . '<tr><td style="padding:14px 32px 4px;">'
     . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">'
-    . row('Work email', $corporateEmail)
-    . row('Company', $company, true)
-    . row('Primary need', $needList)
-    . row('Annual revenue', $annualRevenue !== '' ? ($revenueLabels[$annualRevenue] ?? $annualRevenue) : '')
-    . row('Headcount', $headcount !== '' ? ($headcountLabels[$headcount] ?? $headcount) : '')
-    . row('Budget', $budget)
+    . row('Business email', $businessEmail)
+    . row('Entity name', $entityName)
+    . row('Phone', $bestNumberToCall)
     . '</table></td></tr>';
 
-if ($message !== '') {
+if ($comments !== '') {
     $html .= '<tr><td style="padding:22px 32px 0;">'
-        . '<p style="margin:0 0 8px;font:600 12px/16px Arial,Helvetica,sans-serif;color:#6b7484;text-transform:uppercase;letter-spacing:.05em;">Message</p>'
+        . '<p style="margin:0 0 8px;font:600 12px/16px Arial,Helvetica,sans-serif;color:#6b7484;text-transform:uppercase;letter-spacing:.05em;">Comments</p>'
         . '<div style="background:#f6f8fa;border-left:3px solid #EBCB89;padding:14px 16px;border-radius:0 4px 4px 0;'
         . 'font:400 15px/23px Arial,Helvetica,sans-serif;color:#111827;white-space:pre-wrap;">'
-        . e($message) . '</div></td></tr>';
+        . e($comments) . '</div></td></tr>';
 }
 
 $html .= '<tr><td style="padding:26px 32px 4px;">'
     . '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
     . '<td style="background:#1E5E46;border-radius:6px;">'
-    . '<a href="mailto:' . e($corporateEmail) . '?subject=' . rawurlencode('Re: your enquiry to AscendRev')
+    . '<a href="mailto:' . e($businessEmail) . '?subject=' . rawurlencode('Re: your enquiry to AscendRev')
     . '" style="display:inline-block;padding:13px 26px;font:600 14px/18px Arial,Helvetica,sans-serif;'
-    . 'color:#ffffff;text-decoration:none;">Reply to ' . e($firstName) . '</a>'
+    . 'color:#ffffff;text-decoration:none;">Reply to ' . e($individualName) . '</a>'
     . '</td></tr></table>'
     . '<p style="margin:12px 0 0;font:400 12px/18px Arial,Helvetica,sans-serif;color:#6b7484;">'
     . 'Replying to this email also reaches them directly.</p>'
@@ -794,7 +794,7 @@ $mime .= '--' . $boundaryRelated . '--' . "\r\n";
 
 $headers = implode("\r\n", [
     'From: AscendRev Website <' . headerSafe($MAIL_FROM) . '>',
-    'Reply-To: ' . headerSafe($firstName . ' ' . $lastName) . ' <' . headerSafe($corporateEmail) . '>',
+    'Reply-To: ' . headerSafe($individualName) . ' <' . headerSafe($businessEmail) . '>',
     'MIME-Version: 1.0',
     'Content-Type: multipart/related; boundary="' . $boundaryRelated . '"',
     'X-Mailer: ascend-rev.ca',

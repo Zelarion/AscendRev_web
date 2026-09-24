@@ -1,10 +1,15 @@
 /**
- * Primary navigation, resolved per SPEC.md §3. The client's source document
- * listed "Solutions | Industries | The AscendRev Advantage | Leadership" but
- * only specifies four pages, with two of those labels pointing at sections
- * inside other pages rather than standalone routes. Resolved here as four
- * items that map 1:1 to either a page or a same-page anchor, so the header
- * never has to guess which behaviour a label implies.
+ * Primary navigation, resolved per SPEC.md §3 and revised against the client's
+ * 23 September 2026 feedback, which renamed three tabs and added a fourth.
+ *
+ * Labels are the client's own wording and are deliberately not shortened. That
+ * costs horizontal room: six items averaging fourteen characters do not fit on
+ * one row beside the logo and the CTA at the `lg` breakpoint, so `Header.tsx`
+ * now reveals the desktop row at `xl` and uses the menu below that. Shortening
+ * the labels would buy the row back if the client ever prefers it.
+ *
+ * "Our Revenue Impact" is an anchor into the home page rather than a route,
+ * because that section lives on the home page. Everything else is a real page.
  */
 
 export interface NavItem {
@@ -15,23 +20,18 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { label: 'Home', href: '/' },
   { label: 'Solutions', href: '/solutions' },
-  { label: 'Industries', href: '/#industries' },
-  { label: 'Advantage', href: '/advantage' },
+  { label: 'Our Revenue Impact', href: '/#revenue-impact' },
+  { label: 'The AscendRev Difference', href: '/advantage' },
+  { label: 'Our Corporate Values', href: '/values' },
   { label: 'Contact', href: '/contact' },
 ];
 
-/** Global CTA, top right on every page (SPEC.md §3). */
-export const globalCta: NavItem = {
-  label: 'Request Outsourcing Blueprint',
+/**
+ * Global CTA, top right on every page (SPEC.md §3). The label tracks the
+ * enquiry form's own heading, "Request for Solution Blueprint", so the button
+ * and the page it lands on say the same thing.
+ */
+export const ctaItem: NavItem = {
+  label: 'Request Solution Blueprint',
   href: '/contact',
 };
-
-/**
- * Alias for `globalCta`. `src/components/layout/Header.tsx` (owned by another
- * builder, written concurrently with this file) imports the CTA under the
- * name `ctaItem`, SPEC.md never pinned an exact export name for it, so both
- * builders picked independently. Kept as an alias rather than renaming
- * `globalCta` so nothing that already imports the original name breaks;
- * flagged for the orchestrator to pick one canonical name and drop the other.
- */
-export const ctaItem = globalCta;

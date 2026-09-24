@@ -12,7 +12,7 @@ const CROSS_ROUTE_ANCHOR_DURATION_SECONDS = 1.6;
  * Resets scroll to the top after a real route change.
  *
  * If that route change also carries a hash (for example navigating from
- * `/solutions` to `/#industries`), the new page first resets to the top and
+ * `/solutions` to `/#revenue-impact`), the new page first resets to the top and
  * then smoothly scrolls to the requested section once its DOM is mounted.
  * Hash-only navigation within the same page is left to Lenis' normal anchor
  * handling because the pathname does not change.

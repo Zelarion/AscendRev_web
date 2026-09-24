@@ -131,6 +131,10 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
               </article>
             );
           })}
+
+          <p className="mt-14 max-w-[640px] font-display text-[clamp(1.35rem,2vw,1.9rem)] font-medium leading-[1.35] tracking-[-0.015em] text-[#0b1a30] lg:mt-4">
+            {content.closingLine}
+          </p>
         </div>
       </div>
     </section>

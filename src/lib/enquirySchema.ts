@@ -1,28 +1,16 @@
 /**
- * Validation for the two-step enquiry form (SPEC.md §4.4 and §6).
+ * Validation for the enquiry form (single step, five fields).
  *
- * Step one is name, work email, company and bottleneck, and it submits on its
- * own. Step two is revenue, headcount, budget and message, and it can be
- * skipped. `enquirySchema` is the merged shape a completed step two posts.
- *
- * Two things this file is not. It is not the last line of defence: the PHP
- * handler at `public/api/enquiry.php` re-validates every field against these
- * same rules server side, rejects unknown fields, and is the only authority on
- * the token and the rate limit. A browser can be told anything. It is also not
- * where the option vocabularies live: those are content, they come from
- * `src/content/contact.ts`, and the enums below are built from them so the
- * form, the schema and the PHP handler cannot drift apart.
+ * This file is not the last line of defence: the PHP handler at
+ * `public/api/enquiry.php` re-validates every field against these same rules
+ * server side, rejects unknown fields, and is the only authority on the token
+ * and the rate limit. A browser can be told anything.
  *
  * Every message states what is wrong and what to do about it. "Invalid input"
  * tells a visitor nothing and costs a lead.
  */
 
 import { z } from 'zod';
-import {
-  BOTTLENECK_VALUES,
-  HEADCOUNT_VALUES,
-  REVENUE_VALUES,
-} from '@/content/contact';
 
 /* Section: email domain lists. */
 
@@ -126,6 +114,14 @@ function hasForbiddenNameCharacter(value: string): boolean {
 }
 
 /**
+ * Characters a phone number is allowed to contain: digits, spaces, and
+ * + ( ) - . and nothing else. A whitelist here, unlike the name check above,
+ * because a phone number's alphabet is genuinely that small — no digit
+ * grouping convention anywhere needs a letter.
+ */
+const PHONE_CHARACTERS_PATTERN = /^[0-9 ()+.-]+$/;
+
+/**
  * A missing value and a wrong-typed value get the same message, because the
  * difference between them is meaningless to the person reading it.
  */
@@ -133,116 +129,123 @@ function requiredString(message: string): z.ZodString {
   return z.string({ required_error: message, invalid_type_error: message });
 }
 
-/**
- * Enums and arrays need an `errorMap` rather than `required_error`. An
- * unselected `<select>` posts an empty string, which zod reports as
- * `invalid_enum_value`, and `invalid_type_error` does not cover that issue
- * code: the visitor would be shown zod's default, "Invalid enum value.
- * Expected 'under-10m' | ...".
- */
-function alwaysSay(message: string): { errorMap: z.ZodErrorMap } {
-  return { errorMap: () => ({ message }) };
-}
-
 const MESSAGES = {
-  firstNameRequired: 'Enter your first name so we know who we are replying to.',
-  lastNameRequired:
-    'Enter your last name. We address people properly in a first reply.',
-  nameTooLong:
-    'That is longer than 60 characters. Use the name you go by at work rather than your full legal name.',
-  nameCharacters:
+  individualNameRequired:
+    'Enter your name so we know who we are replying to.',
+  individualNameTooLong:
+    'That is longer than 120 characters. Use the name you go by rather than something longer.',
+  individualNameCharacters:
     'A name should not contain digits or symbols. Remove anything that is not part of the name itself.',
-  emailRequired:
-    'Enter your work email address. It is the only address we reply to.',
-  emailMalformed:
+  businessEmailRequired:
+    'Enter your business email address. It is the only address we reply to.',
+  businessEmailMalformed:
     'That does not look like an email address. Check for a missing @ or a typo in the part after it.',
-  emailTooLong:
+  businessEmailTooLong:
     'That address is longer than 254 characters, which no mail server will accept. Check it for a paste that went wrong.',
-  emailFree:
+  businessEmailFree:
     'Use your company email address rather than a personal one. A free mailbox cannot be tied to a business, and this form only takes business enquiries. If your company does not issue addresses, call the number in the footer instead.',
-  emailDisposable:
+  businessEmailDisposable:
     'That is a disposable mailbox, so any reply we send would vanish before you read it. Use the address you actually work from.',
-  companyRequired:
-    'Enter your company website URL so we can understand the business before we reply.',
-  companyMalformed:
-    'Enter a complete website URL, including https:// (for example, https://company.com).',
-  companyTooLong:
-    'That website URL is longer than 240 characters. Check it for a paste that went wrong.',
-  bottleneckRequired:
-    'Choose at least one function. If more than one is a problem choose them all, and we will start with the one costing you most.',
-  bottleneckTooMany:
-    'That is more options than exist on this form. Reload the page and choose again.',
-  revenueRequired:
-    'Choose an annual revenue band. It tells us the size of team that will actually fit, and we do not ask for an exact figure.',
-  headcountRequired:
-    'Choose roughly how many people you need. An estimate is fine, and the blueprint will challenge it if it looks wrong.',
-  budgetTooLong:
-    'That is longer than 120 characters. A range, such as 8,000 to 12,000 CAD a month, is all we need here.',
-  messageTooShort:
-    'A few words is not enough for us to prepare anything useful. Write at least a sentence about what is not working, or leave this blank.',
-  messageTooLong:
-    'That is longer than 2,000 characters. Send the outline here and bring the detail to the call.',
+  entityNameRequired:
+    'Enter your entity name so we can understand the business before we reply.',
+  entityNameTooLong:
+    'That is longer than 240 characters. Check it for a paste that went wrong.',
+  bestNumberToCallRequired:
+    'Enter the best number to call so we can reach you directly.',
+  bestNumberToCallTooShort:
+    'That is too short to be a real phone number. Include the area code.',
+  bestNumberToCallTooLong:
+    'That is longer than 32 characters. Check it for a paste that went wrong.',
+  bestNumberToCallCharacters:
+    'A phone number can only contain digits, spaces, and + ( ) - . Remove any letters or other characters.',
+  commentsTooLong:
+    'That is longer than 200 characters. Send the outline here and bring the detail to the call.',
   honeypot: 'This field must be left empty.',
   tokenRequired:
     'This form has been open long enough for its security token to expire. Reload the page and send it again.',
 } as const;
 
-function nameField(requiredMessage: string) {
-  return requiredString(requiredMessage)
-    .trim()
-    .min(1, { message: requiredMessage })
-    .max(60, { message: MESSAGES.nameTooLong })
-    .refine((value) => !hasForbiddenNameCharacter(value), {
-      message: MESSAGES.nameCharacters,
-    });
-}
+/* Section: the five-field enquiry form. */
 
-/* Section: step one, enough to reply to. */
-
-export const stepOneSchema = z
+export const enquirySchema = z
   .object({
-    firstName: nameField(MESSAGES.firstNameRequired),
-
-    lastName: nameField(MESSAGES.lastNameRequired),
-
-    corporateEmail: requiredString(MESSAGES.emailRequired)
+    individualName: requiredString(MESSAGES.individualNameRequired)
       .trim()
-      .min(1, { message: MESSAGES.emailRequired })
-      .max(254, { message: MESSAGES.emailTooLong })
-      .email({ message: MESSAGES.emailMalformed })
+      .min(1, { message: MESSAGES.individualNameRequired })
+      .max(120, { message: MESSAGES.individualNameTooLong })
+      .refine((value) => !hasForbiddenNameCharacter(value), {
+        message: MESSAGES.individualNameCharacters,
+      }),
+
+    businessEmail: requiredString(MESSAGES.businessEmailRequired)
+      .trim()
+      .min(1, { message: MESSAGES.businessEmailRequired })
+      .max(254, { message: MESSAGES.businessEmailTooLong })
+      .email({ message: MESSAGES.businessEmailMalformed })
       .superRefine((value, ctx) => {
         const domain = domainOf(value);
         if (disposableMailboxDomains.has(domain)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: MESSAGES.emailDisposable,
+            message: MESSAGES.businessEmailDisposable,
           });
           return;
         }
         if (freeMailboxDomains.has(domain)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: MESSAGES.emailFree,
+            message: MESSAGES.businessEmailFree,
           });
         }
       }),
 
-    company: requiredString(MESSAGES.companyRequired)
+    entityName: requiredString(MESSAGES.entityNameRequired)
       .trim()
-      .min(1, { message: MESSAGES.companyRequired })
-      .max(240, { message: MESSAGES.companyTooLong })
-      .url({ message: MESSAGES.companyMalformed }),
-
-    primaryBottleneck: z
-      .array(
-        z.enum(BOTTLENECK_VALUES, alwaysSay(MESSAGES.bottleneckRequired)),
-        alwaysSay(MESSAGES.bottleneckRequired)
-      )
-      .min(1, { message: MESSAGES.bottleneckRequired })
-      .max(BOTTLENECK_VALUES.length, { message: MESSAGES.bottleneckTooMany }),
+      .min(1, { message: MESSAGES.entityNameRequired })
+      .max(240, { message: MESSAGES.entityNameTooLong }),
 
     /**
-     * Honeypot (SPEC.md §6). Rendered visually hidden, `tabindex="-1"` and
+     * Length and character-set checks run inside one `superRefine` rather
+     * than a chain of `.min()`/`.max()`/`.regex()` calls, so an empty value
+     * gets the "required" message instead of the "too short" one — the two
+     * are wrong for different reasons and a visitor should not have to guess
+     * which applies.
+     */
+    bestNumberToCall: requiredString(MESSAGES.bestNumberToCallRequired)
+      .trim()
+      .max(32, { message: MESSAGES.bestNumberToCallTooLong })
+      .superRefine((value, ctx) => {
+        if (value.length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: MESSAGES.bestNumberToCallRequired,
+          });
+          return;
+        }
+        if (value.length < 7) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: MESSAGES.bestNumberToCallTooShort,
+          });
+          return;
+        }
+        if (!PHONE_CHARACTERS_PATTERN.test(value)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: MESSAGES.bestNumberToCallCharacters,
+          });
+        }
+      }),
+
+    /** Optional, and short by design: no minimum once something is typed. */
+    comments: z
+      .string()
+      .trim()
+      .max(200, { message: MESSAGES.commentsTooLong })
+      .optional(),
+
+    /**
+     * Honeypot. Rendered visually hidden, `tabindex="-1"` and
      * `autocomplete="off"`, and named for something no password manager or
      * browser autofill recognises, so a person never fills it in and a bot
      * that fills every input always does.
@@ -262,67 +265,17 @@ export const stepOneSchema = z
   })
   .strict();
 
-/* Section: step two, what turns a reply into numbers. */
-
-/**
- * Revenue and headcount are required *within* this step; budget and message
- * are not. Skipping step two altogether is a supported path and the form
- * offers a Skip control for it. Choosing to continue and then leaving both
- * dropdowns empty is not, because those two answers are the entire reason the
- * step exists and each is a single click. Budget stays optional on purpose: it
- * is the field that loses people, which is why the form was split in two.
- */
-export const stepTwoSchema = z
-  .object({
-    annualRevenue: z.enum(REVENUE_VALUES, alwaysSay(MESSAGES.revenueRequired)),
-
-    headcount: z.enum(HEADCOUNT_VALUES, alwaysSay(MESSAGES.headcountRequired)),
-
-    budget: z
-      .string()
-      .trim()
-      .max(120, { message: MESSAGES.budgetTooLong })
-      .optional(),
-
-    message: z
-      .string()
-      .trim()
-      .max(2000, { message: MESSAGES.messageTooLong })
-      .optional()
-      .superRefine((value, ctx) => {
-        if (value !== undefined && value.length > 0 && value.length < 10) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: MESSAGES.messageTooShort,
-          });
-        }
-      }),
-  })
-  .strict();
-
-/** The full payload a completed step two posts. */
-export const enquirySchema = stepOneSchema.merge(stepTwoSchema);
-
-export type StepOneValues = z.infer<typeof stepOneSchema>;
-export type StepTwoValues = z.infer<typeof stepTwoSchema>;
 export type EnquiryValues = z.infer<typeof enquirySchema>;
 
 /**
- * Field order per step, so the form component can trigger validation and move
- * focus to the first invalid field (DESIGN.md §6) without keeping a second
- * copy of the field names next to this one.
+ * Field order, so the form component can trigger validation and move focus
+ * to the first invalid field without keeping a second copy of the field
+ * names next to this one.
  */
-export const STEP_ONE_FIELDS = [
-  'firstName',
-  'lastName',
-  'corporateEmail',
-  'company',
-  'primaryBottleneck',
-] as const satisfies readonly (keyof StepOneValues)[];
-
-export const STEP_TWO_FIELDS = [
-  'annualRevenue',
-  'headcount',
-  'budget',
-  'message',
-] as const satisfies readonly (keyof StepTwoValues)[];
+export const ENQUIRY_FIELDS = [
+  'individualName',
+  'businessEmail',
+  'entityName',
+  'bestNumberToCall',
+  'comments',
+] as const satisfies readonly (keyof EnquiryValues)[];

@@ -74,19 +74,23 @@ export interface ClosingBandContent {
   cta: Cta;
 }
 
-export interface HeroProofItem {
-  eyebrow: string;
-  detail: string;
-}
-
 export interface HeroContent {
   eyebrow: string;
   headline: string;
   subheadline: string;
+  /** Short line rendered beneath the subheadline, ahead of the CTAs. */
+  tagline: string;
   primaryCta: Cta;
   secondaryCta: Cta;
   trustLead: string;
-  proofItems: readonly HeroProofItem[];
+  /**
+   * One rendered credential line (client copy, 2026-09-24). Kept as a single
+   * string rather than a list of eyebrow/detail pairs because the source
+   * copy is itself one line separated by " | ", with only the first segment
+   * carrying an internal hyphen split — forcing that into a uniform
+   * eyebrow/detail shape would invent structure the copy doesn't have.
+   */
+  credentialLine: string;
   sideWords: readonly string[];
 }
 
@@ -128,25 +132,30 @@ export interface PillarsContent {
   heading: string;
   intro: string;
   items: readonly Pillar[];
+  /** Closing line rendered beneath the three pillars. */
+  closingLine: string;
 }
 
-export interface IndustryGroup {
-  /** Tab id, also the panel's `aria-controls` target. */
-  id: string;
-  label: string;
-  body: string;
-  /** The client's own sector list for this group, from the source brief. */
-  sectors: readonly string[];
-  /** The functions AscendRev staffs in this group. */
-  functions: readonly string[];
+/**
+ * One revenue-gap question in the "Our Revenue Impact" grid. `icon` is a
+ * literal glyph character (not an icon-library key, unlike `PillarIcon`)
+ * because the client's brief specified these exact characters directly;
+ * the component renders it in a small bordered container rather than
+ * mapping it to a library icon.
+ */
+export interface IndustryQuestion {
+  icon: string;
+  question: string;
+  answer: string;
 }
 
 export interface IndustriesContent {
-  /** Anchor target for the `/#industries` nav item (SPEC.md §3). */
+  /** Anchor target for the `/#revenue-impact` nav item (SPEC.md §3). */
   id: string;
   heading: string;
   intro: string;
-  groups: readonly IndustryGroup[];
+  subheading: string;
+  items: readonly IndustryQuestion[];
 }
 
 export interface HomeContent {
@@ -167,13 +176,18 @@ export const home: HomeContent = {
 
   hero: {
     eyebrow: 'SCALABLE TEAMS. REAL IMPACT.',
-    // Headline pinned by SPEC.md §4.1 and matches `site.tagline`.
-    headline: 'Lower Costs. Higher Efficiencies. Accelerate Revenue.',
-    // Rewritten per SPEC.md §7 item 1. The source brief opened with "Backed by
-    // a track record of generating over CAD$1B+ in market revenue, we provide",
-    // which attributes a career to a company registered on 11 September 2026.
+    // Client copy revision, 2026-09-24. Three sentences, rendered one per
+    // line by `toSentences` in HeroSection.tsx (splits on sentence-ending
+    // punctuation), gold on the final line — the same mechanism the old
+    // three-sentence headline used, so no component change was needed here.
+    headline: 'Dedicated Team. Targeted Solutions. Accelerated Revenue.',
+    // Client copy revision, 2026-09-24, verbatim. Says "Founder's" rather than
+    // naming Rio Vidal, same as the subheadline it replaces — flagged in the
+    // delivery report rather than silently tightened, since SPEC.md §7 item 1
+    // reads as wanting the named attribution used in the trust band below.
     subheadline:
-      'Backed by a track record of generating over CAD$1B+ in market revenue, we provide fully managed front- and back-office teams that scale your business. We absorb the infrastructure costs, talent shortages, and administrative burdens—so you can focus entirely on growth.',
+      "Backed by Founder's career track record of CAD$1B+ in generated sales revenue, we provide fully managed front- and back-office teams that scale your business. We absorb the infrastructure costs, talent shortages, and administrative burdens—so you can focus entirely on growth.",
+    tagline: 'Identify the gap. Build the team. Improve the outcome.',
     primaryCta: { label: 'Build Your Dedicated Team', href: '/contact' },
     secondaryCta: {
       // The query param preselects the cost-analysis intent on the enquiry form
@@ -183,11 +197,10 @@ export const home: HomeContent = {
       href: '/contact?intent=cost-analysis',
     },
     trustLead: 'LED BY',
-    proofItems: [
-      { eyebrow: 'Harvard Business', detail: 'Impact Enterprise' },
-      { eyebrow: 'Lean Six Sigma', detail: 'Certified Expertise' },
-      { eyebrow: '100M Dollar Club', detail: 'Recognized' },
-    ],
+    // Client copy revision, 2026-09-24, verbatim including the hyphen and the
+    // pipe separators.
+    credentialLine:
+      "Harvard Certificate in Leadership Excellence - Harvard Business Impact Enterprise | Lean Six Sigma Certified | 100M Dollar Club Recognition | 2X President's Club Award",
     sideWords: ['PEOPLE', 'PROCESS', 'PERFORMANCE'],
   },
 
@@ -212,128 +225,103 @@ export const home: HomeContent = {
   },
 
   pillars: {
-    // Heading pinned by SPEC.md §4.1.
-    heading: 'Stop Burning Capital on Local Turnover.',
+    // Client copy revision, 2026-09-24, verbatim (second sentence is a
+    // fragment in the source copy, kept as written per the client's
+    // no-wording-changes instruction).
+    heading: 'Address Revenue Gaps. Missed opportunities to active conversations.',
     intro:
       'AscendRev replaces fragmented operating costs with one managed growth model.',
     items: [
       {
+        // Client copy revision, 2026-09-24, verbatim, including the lower-case
+        // sentence opening and the em dash run against "burden" in the body.
+        // NOTE: this reintroduces the unsubstantiated "up to 50%" comparative
+        // figure that the removed `quantifiedClaim` below used to gate behind
+        // `pendingApproval` for SPEC.md §7 item 5 / Competition Act ss. 52 and
+        // 74.01 — the claim is now baked into the heading itself rather than
+        // an optional gated field. Flagged in the delivery report; not
+        // silently re-gated or altered here since it was scoped as a literal
+        // heading/body replacement.
         icon: 'cost',
-        heading: 'Radical Cost Reduction',
-        body: 'Reduce the fully loaded cost of local operations by consolidating salary, payroll taxes, benefits, recruiting, software seats, equipment and office overhead into one managed operating model.',
-        quantifiedClaim: {
-          // SPEC.md §7 item 5. The source brief said "Slash budgets by 30%-50%"
-          // with nothing behind it. The sentence below is written and ready;
-          // it publishes the moment AscendRev supplies the comparison the
-          // figure rests on, and `basis` is where that goes.
-          text: 'Moving a front office or back office function to AscendRev typically reduces the fully loaded cost of that function by 30% to 50%.',
-          basis: null,
-          pendingApproval: true,
-          pendingReason:
-            'SPEC.md §7 item 5. AscendRev must supply the comparison the 30% to 50% range is measured against (for example fully loaded local salary, benefits and overhead at a stated headcount and role), and the working behind it, before a comparative performance claim can be published under Competition Act ss. 52 and 74.01.',
-        },
+        heading: 'Up to 50% cost reduction',
+        body: 'by outsourcing/offshoring, we help organizations increase capacity, improve customer coverage, strengthen sales execution and reduce the operational burden— without the cost and complexity of building every function in-house.',
       },
       {
         icon: 'record',
         heading: 'Proven Revenue Engine',
-        body: 'Built from sales systems shaped by over CAD$1B in generated B2B revenue across a career in Canada and Australia, with the operating discipline, call structure and accountability needed to support growth.',
+        body: 'Built from career true market, field experience and systems which generated CAD1B+ in revenue plus the operating discipline, structure and accountability needed to support growth.',
       },
       {
         icon: 'accountability',
-        heading: 'Tier-1 Infrastructure',
-        body: 'Deploy high-caliber professionals from premium, enterprise-ready facilities with the supervision, systems and operating standards required to represent your brand at scale.'
+        heading: 'Dedicated Teams Built Around Your Business',
+        body: "From generating new opportunities and following up with prospects to supporting customers and taking repetitive work off your team's plate, AscendRev provides dedicated teams that extend your capabilities and keep your business moving.",
       },
     ],
+    closingLine:
+      'Your team focuses on growth. We handle the execution that makes it possible.',
   },
 
   industries: {
-    id: 'industries',
-    // Heading pinned by SPEC.md §4.1. The five groups and their sector lists
-    // are the client's own, from the source brief.
+    id: 'revenue-impact',
+    // Client copy revision, 2026-09-24: the industry-group tabs with stock
+    // photography are replaced outright by a nine-item revenue-gap Q&A grid,
+    // per the client's brief. Every remote image URL that used to back this
+    // section (`IndustriesSection.tsx`'s old `INDUSTRY_IMAGES` map) is gone
+    // with it — the client requires no external image dependencies here.
     heading: "Built for Canada's Economic Engines.",
     intro:
-      'AscendRev supports the industries that keep Canada moving with tailored operational functions built for efficiency, scale, and measurable growth.',
-    groups: [
+      'AscendRev supports all industries that keep Canada moving with tailored operational functions built for efficiency, scale, and measurable growth.',
+    subheading: 'Revenue Gaps and Solution Framework.',
+    // Client copy revision, 2026-09-24, verbatim. Two items are kept exactly
+    // as written though they read oddly and are flagged in the delivery
+    // report rather than corrected: item 8's icon is the two-character
+    // "$✓" glyph as given, and item 9's question ("Unheard 30%-50% growth
+    // potential?") and answer both read as if a word is missing or
+    // mis-parallel ("...follow up more consistently and broader market
+    // coverage").
+    items: [
+      { icon: '🎯', question: 'Insufficient leads?', answer: 'We build the pipeline behind you.' },
       {
-        id: 'fintech',
-        label: 'Fintech & SaaS',
-        body: 'Support finance and software operations with dedicated teams handling core processes, system workflows, and scalable back-office execution.',
-        sectors: ['AP/AR Optimization', 'ERP Platforms', 'AI Integrations'],
-        functions: [
-          'Accounts payable and receivable',
-          'ERP data entry and reconciliation',
-          'Tier one product support',
-          'Onboarding and implementation follow up',
-        ],
+        icon: '⚡',
+        question: 'More leads than your team can follow up?',
+        answer: 'We add sales development capacity.',
       },
       {
-        id: 'energy',
-        label: 'Energy & Industrial',
-        body: 'Support operationally complex businesses with teams built around coordination, customer communication, administrative workflows, and scalable execution.',
-        sectors: ['Oil & Gas', 'Supply Chain', 'Equipment Rental'],
-        functions: [
-          'Purchase order and invoice processing',
-          'Dispatch and scheduling support',
-          'Supplier and vendor follow up',
-          'Equipment rental administration',
-        ],
+        icon: '◉',
+        question: 'Customer inquiries piling up?',
+        answer: 'We extend your customer-service capacity.',
       },
       {
-        id: 'construction',
-        label: 'Construction & Trades',
-        body: 'Extend your local team with operational support built for project-heavy businesses, trades, and field-service environments.',
-        sectors: [
-          'Residential / Commercial Developers',
-          'Earthworks',
-          'HVAC',
-          'Electrical',
-          'Roofing & Siding',
-          'Drywall',
-        ],
-        functions: [
-          'Quote follow up and booking',
-          'Permit and document chasing',
-          'Supplier coordination',
-          'After hours emergency intake',
-        ],
+        icon: '↗',
+        question: 'Quotes and opportunities going cold?',
+        answer: 'We build the follow-up engine.',
       },
       {
-        id: 'retail',
-        label: 'Retail & Professional Services',
-        body: 'Support customer-facing and administrative operations across businesses that depend on responsive communication, consistency, and process execution.',
-        sectors: [
-          'E-commerce',
-          'Advertising',
-          'Medical Groups',
-          'Real Estate',
-          'Mortgage Providers',
-          'Wholesalers',
-          'Automotive',
-        ],
-        functions: [
-          'Inbound enquiry handling',
-          'Appointment booking and reminders',
-          'Document collection and chasing',
-          'Order and returns processing',
-        ],
+        icon: '⚙',
+        question: 'Too much administrative work?',
+        answer: "We take the repetitive work off your team's plate.",
       },
       {
-        id: 'transport',
-        label: 'Aviation / Travel / Telecommunication / Transportation / Freight & Logistics',
-        body: 'Support high-volume, time-sensitive operations where responsiveness, coordination, and extended coverage are critical.',
-        sectors: [
-          'Aviation',
-          'Travel / Hospitality',
-          'Telecommunication',
-          'Transportation',
-          'Freight & Logistics',
-        ],
-        functions: [
-          'Overnight dispatch and tracking',
-          'Booking changes and disruption handling',
-          'Tier one technical support',
-          '24/7/365 escalation cover',
-        ],
+        icon: '♢',
+        question: 'Existing customers going untouched?',
+        answer: 'We reactivate, re-engage, keep, and identify cross-sell opportunities.',
+      },
+      {
+        icon: '⊕',
+        question: 'Need to scale without adding every function in-house?',
+        answer: 'We build a dedicated team around the gap.',
+      },
+      {
+        icon: '$✓',
+        question: 'Cash sitting on receivables?',
+        answer:
+          'We maintain consistent contact with customers and keep outstanding balances moving toward resolution.',
+      },
+      {
+        icon: '◈',
+        question: 'Unheard 30%-50% growth potential?',
+        answer:
+          'We add a dedicated sales, customer and operational capacity needed to pursue more opportunities, follow up more consistently and broader market coverage.',
       },
     ],
   },

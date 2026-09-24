@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { ArrowRight, Gear, ShieldCheck, Trophy } from '@phosphor-icons/react/dist/ssr';
+import { ArrowRight } from '@phosphor-icons/react/dist/ssr';
 import Button from '@/components/ui/Button';
 import HeroMedia from '@/components/sections/home/HeroMedia';
 import {
@@ -18,8 +18,6 @@ function toSentences(headline: string): string[] {
   if (!sentences) return [headline];
   return sentences.map((sentence) => sentence.trim()).filter(Boolean);
 }
-
-const PROOF_ICONS = [ShieldCheck, Gear, Trophy] as const;
 
 export default function HeroSection({ content }: HeroSectionProps): JSX.Element {
   const lines = toSentences(content.headline);
@@ -64,6 +62,13 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
                 style={{ animationDelay: `${HERO_SUPPORT_DELAY_MS}ms` }}
               >
                 {content.subheadline}
+              </p>
+
+              <p
+                className="ar-fade-rise mt-3 max-w-[52ch] text-[0.78rem] font-semibold tracking-[0.04em] text-[var(--gold-300)] sm:mt-4 sm:text-[0.85rem] lg:mt-5 lg:text-[0.92rem]"
+                style={{ animationDelay: `${HERO_SUPPORT_DELAY_MS + 120}ms` }}
+              >
+                {content.tagline}
               </p>
 
               <div
@@ -116,27 +121,9 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
           <p className="mb-6 text-[11px] font-semibold tracking-[0.18em] text-white/48 sm:text-xs">
             {content.trustLead}
           </p>
-          <div className="grid grid-cols-1 gap-y-7 sm:grid-cols-3 sm:gap-10 lg:w-full lg:grid-cols-3 lg:gap-0">
-            {content.proofItems.map((item, index) => {
-              const Icon = PROOF_ICONS[index] ?? ShieldCheck;
-              return (
-                <div
-                  key={item.eyebrow}
-                  className="flex min-w-0 items-center gap-3 lg:min-h-[88px] lg:px-8 lg:first:pl-0 lg:last:pr-0 lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-white/10 xl:px-12"
-                >
-                  <Icon size={34} weight="regular" aria-hidden="true" className="h-[34px] w-[34px] shrink-0 text-white/72 lg:h-11 lg:w-11" />
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-semibold leading-tight text-white/90 sm:text-sm lg:text-[15px]">
-                      {item.eyebrow}
-                    </p>
-                    <p className="mt-1 text-[10px] leading-snug text-white/48 sm:text-xs lg:text-[13px]">
-                      {item.detail}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <p className="max-w-[900px] text-[13px] font-medium leading-relaxed text-white/78 sm:text-sm lg:text-[15px]">
+            {content.credentialLine}
+          </p>
         </div>
       </section>
     </>

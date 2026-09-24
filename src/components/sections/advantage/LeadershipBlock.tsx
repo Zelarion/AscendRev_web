@@ -12,7 +12,28 @@ interface StoryStep {
   label: string;
   title: string;
   body?: string;
-  kind?: 'recognition' | 'performance' | 'deal' | 'operating';
+  kind?: 'career' | 'commercial' | 'operating';
+}
+
+/**
+ * One "PROVEN COMMERCIAL EXPERIENCE" stat card. The trophy mark renders as a
+ * Phosphor line icon (thin weight, small, muted gold) rather than the literal
+ * emoji stored in content, per the build brief: an emoji glyph carries its
+ * own fixed colour and cannot be muted to match the site's accent palette.
+ * The other three glyphs are plain text characters and render as given.
+ */
+function StatIcon({ glyph }: { glyph: string }): JSX.Element {
+  return (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] border border-[var(--gold-400)]/30 bg-white/[0.03] text-[var(--gold-300)]/80">
+      {glyph === '🏆' ? (
+        <Trophy aria-hidden="true" size={16} weight="thin" />
+      ) : (
+        <span aria-hidden="true" className="text-sm leading-none">
+          {glyph}
+        </span>
+      )}
+    </span>
+  );
 }
 
 function FounderPortraitPlaceholder(): JSX.Element {
@@ -76,47 +97,24 @@ export default function LeadershipBlock(): JSX.Element {
   const [reducedMotion, setReducedMotion] = useState(false);
   const milestoneRefs = useRef<Array<HTMLElement | null>>([]);
 
-  const presidentsAward = leadership.credentials.find((item) => item.name === "President's Award");
-  const clubRecognition = leadership.credentials.find((item) => item.name === '100M Dollar Club');
-  const dealRange = leadership.facts.find((item) => item.label === 'Deal size closed');
-
   const steps: StoryStep[] = [
     {
-      id: 'experience',
+      id: 'career-experience',
       number: '01',
-      label: 'EXPERIENCE',
-      title: 'Built by someone who has carried the number.',
-      body:
-        leadership.narrative[0] ??
-        'Direct commercial operating experience informs how AscendRev structures frontline teams and performance standards.',
+      label: leadership.sectionLabel,
+      title: leadership.heading,
+      kind: 'career',
     },
     {
-      id: 'recognition',
+      id: 'commercial-experience',
       number: '02',
-      label: 'RECOGNITION',
-      title: presidentsAward?.name ?? "President's Award",
-      body: presidentsAward?.note === 'Awarded twice.' ? 'Dual-decorated recognition' : 'Recognition earned across a commercial career.',
-      kind: 'recognition',
-    },
-    {
-      id: 'performance',
-      number: '03',
-      label: 'PERFORMANCE',
-      title: clubRecognition?.name ?? '100M Dollar Club',
-      body: clubRecognition?.issuer ? `${clubRecognition.issuer} recognition` : 'Commercial performance recognition',
-      kind: 'performance',
-    },
-    {
-      id: 'deal-experience',
-      number: '04',
-      label: 'DEAL EXPERIENCE',
-      title: 'CAD$500K → CAD$35M',
-      body: 'Deal experience across Canada and Australia',
-      kind: 'deal',
+      label: leadership.commercialHeading,
+      title: leadership.commercialHeading,
+      kind: 'commercial',
     },
     {
       id: 'operating-model',
-      number: '05',
+      number: '03',
       label: 'OPERATING MODEL',
       title: 'Experience converted into execution.',
       body: leadership.commitment,
@@ -174,8 +172,8 @@ export default function LeadershipBlock(): JSX.Element {
               THE ASCENDREV ADVANTAGE / 01
             </p>
 
-            <h2 className="mt-5 max-w-[13ch] font-display text-[clamp(2.8rem,4.6vw,5rem)] font-medium leading-[0.98] tracking-[-0.04em] text-white">
-              Engineered by a Proven Player-Coach.
+            <h2 className="mt-5 max-w-[20ch] font-display text-[clamp(2.4rem,4vw,4.4rem)] font-medium leading-[0.98] tracking-[-0.04em] text-white">
+              {leadership.heading}
             </h2>
 
             <div className="mt-9 max-w-[460px] sm:mt-10 lg:max-w-[300px] xl:max-w-[340px]">
@@ -243,7 +241,7 @@ export default function LeadershipBlock(): JSX.Element {
                   <MilestoneShell index={index} activeIndex={activeIndex}>
                     <div className="border-t border-white/12 pt-6 sm:pt-7">
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-[11px] font-medium tracking-[0.22em] text-[var(--gold-300)]">
+                        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-300)]">
                           {step.number} / {step.label}
                         </span>
                         <span
@@ -255,56 +253,39 @@ export default function LeadershipBlock(): JSX.Element {
                         />
                       </div>
 
-                      {step.kind === 'recognition' ? (
-                        <div className="relative mt-7 max-w-[760px]">
-                          <Trophy
-                            aria-hidden="true"
-                            size={116}
-                            weight="thin"
-                            className="absolute -right-1 -top-10 text-[var(--gold-300)]/[0.08] sm:right-8"
-                          />
-                          <h3 className="relative font-display text-[clamp(2.7rem,5.4vw,5.7rem)] font-medium leading-[0.96] tracking-[-0.045em] text-white">
-                            {step.title}
-                          </h3>
-                          <p className="mt-5 text-[clamp(1rem,1.35vw,1.22rem)] leading-[1.7] text-white/62">
-                            {step.body}
-                          </p>
-                          {/* TODO: Confirm the President's Award issuer and award years before final publishing. */}
-                        </div>
-                      ) : step.kind === 'performance' ? (
-                        <div className="mt-7 max-w-[760px]">
-                          <div
-                            className={cn(
-                              'font-display text-[clamp(5rem,10vw,10rem)] font-medium leading-[0.78] tracking-[-0.075em] text-white transition-transform duration-700 motion-reduce:transform-none motion-reduce:transition-none',
-                              active ? 'scale-100' : 'scale-[0.97]'
-                            )}
-                          >
-                            100M
+                      {step.kind === 'career' ? (
+                        // No h3 here: `step.title` (leadership.heading) is
+                        // already the sticky aside's <h2>, immediately to the
+                        // left of this column, so repeating it as a second
+                        // heading would be the exact duplicate the client's
+                        // copy revision asked to remove.
+                        <div className="mt-7 max-w-[780px]">
+                          <div className="space-y-5">
+                            {leadership.narrative.map((paragraph) => (
+                              <p
+                                key={paragraph}
+                                className="max-w-[64ch] text-[clamp(1rem,1.2vw,1.16rem)] leading-[1.75] text-white/64"
+                              >
+                                {paragraph}
+                              </p>
+                            ))}
                           </div>
-                          <h3 className="mt-7 font-display text-[clamp(2rem,3.1vw,3.5rem)] font-medium leading-none tracking-[-0.035em] text-white/92">
-                            Dollar Club
-                          </h3>
-                          <p className="mt-4 text-[clamp(1rem,1.25vw,1.18rem)] text-white/58">{step.body}</p>
                         </div>
-                      ) : step.kind === 'deal' ? (
+                      ) : step.kind === 'commercial' ? (
                         <div className="mt-7 max-w-[820px]">
-                          <h3 className="font-display text-[clamp(2.8rem,5.8vw,6.4rem)] font-medium leading-[0.95] tracking-[-0.055em] text-white">
-                            CAD$500K <span className="text-[var(--gold-300)]">→</span> CAD$35M
-                          </h3>
-                          <div className="mt-8 h-px w-full bg-white/12">
-                            <span
-                              aria-hidden="true"
-                              className="block h-px bg-[var(--gold-400)] transition-[width] duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:w-full motion-reduce:transition-none"
-                              style={{ width: active || completed ? '100%' : '16%' }}
-                            />
+                          <div className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
+                            {leadership.commercialStats.map((stat) => (
+                              <div key={stat.label} className="flex items-start gap-4">
+                                <StatIcon glyph={stat.icon} />
+                                <div>
+                                  <p className="font-display text-[clamp(1.1rem,1.4vw,1.3rem)] font-medium leading-[1.3] text-white">
+                                    {stat.label}
+                                  </p>
+                                  <p className="mt-2 text-sm leading-[1.6] text-white/58">{stat.description}</p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="mt-3 flex justify-between font-mono text-[9px] uppercase tracking-[0.18em] text-white/34 sm:text-[10px]">
-                            <span>CAD$500K</span>
-                            <span>CAD$35M</span>
-                          </div>
-                          <p className="mt-7 text-[clamp(1rem,1.25vw,1.18rem)] leading-[1.7] text-white/62">
-                            {step.body ?? dealRange?.value}
-                          </p>
                         </div>
                       ) : step.kind === 'operating' ? (
                         <div className="mt-7 max-w-[840px]">

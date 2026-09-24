@@ -136,6 +136,7 @@ export interface Pillar {
 
 export interface PillarsContent {
   heading: string;
+  supportingCopy: string;
   intro: string;
   items: readonly Pillar[];
   /** Closing line rendered beneath the three pillars. */
@@ -237,7 +238,8 @@ export const home: HomeContent = {
     // Client copy revision, 2026-09-24, verbatim (second sentence is a
     // fragment in the source copy, kept as written per the client's
     // no-wording-changes instruction).
-    heading: 'Address Revenue Gaps. Turn missed opportunities to active conversations.',
+    heading: 'Address Revenue Gaps.',
+    supportingCopy: 'Turn missed opportunities to active conversations.',
     intro:
       'AscendRev replaces fragmented operating costs with one managed growth model.',
     items: [

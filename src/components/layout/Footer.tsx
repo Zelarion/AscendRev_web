@@ -86,7 +86,7 @@ export default function Footer(): JSX.Element {
 
                 <div className="flex max-w-[620px] items-start gap-3">
                   <MapPin size={19} weight="regular" aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--ink-muted)]" />
-                  <span>HQ: Commerce Avenue corner Madrigal Avenue, Ayala Alabang, Muntinlupa, 1780 Metro Manila, Philippines</span>
+                  <span>Alabang Office: {site.philippinesOfficeAddress}</span>
                 </div>
               </div>
             </div>

@@ -13,18 +13,21 @@ interface ApproachStoryProps {
 
 const STORY_STAGES = [
   {
-    image: '/images/office1.jpg',
-    alt: 'A meeting room with a boardroom table and chairs',
+    image: '/images/new1.jpg',
+    alt: 'A bright office training room with rows of work tables and stools',
+    cropClass: 'scale-[1.2] lg:scale-[1.04]',
     art: 'gold',
   },
   {
-    image: '/images/hallway2.jpg',
-    alt: 'A bright office hallway with rooms along both sides',
+    image: '/images/office4.jpg',
+    alt: 'An open office floor with rows of blue-partition workstations',
+    cropClass: 'scale-[1.12] lg:scale-[1.04]',
     art: 'blue',
   },
   {
-    image: '/images/office3.jpg',
-    alt: 'A furnished office workspace with desks and chairs',
+    image: '/images/office5.jpg',
+    alt: 'A closer view of office workstations with desks and chairs',
+    cropClass: 'scale-[1.08] lg:scale-[1.02]',
     art: 'green',
   },
 ] as const;
@@ -234,7 +237,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
                     alt={story.alt}
                     fill
                     sizes="(min-width: 1024px) 40vw, (min-width: 768px) 50vw, 88vw"
-                    className="object-cover"
+                    className={`object-cover ${story.cropClass}`}
                   />
                 </div>
                 <figcaption className="mt-3 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--text-muted)]">

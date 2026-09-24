@@ -159,7 +159,7 @@ export const advantage: AdvantageContent = {
     // narrative, which told the same "who is Rio Vidal" story and would
     // otherwise duplicate this copy immediately below the new heading.
     narrative: [
-      'Rio Vidal brings more than a decade of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated $1B+ in sales revenue, managed commercial opportunities and deal sizes from 10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
+        'Rio Vidal brings more than a decade of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated CAD$1B+ in sales revenue, managed commercial opportunities and deal sizes from 10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
       "Growth requires more than strategy. It requires the capacity to execute. AscendRev provides dedicated professionals and purpose-built teams that extend your organization's sales, customer, and operational capabilities—allowing your internal leaders to focus on strategy, relationships, and growth.",
     ],
     // The client's own line, from the source brief, quoted as written.

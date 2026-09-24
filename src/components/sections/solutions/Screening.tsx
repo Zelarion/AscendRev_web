@@ -15,12 +15,11 @@ import GlyphIcon, { GLYPH_ACCENT_CYCLE } from './GlyphIcon';
  * gives this its own heading and its own six icon-plus-label steps, the same
  * subtle line-icon-in-geometric-container treatment as the nine-service grid.
  *
- * The closing note and CTA that used to sit under the old two-column block
- * are kept here, at the end of the hiring/screening flow and directly above
- * the closing band, same position they held before this revision.
+ * The CTA remains at the end of the hiring/screening flow, directly above
+ * the closing band.
  */
 export default function Screening(): JSX.Element {
-  const { heading, items, note, cta } = solutions.screening;
+  const { heading, items, cta } = solutions.screening;
 
   return (
     <Section>
@@ -43,7 +42,6 @@ export default function Screening(): JSX.Element {
         </Stagger>
 
         <Reveal className="mt-10 flex flex-col gap-6 border-t border-[var(--border)] pt-7 sm:mt-14 sm:gap-8 sm:pt-9 md:flex-row md:items-center md:justify-between md:gap-12">
-          <p className="max-w-[52ch] text-body-lg text-[var(--ink)]">{note}</p>
           <Button
             href={cta.href}
             size="lg"

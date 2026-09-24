@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
-import { ArrowRight, Trophy } from '@phosphor-icons/react/dist/ssr';
+import { Trophy } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { prefersReducedMotion } from '@/lib/motion';
 import { advantage } from '@/content/advantage';

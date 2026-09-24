@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
-import { ArrowRight, Trophy } from '@phosphor-icons/react/dist/ssr';
+import { Trophy } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { prefersReducedMotion } from '@/lib/motion';
 import { advantage } from '@/content/advantage';
@@ -173,9 +173,18 @@ export default function LeadershipBlock(): JSX.Element {
               {leadership.heading}
             </h2>
 
-          <div className="mt-6 border-t border-[var(--border)] pt-5 sm:mt-7 sm:pt-6">
+            <div className="mt-6 border-t border-[var(--border)] pt-5 sm:mt-7 sm:pt-6">
+              {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps this local portrait asset simple. */}
+              <img
+                src="/Rio-Vidal.jpg"
+                alt="Rio Vidal, Co-Founder and President of AscendRev"
+                width={611}
+                height={508}
+                className="mb-5 aspect-[611/508] w-full rounded-[8px] object-cover object-center"
+              />
+
               <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>
-              <p className="mt-1 text-sm text-[var(--ink-muted)]">Founder / Canadian Leadership</p>
+              <p className="mt-1 text-sm text-[var(--ink-muted)]">Co-Founder and President</p>
 
               <p className="mt-5 max-w-[46ch] text-[15px] leading-[1.7] text-[var(--ink-muted)]">
                 Commercial experience translated into the systems, scripts, and operating standards deployed by AscendRev.
@@ -289,7 +298,7 @@ export default function LeadershipBlock(): JSX.Element {
                             {step.body}
                           </blockquote>
 
-                          <div className="mt-10 grid items-center gap-5 border-y border-[var(--border)] py-7 sm:grid-cols-[1fr_auto_1fr] sm:gap-7">
+                          {/* <div className="mt-10 grid items-center gap-5 border-y border-[var(--border)] py-7 sm:grid-cols-[1fr_auto_1fr] sm:gap-7">
                             <div>
                               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">Canada</p>
                               <p className="mt-3 text-sm leading-7 text-[var(--ink-muted)]">Leadership · Strategy · Standards</p>
@@ -304,7 +313,7 @@ export default function LeadershipBlock(): JSX.Element {
                               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">Philippines</p>
                               <p className="mt-3 text-sm leading-7 text-[var(--ink-muted)]">Execution · Teams · Operations</p>
                             </div>
-                          </div>
+                          </div> */}
                         </div>
                       ) : (
                         <div className="mt-7 max-w-[780px]">
@@ -324,7 +333,6 @@ export default function LeadershipBlock(): JSX.Element {
           </div>
 
           <div className="ml-16 border-t border-[var(--border)] pt-7 sm:ml-20">
-            <p className="max-w-[72ch] text-xs leading-[1.75] text-[var(--ink-muted)]">{leadership.attribution}</p>
             <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
               Next / Philippine Infrastructure
             </p>

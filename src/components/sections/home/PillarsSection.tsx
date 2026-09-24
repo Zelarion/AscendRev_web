@@ -8,7 +8,7 @@ interface PillarsSectionProps {
   content: PillarsContent;
 }
 
-const PILLAR_METRICS = ['30%–50%', 'CAD$1B+', 'Enterprise-Grade Execution'] as const;
+const PILLAR_METRICS = ['', 'CAD$1B+', 'Enterprise-Grade Execution'] as const;
 
 export default function PillarsSection({ content }: PillarsSectionProps): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -53,7 +53,11 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
               {content.heading}
             </h2>
 
-            <p className="mt-6 max-w-[46ch] text-[clamp(1rem,1.15vw,1.15rem)] leading-[1.7] text-[var(--text-muted)]">
+            <p className="mt-5 max-w-[22ch] font-display text-[clamp(1.45rem,2.8vw,2.2rem)] font-medium leading-[1.08] tracking-[-0.025em] text-[var(--navy-900)]">
+              {content.supportingCopy}
+            </p>
+
+            <p className="mt-5 max-w-[46ch] text-[clamp(1rem,1.15vw,1.15rem)] leading-[1.7] text-[var(--text-muted)]">
               {content.intro}
             </p>
 

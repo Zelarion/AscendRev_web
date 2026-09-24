@@ -92,7 +92,6 @@ export interface LeadershipContent {
   credentialsHeading: string;
   credentials: readonly Credential[];
   /** Attribution line printed with the record. Not decoration: it is the point. */
-  attribution: string;
   /** "PROVEN COMMERCIAL EXPERIENCE" heading, client copy verbatim. */
   commercialHeading: string;
   commercialStats: readonly CommercialStat[];
@@ -160,12 +159,12 @@ export const advantage: AdvantageContent = {
     // narrative, which told the same "who is Rio Vidal" story and would
     // otherwise duplicate this copy immediately below the new heading.
     narrative: [
-      'Rio Vidal brings more than a decade of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated $1B+ in sales revenue, managed commercial opportunities and deal sizes from 10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
+        'Rio Vidal brings more than a decade of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated CAD$1B+ in sales revenue, managed commercial opportunities and deal sizes from 10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
       "Growth requires more than strategy. It requires the capacity to execute. AscendRev provides dedicated professionals and purpose-built teams that extend your organization's sales, customer, and operational capabilities—allowing your internal leaders to focus on strategy, relationships, and growth.",
     ],
     // The client's own line, from the source brief, quoted as written.
     commitment:
-      'Every script, workflow and playbook deployed in the Philippines is built and calibrated under direct onshore supervision.',
+      'Process workflow, scope of work and execution playbook is co-created and customized between AscendRev and our Partners.',
     recordHeading: 'Career record',
     // FLAG for founder/client confirmation, 2026-09-24: three different deal
     // size ranges now exist on this page and were not reconciled by the
@@ -219,8 +218,6 @@ export const advantage: AdvantageContent = {
           "SPEC.md §7 item 4. Neither the programme name nor the year is recorded anywhere in the client's brief, and naming Harvard without either implies more than has been confirmed. AscendRev must supply the programme and the year of completion.",
       },
     ],
-    attribution:
-      "These are Rio Vidal's personal achievements, earned across his career before AscendRev was founded. They are not claims about the company.",
 
     // Client revision, 2026-09-24. Four stat cards, copy verbatim including
     // the client's own en dashes in "60–80" and "$10M–$35M CAD".

@@ -31,16 +31,13 @@ export default function CareerStatsSection() {
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2 xl:grid-cols-4">
-          <article className="bg-[var(--surface)] p-5 sm:col-span-2 sm:p-7 xl:col-span-1">
-            <p className="font-display text-4xl leading-none text-[var(--navy-800)] sm:text-5xl">
-              <CountUp value={1} prefix="CAD$" suffix="B+" />
+          <article className="bg-[var(--surface)] p-6 sm:p-8">
+            <p className="font-display text-[clamp(2.15rem,6vw,3rem)] leading-none text-[var(--navy-800)]">
+              <CountUp value={1} prefix="Over CAD$" suffix="B+" />
             </p>
-            <h3 className="mt-5 text-sm font-semibold text-[var(--text-primary)]">
-              B2B revenue generated
+            <h3 className="mt-4 text-sm font-semibold text-[var(--text-primary)] sm:mt-5">
+              Revenue generated throughout his career
             </h3>
-            <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-              Over CAD$1B across his career.
-            </p>
           </article>
 
           <MetricCard
@@ -63,9 +60,6 @@ export default function CareerStatsSection() {
           />
         </div>
 
-        <p className="mt-5 max-w-3xl text-xs leading-5 text-[var(--text-muted)]">
-          {advantage.leadership.attribution}
-        </p>
       </div>
     </section>
   );

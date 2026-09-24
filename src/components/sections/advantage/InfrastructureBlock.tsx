@@ -112,8 +112,8 @@ export default function InfrastructureBlock(): JSX.Element {
       label: 'LOCATION',
       headline: 'A location built around talent access.',
       body:
-        'The final Philippine site and business-district location are still being confirmed. The operating requirement is a professional environment with strong access to regional talent and dependable supervision.',
-      meta: ['Talent Access', 'Professional Environment', 'Location To Be Confirmed'],
+        'Located at the heart of Alabang Town Centre Metro Manila, Philippines, our working environment is strategically positioned to attract, keep and grow premium talents in the Region with work from home capability, if required and when agreed.',
+      meta: ['Talent Access', 'Professional Environment', 'Alabang, Muntinlupa'],
     },
     {
       id: 'infrastructure',
@@ -130,7 +130,7 @@ export default function InfrastructureBlock(): JSX.Element {
       label: 'WORKPLACE',
       headline: 'Built for focus.',
       body:
-        'The workspace is being designed to support focused delivery, direct supervision, and a professional day-to-day environment for the teams assigned to client accounts.',
+        'The workspace is secured, PII, PPI, PCI compliant to support safe and focused service delivery.',
       meta: ['Focused Workspaces', 'Direct Supervision', 'Professional Environment'],
     },
   ];
@@ -210,7 +210,7 @@ export default function InfrastructureBlock(): JSX.Element {
             State-of-the-Art Operations.
           </h2>
           <p className="mt-6 max-w-[64ch] text-[clamp(1rem,1.2vw,1.18rem)] leading-[1.75] text-[var(--ink-muted)]">
-            Premium Philippine operations are being built around reliability, security, talent, and continuity.
+            Premium Philippine operations are built around reliability, security, talent, and continuity.
           </p>
 
         </header>

@@ -52,10 +52,10 @@ export default function PageLoader(): JSX.Element | null {
           {/* eslint-disable-next-line @next/next/no-img-element -- static export
               keeps this loader asset free of an image-optimizer dependency. */}
           <img
-            src="/ascendrev-logo.png"
+            src="/new-logo.png"
             alt=""
             width={230}
-            height={100}
+            height={77}
             className="h-auto w-[clamp(12rem,30vw,14.375rem)]"
           />
         </span>

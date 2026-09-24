@@ -36,6 +36,9 @@ export interface Site {
    */
   address: string;
   addressParts: PostalAddress;
+  /** Confirmed Philippines office location, provided as display text and structured fields. */
+  philippinesOfficeAddress: string;
+  philippinesOfficeAddressParts: PostalAddress;
   /**
    * No LinkedIn URL appears in PRODUCT.md, DESIGN.md, or SPEC.md. Left
    * unset rather than guessed, `Footer.tsx` already treats this as
@@ -74,6 +77,14 @@ const addressParts: PostalAddress = {
   country: 'Canada',
 };
 
+const philippinesOfficeAddressParts: PostalAddress = {
+  street: 'Commerce Avenue corner Madrigal Avenue, Ayala Alabang',
+  city: 'Muntinlupa',
+  region: 'Metro Manila',
+  postalCode: '1780',
+  country: 'Philippines',
+};
+
 export const site: Site = {
   name: 'AscendRev',
   legalName: 'AscendRev Outsourcing Services Corp.',
@@ -84,6 +95,8 @@ export const site: Site = {
   phone: '+1 (403) 903-2912',
   address: `${addressParts.street}, ${addressParts.city}, ${addressParts.region} ${addressParts.postalCode}, ${addressParts.country}`,
   addressParts,
+  philippinesOfficeAddress: `${philippinesOfficeAddressParts.street}, ${philippinesOfficeAddressParts.city}, ${philippinesOfficeAddressParts.postalCode} ${philippinesOfficeAddressParts.region}, ${philippinesOfficeAddressParts.country}`,
+  philippinesOfficeAddressParts,
   contactEmail: 'rio.vidal@ascend-rev.ca',
   enquiryEmailSecondary: 'ralph.tomines@ascend-rev.ca',
   linkedinUrl: 'https://www.linkedin.com/in/rio-mendoza-vidal-56900210b/',

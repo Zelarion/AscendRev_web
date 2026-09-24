@@ -34,7 +34,7 @@ out/
   404.html
   404/  solutions/  advantage/  contact/  privacy/  terms/
   _next/static/        <- JS, CSS, fonts, all fingerprinted
-  logo.png
+  new-logo.png
 ```
 
 ### The two things that go wrong
@@ -118,6 +118,6 @@ address in the client's brief is on a domain that does not resolve.
 
 - `public/api/enquiry.php`, the enquiry form handler (SPEC.md §6). Recipient
   addresses are an open blocker, see SPEC.md §7 item 2.
-- `public/logo.svg`. The header currently uses the client's supplied PNG. The
+- `public/logo.svg`. The header currently uses the client's supplied `new-logo.png`. The
   scalable version is a Zelarion deliverable on this engagement.
 - `sitemap.xml` and `robots.txt` (SPEC.md §8), generated in a later pass.

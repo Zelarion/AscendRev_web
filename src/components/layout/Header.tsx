@@ -152,7 +152,7 @@ export default function Header(): JSX.Element {
           <span className="relative isolate inline-flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the logo self-contained. */}
             <img
-              src="/ascendrev-logo.png"
+              src="/new-logo.png"
               alt="AscendRev"
               width={206}
               height={68}

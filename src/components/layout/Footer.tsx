@@ -46,7 +46,7 @@ export default function Footer(): JSX.Element {
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the transparent logo asset simple. */}
                 <img
-                  src="/ascendrev-logo.png"
+                  src="/new-logo.png"
                   alt="AscendRev"
                   width={220}
                   height={72}
@@ -81,7 +81,12 @@ export default function Footer(): JSX.Element {
 
                 <div className="flex max-w-[620px] items-start gap-3">
                   <MapPin size={19} weight="regular" aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--ink-muted)]" />
-                  <span>Onshore Head Office: {site.address}</span>
+                  <span>HQ: {site.address}</span>
+                </div>
+
+                <div className="flex max-w-[620px] items-start gap-3">
+                  <MapPin size={19} weight="regular" aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--ink-muted)]" />
+                  <span>HQ: Commerce Avenue corner Madrigal Avenue, Ayala Alabang, Muntinlupa, 1780 Metro Manila, Philippines</span>
                 </div>
               </div>
             </div>

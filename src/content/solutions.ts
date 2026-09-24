@@ -43,7 +43,6 @@ export interface ScreeningContent {
   heading: string;
   items: readonly IconLabelItem[];
   /** Closing line under the steps. */
-  note: string;
   cta: Cta;
 }
 
@@ -134,7 +133,6 @@ export const solutions: SolutionsContent = {
       { id: 'background-check-clearance', glyph: '⛨✓', label: 'Background Check & Clearance' },
     ],
     // Carried over from the old combined block, unchanged.
-    note: 'You interview the shortlist yourself if you want to, and nobody joins your account over your objection.',
     cta: { label: 'Request Outsourcing Blueprint', href: '/contact' },
   },
 

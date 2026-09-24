@@ -45,13 +45,13 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
             <li key={item.question} className="flex items-start gap-4">
               <span
                 aria-hidden="true"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--line-strong)] text-[15px] text-[var(--gold-text)] md:h-9 md:w-9"
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-[var(--line-strong)] text-[15px] text-[var(--gold-text)] md:h-12 md:w-12"
               >
                 {item.icon}
               </span>
               <div className="min-w-0">
-                <p className="text-[15px] font-semibold leading-snug text-[var(--text-primary)]">{item.question}</p>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">{item.answer}</p>
+                <p className="text-[18px] font-semibold leading-snug text-[var(--text-primary)]">{item.question}</p>
+                <p className="mt-2 text-[16px] leading-relaxed text-[var(--text-muted)]">{item.answer}</p>
               </div>
             </li>
           ))}

@@ -33,7 +33,7 @@ export default function CareerStatsSection() {
         <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2 xl:grid-cols-4">
           <article className="bg-[var(--surface)] p-5 sm:col-span-2 sm:p-7 xl:col-span-1">
             <p className="font-display text-4xl leading-none text-[var(--navy-800)] sm:text-5xl">
-              <CountUp value={1} prefix="CAD$" suffix="B+" />
+              <CountUp value={1} prefix="Over 1BCAD Revenue generated throughout his career" />
             </p>
             <h3 className="mt-5 text-sm font-semibold text-[var(--text-primary)]">
               B2B revenue generated
@@ -63,9 +63,9 @@ export default function CareerStatsSection() {
           />
         </div>
 
-        <p className="mt-5 max-w-3xl text-xs leading-5 text-[var(--text-muted)]">
+        {/* <p className="mt-5 max-w-3xl text-xs leading-5 text-[var(--text-muted)]">
           {advantage.leadership.attribution}
-        </p>
+        </p> */}
       </div>
     </section>
   );

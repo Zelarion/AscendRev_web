@@ -237,7 +237,7 @@ export const home: HomeContent = {
     // Client copy revision, 2026-09-24, verbatim (second sentence is a
     // fragment in the source copy, kept as written per the client's
     // no-wording-changes instruction).
-    heading: 'Address Revenue Gaps. Missed opportunities to active conversations.',
+    heading: 'Address Revenue Gaps. Turn missed opportunities to active conversations.',
     intro:
       'AscendRev replaces fragmented operating costs with one managed growth model.',
     items: [

@@ -691,9 +691,9 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
     // embedded by Content-ID rather than hotlinked, so it displays without the
     // recipient clicking "show images".
     //
-    // 230px wide from a 460px source, so it stays sharp on a retina screen.
+    // The 230px-wide logo remains sharp on a retina screen.
     . '<tr><td style="background:#ffffff;padding:24px 32px 20px;">'
-    . '<img src="cid:ascendrev-logo" width="230" height="95" alt="AscendRev"'
+    . '<img src="cid:ascendrev-logo" width="230" height="77" alt="AscendRev"'
     . ' style="display:block;border:0;width:230px;height:auto;">'
     . '</td></tr>'
 
@@ -777,15 +777,15 @@ $mime = '--' . $boundaryRelated . "\r\n"
 
     . '--' . $boundaryAlt . '--' . "\r\n\r\n";
 
-$logoPath = __DIR__ . '/email-logo.png';
+$logoPath = dirname(__DIR__) . '/new-logo.png';
 if (is_readable($logoPath)) {
     $logoData = @file_get_contents($logoPath);
     if ($logoData !== false) {
         $mime .= '--' . $boundaryRelated . "\r\n"
-            . 'Content-Type: image/png; name="ascendrev-logo.png"' . "\r\n"
+            . 'Content-Type: image/png; name="new-logo.png"' . "\r\n"
             . 'Content-Transfer-Encoding: base64' . "\r\n"
             . 'Content-ID: <ascendrev-logo>' . "\r\n"
-            . 'Content-Disposition: inline; filename="ascendrev-logo.png"' . "\r\n\r\n"
+            . 'Content-Disposition: inline; filename="new-logo.png"' . "\r\n\r\n"
             . chunk_split(base64_encode($logoData), 76, "\r\n") . "\r\n";
     }
 }

@@ -48,8 +48,9 @@ const sizeClasses: Record<ButtonSize, string> = {
 // actually makes `secondary` correct "on navy", it inherits the lighter
 // ring from context instead of guessing its own background here.
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-[var(--green-600)] text-white hover:bg-[var(--green-500)] active:bg-[var(--green-700)]',
-  secondary: 'border border-white bg-transparent text-white hover:bg-white/10',
+  primary: 'bg-[var(--green-600)] text-[var(--on-accent)] hover:bg-[var(--green-500)] active:bg-[var(--green-700)]',
+  secondary:
+    'border border-[var(--border-strong)] bg-transparent text-[var(--ink)] hover:bg-[var(--surface-band-raised)]',
   ghost: 'bg-transparent text-[var(--ink)] hover:bg-[var(--border)]/50',
 };
 

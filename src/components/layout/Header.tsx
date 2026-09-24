@@ -1,13 +1,13 @@
 'use client';
 
 import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowRight, List, X } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { hoverTransitionStyle } from '@/lib/motion';
 import { navItems, ctaItem } from '@/content/nav';
-import ThemeToggle from '@/components/ui/ThemeToggle';
 
 const SCROLL_FLOAT_ENTER_PX = 220;
 const SCROLL_FLOAT_EXIT_PX = 90;
@@ -22,13 +22,47 @@ export default function Header(): JSX.Element {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [storyNavHidden, setStoryNavHidden] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const lastScrollYRef = useRef(0);
+  const firstScrollCheckRef = useRef(true);
+  const storyNavHiddenRef = useRef(false);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       const y = window.scrollY;
+      const story = document.querySelector<HTMLElement>('[data-office-story]');
+      const storyRect = story?.getBoundingClientRect();
+      const inStory = Boolean(
+        storyRect && storyRect.top < window.innerHeight && storyRect.bottom > 0
+      );
+
+      let hideForStory = storyNavHiddenRef.current;
+      if (!inStory || menuOpen) {
+        hideForStory = false;
+      } else if (storyRect) {
+        if (y > lastScrollYRef.current) hideForStory = true;
+        else if (y < lastScrollYRef.current) hideForStory = false;
+        else if (firstScrollCheckRef.current && storyRect.top <= 0) hideForStory = true;
+      }
+
+      if (hideForStory && headerRef.current?.contains(document.activeElement)) {
+        const focusedItem = document.activeElement;
+        if (focusedItem instanceof HTMLElement) focusedItem.blur();
+      }
+      storyNavHiddenRef.current = hideForStory;
+      setStoryNavHidden(hideForStory);
+      lastScrollYRef.current = y;
+      firstScrollCheckRef.current = false;
+
       setScrolled((current) => {
         if (current) return y > SCROLL_FLOAT_EXIT_PX;
         return y > SCROLL_FLOAT_ENTER_PX;
@@ -38,7 +72,7 @@ export default function Header(): JSX.Element {
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [menuOpen]);
 
   const closeMenu = useCallback(() => {
     setMenuOpen(false);
@@ -87,19 +121,25 @@ export default function Header(): JSX.Element {
   }, [menuOpen, closeMenu]);
 
   return (
+    <>
     <header
+      ref={headerRef}
       data-tone="navy"
+      data-office-nav-hidden={storyNavHidden ? 'true' : undefined}
+      aria-hidden={storyNavHidden || undefined}
+      inert={storyNavHidden}
       className={cn(
-        'fixed inset-x-0 top-0 isolate z-[1000] w-full transition-[padding] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
+        'fixed inset-x-0 top-0 isolate z-[var(--z-nav)] w-full transition-[padding,transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+        storyNavHidden ? 'pointer-events-none -translate-y-[125%] opacity-0' : 'translate-y-0 opacity-100',
         scrolled ? 'px-3 pt-3 sm:px-5 sm:pt-4 lg:px-7' : 'px-0 pt-0'
       )}
     >
       <div
         className={cn(
-          'ar-nav-shell mx-auto flex h-[88px] w-full items-center justify-between border px-4 backdrop-blur-[22px] sm:h-[100px] sm:px-6 lg:px-8 xl:px-10',
+          'ar-nav-shell mx-auto flex h-[var(--header-height)] w-full items-center justify-between border px-4 backdrop-blur-[22px] sm:px-6 lg:px-8 xl:px-10',
           'transition-[max-width,border-radius,background-color,border-color,box-shadow] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
           scrolled
-            ? 'max-w-[1540px] rounded-[18px] border-white/14 bg-[var(--nav-glass-scrolled)] shadow-[0_18px_55px_rgba(0,0,0,0.24)]'
+            ? 'max-w-[1540px] rounded-[18px] border-[var(--border)] bg-[var(--nav-glass-scrolled)] shadow-[0_18px_55px_rgba(0,0,0,0.24)]'
             : 'max-w-[100vw] rounded-none border-x-transparent border-t-transparent border-b-white/10 bg-[var(--nav-glass)] shadow-[0_8px_28px_rgba(0,0,0,0.12)]'
         )}
       >
@@ -110,26 +150,18 @@ export default function Header(): JSX.Element {
           style={{ animationDelay: '90ms' }}
         >
           <span className="relative isolate inline-flex items-center justify-center">
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute -inset-x-5 -inset-y-3 -z-10 rounded-full blur-[12px]"
-              style={{
-                background:
-                  'radial-gradient(ellipse at center, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.28) 42%, rgba(255,255,255,0.08) 66%, rgba(255,255,255,0) 82%)',
-              }}
-            />
             {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the logo self-contained. */}
             <img
               src="/ascendrev-logo.png"
               alt="AscendRev"
               width={206}
               height={68}
-              className="h-[60px] w-auto object-contain sm:h-[70px] lg:h-[78px]"
+              className="h-[var(--header-logo-height)] w-auto object-contain"
             />
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-6 xl:flex xl:gap-7 2xl:gap-9">
+        <nav aria-label="Primary" className="hidden items-center gap-4 wide-nav:flex wide-nav:gap-5">
           {navItems.map((item, index) => {
             const active = isActiveRoute(pathname, item.href);
             return (
@@ -137,7 +169,7 @@ export default function Header(): JSX.Element {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className="ar-nav-item relative inline-flex min-h-11 items-center px-1 text-[15px] font-medium text-white/94 outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-white hover:after:left-0 hover:after:w-full xl:text-base"
+                className="ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-[var(--ink)] outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--navy-900)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px]"
                 style={{ ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` }}
               >
                 {item.label}
@@ -146,10 +178,7 @@ export default function Header(): JSX.Element {
           })}
         </nav>
 
-        <div className="hidden items-center gap-4 xl:flex xl:gap-5">
-          <div className="ar-nav-item" style={{ animationDelay: '470ms' }}>
-            <ThemeToggle className="rounded-full text-white/95 hover:bg-white/8" />
-          </div>
+        <div className="hidden items-center gap-4 wide-nav:flex wide-nav:gap-5">
           <Link
             href={ctaItem.href}
             className="ar-nav-item group inline-flex min-h-12 min-w-[255px] items-center justify-center gap-4 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-7 text-[15px] font-semibold text-[var(--gold-ink)] shadow-[0_8px_24px_rgba(197,151,49,0.22)] outline-none transition-[transform,box-shadow,filter] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(197,151,49,0.32)] hover:brightness-105 active:translate-y-0 xl:min-w-[285px] xl:text-base"
@@ -165,8 +194,7 @@ export default function Header(): JSX.Element {
           </Link>
         </div>
 
-        <div className="flex items-center gap-1 xl:hidden">
-          <ThemeToggle className="rounded-full text-white/95 hover:bg-white/8" />
+        <div className="flex items-center gap-1 wide-nav:hidden">
           <button
             ref={toggleRef}
             type="button"
@@ -174,7 +202,7 @@ export default function Header(): JSX.Element {
             aria-controls="mobile-nav-sheet"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             onClick={() => setMenuOpen((open) => !open)}
-            className="relative flex h-11 w-11 items-center justify-center rounded-full text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98]"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--ink)] outline-none transition-colors hover:bg-[var(--surface-band-raised)] active:scale-[0.98]"
             style={hoverTransitionStyle}
           >
             <List
@@ -197,10 +225,12 @@ export default function Header(): JSX.Element {
         </div>
       </div>
 
+    </header>
+    {portalReady && createPortal(<>
       <div
         aria-hidden={!menuOpen}
         className={cn(
-          'fixed inset-0 z-[1080] bg-black/40 backdrop-blur-[1px] transition-opacity duration-500 ease-out xl:hidden',
+          'fixed inset-0 z-[var(--z-nav-backdrop)] bg-black/40 backdrop-blur-[1px] transition-opacity duration-500 ease-out wide-nav:hidden',
           menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={closeMenu}
@@ -214,7 +244,7 @@ export default function Header(): JSX.Element {
         aria-hidden={!menuOpen}
         aria-label="Mobile navigation"
         className={cn(
-          'fixed inset-y-0 right-0 z-[1100] flex min-h-0 w-[calc(100%-0.75rem)] max-w-[620px] flex-col overflow-hidden border-l border-white/10 bg-[var(--nav-glass-scrolled)] px-5 pb-6 pt-5 shadow-[-18px_0_55px_rgba(0,0,0,0.32)] backdrop-blur-[24px] sm:w-[88vw] sm:px-7 sm:pb-7 sm:pt-6 md:w-[78vw] xl:hidden',
+          'fixed inset-y-0 right-0 z-[var(--z-nav-sheet)] flex min-h-0 w-[calc(100%-0.75rem)] max-w-[620px] flex-col overflow-y-auto border-l border-[var(--border)] bg-[var(--nav-glass-scrolled)] px-5 pb-6 pt-5 shadow-[-18px_0_55px_rgba(0,0,0,0.32)] backdrop-blur-[24px] sm:w-[88vw] sm:px-7 sm:pb-7 sm:pt-6 md:w-[78vw] wide-nav:hidden',
           'transition-[transform,opacity] duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
           menuOpen
             ? 'pointer-events-auto translate-x-0 opacity-100'
@@ -223,17 +253,17 @@ export default function Header(): JSX.Element {
       >
         <div
           className={cn(
-            'flex items-center justify-between border-b border-white/10 pb-4 transition-[opacity,transform] duration-400 ease-out motion-reduce:transition-none',
+            'flex items-center justify-between border-b border-[var(--border)] pb-4 transition-[opacity,transform] duration-400 ease-out motion-reduce:transition-none',
             menuOpen ? 'translate-x-0 opacity-100 delay-150' : 'translate-x-3 opacity-0 delay-0'
           )}
         >
-          <p className="text-sm font-medium tracking-[0.16em] text-white/55 uppercase">Navigation</p>
+          <p className="text-sm font-medium tracking-[0.16em] text-[var(--ink-muted)] uppercase">Navigation</p>
           <button
             ref={closeButtonRef}
             type="button"
             tabIndex={menuOpen ? 0 : -1}
             onClick={closeMenu}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-[var(--ink)] outline-none transition-colors hover:bg-[var(--surface-band-raised)] active:scale-[0.98]"
             aria-label="Close navigation"
             style={hoverTransitionStyle}
           >
@@ -241,7 +271,7 @@ export default function Header(): JSX.Element {
           </button>
         </div>
 
-        <nav aria-label="Mobile primary" className="flex flex-1 flex-col justify-center gap-2 py-6">
+        <nav aria-label="Mobile primary" className="flex min-h-0 flex-1 flex-col justify-center gap-2 overflow-y-auto py-6">
           {navItems.map((item, index) => (
             <Link
               key={item.href}
@@ -249,7 +279,7 @@ export default function Header(): JSX.Element {
               tabIndex={menuOpen ? 0 : -1}
               onClick={closeMenu}
               className={cn(
-                'inline-flex min-h-12 items-center border-b border-white/8 py-3 font-display text-[clamp(1.9rem,8vw,3rem)] font-medium leading-none text-white outline-none transition-[color,opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--gold-300)] motion-reduce:transition-none',
+                'inline-flex min-h-12 items-center border-b border-[var(--border)] py-3 font-display text-[clamp(1.9rem,8vw,3rem)] font-medium leading-none text-[var(--navy-900)] outline-none transition-[color,opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--accent)] motion-reduce:transition-none',
                 menuOpen ? 'translate-x-0 opacity-100' : 'translate-x-5 opacity-0'
               )}
               style={{ transitionDelay: menuOpen ? `${210 + index * 70}ms` : '0ms' }}
@@ -273,6 +303,7 @@ export default function Header(): JSX.Element {
           <ArrowRight size={19} weight="regular" aria-hidden="true" />
         </Link>
       </div>
-    </header>
+    </>, document.body)}
+    </>
   );
 }

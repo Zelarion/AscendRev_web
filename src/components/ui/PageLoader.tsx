@@ -6,10 +6,8 @@ import { usePathname } from 'next/navigation';
 type LoaderPhase = 'entering' | 'leaving';
 
 /**
- * A first-load transition only. The server sends the real page immediately so
- * the site is still complete with JavaScript disabled. Once hydrated, the
- * loader briefly brings the supplied city footage forward, then clears the
- * frame with a deliberate exit rather than leaving a permanent blocking layer.
+ * A brief white transition between pages. The server sends the real page
+ * immediately so the site remains complete with JavaScript disabled.
  */
 export default function PageLoader(): JSX.Element | null {
   const pathname = usePathname();
@@ -40,20 +38,6 @@ export default function PageLoader(): JSX.Element | null {
       aria-hidden="true"
       role="presentation"
     >
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-      >
-        <source src="/video/hero-1280.mp4" media="(max-width: 767px)" type="video/mp4" />
-        <source src="/video/hero-1920.mp4" type="video/mp4" />
-      </video>
-
-      <div aria-hidden="true" className="absolute inset-0 z-[1] bg-black/25" />
-
       <div className="relative z-10 flex h-full w-full items-center justify-center px-6">
         <span className="loader-brand relative isolate inline-flex items-center justify-center">
           <span
@@ -83,7 +67,7 @@ export default function PageLoader(): JSX.Element | null {
           inset: 0;
           z-index: 2000;
           overflow: hidden;
-          background: var(--color-navy-900);
+          background: var(--surface-page);
           pointer-events: auto;
         }
 

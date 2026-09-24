@@ -3,7 +3,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from 'next/font/google';
 import SkipLink from '@/components/layout/SkipLink';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { SmoothScrollProvider, ThemeScript } from '@/components/motion';
+import { SmoothScrollProvider } from '@/components/motion';
 import CookieConsent from '@/components/ui/CookieConsent';
 import PageLoader from '@/components/ui/PageLoader';
 import { site } from '@/content/site';
@@ -88,22 +88,13 @@ export default function RootLayout({
     <html
       lang="en-CA"
       className={`${newsreader.variable} ${plexSans.variable} ${plexMono.variable}`}
-      // ThemeScript writes data-theme on this element before React hydrates, so
-      // the server and client markup differ by design. Without this, React logs a
-      // hydration mismatch on every load.
-      suppressHydrationWarning
     >
-      <head>
-        {/* Blocking, in head, on purpose: it has to run before first paint or a
-            reader who chose dark sees a white page flash first. */}
-        <ThemeScript />
-      </head>
       <body>
         <PageLoader />
         <SkipLink />
         <Header />
         <SmoothScrollProvider>
-          <main id="main" className="relative z-10">
+          <main id="main" className="relative z-[var(--z-sticky)]">
             {children}
           </main>
           <Footer />

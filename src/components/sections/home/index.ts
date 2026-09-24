@@ -9,3 +9,4 @@ export { default as TrustBand } from './TrustBand';
 export { default as PillarsSection } from './PillarsSection';
 export { default as IndustriesSection } from './IndustriesSection';
 export { default as ClosingBand } from './ClosingBand';
+export { default as CareerStatsSection } from './CareerStatsSection';

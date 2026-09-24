@@ -1,39 +1,38 @@
 import type { JSX } from 'react';
+import Image from 'next/image';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import { solutions } from '@/content/solutions';
-import { solutionsHeroImage } from '@/content/solutionsHeroImage';
 
 /**
  * Compact editorial hero for `/solutions`.
- * The generated executive-office image sits behind the copy with a restrained
- * navy treatment so the page remains consistent with the AscendRev system.
+ *
+ * Rio's supplied conference-room photo sits in a contained panel beside the
+ * copy; the surrounding hero stays on the semantic white page surface.
  */
 export default function SolutionsHero(): JSX.Element {
   const { headline, subheadline } = solutions.hero;
 
   return (
-    <Section
-      tone="navy"
-      className="relative isolate flex min-h-[520px] items-end overflow-hidden pt-[clamp(5rem,10vw,8rem)] pb-[clamp(2rem,3vw,2.75rem)]"
-    >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-20 bg-cover bg-center"
-        style={{ backgroundImage: `url("${solutionsHeroImage}")` }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(3,12,24,0.92)_0%,rgba(3,12,24,0.82)_42%,rgba(3,12,24,0.58)_72%,rgba(3,12,24,0.42)_100%)]"
-      />
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[var(--navy-900)]/20" />
-
+    <Section className="!pt-[calc(var(--header-height)+1rem)] flex min-h-[400px] items-center sm:min-h-[440px] lg:min-h-[520px] lg:!pt-[var(--section-space)]">
       <Container>
-        <div className="max-w-[900px]">
-          <h1 className="max-w-[22ch] font-display text-h1 text-white">{headline}</h1>
-          <p className="mt-4 max-w-[58ch] text-body-lg leading-relaxed text-white/76">
-            {subheadline}
-          </p>
+        <div className="grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:gap-16">
+          <div>
+            <h1 className="max-w-[22ch] font-display text-h1 text-[var(--ink)]">{headline}</h1>
+            <p className="mt-4 max-w-[58ch] text-body-lg leading-relaxed text-[var(--ink-muted)]">
+              {subheadline}
+            </p>
+          </div>
+          <div className="relative aspect-[16/9] overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface)] lg:aspect-[4/3]">
+            <Image
+              src="/images/office3.jpg"
+              alt="Conference room with a central table and surrounding chairs"
+              fill
+              priority
+              sizes="(min-width: 768px) 40vw, 100vw"
+              className="object-cover"
+            />
+          </div>
         </div>
       </Container>
     </Section>

@@ -47,7 +47,7 @@ const linkClass =
 export default function PrivacyPage() {
   return (
     <Section size="large">
-      <div className="mx-auto w-full max-w-[1200px] px-[clamp(1.25rem,5vw,4rem)]">
+      <div className="mx-auto w-full max-w-[1200px] px-[var(--site-gutter,clamp(1.25rem,5vw,4rem))]">
         <div className="max-w-[68ch]">
           <h1 className="text-h1 font-display font-medium tracking-[-0.025em] text-[var(--ink)]">
             Privacy Policy
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
           </p>
         </div>
 
-        <div className="mt-14 max-w-[68ch] space-y-10">
+        <div className="mt-10 max-w-[68ch] space-y-8 sm:mt-14 sm:space-y-10">
           <section aria-labelledby="privacy-who">
             <h2 id="privacy-who" className={headingClass}>
               Who is responsible
@@ -89,14 +89,17 @@ export default function PrivacyPage() {
             </p>
             <p className={bodyClass}>When you submit an enquiry, we receive:</p>
             <ul className={listClass}>
-              <li>&bull; Your first and last name.</li>
-              <li>&bull; Your work email address.</li>
-              <li>&bull; Your company website address.</li>
-              <li>&bull; The operational areas you selected, such as outbound or after-hours coverage.</li>
-              <li>&bull; Your annual revenue range and headcount range, as selected from the options given.</li>
-              <li>&bull; Your budget, if you chose to enter one. This field is optional.</li>
-              <li>&bull; Any message you wrote. This field is optional.</li>
+              <li>&bull; Your individual name (required).</li>
+              <li>&bull; Your business email address (required; free and disposable email addresses are not accepted).</li>
+              <li>&bull; Your entity name (required).</li>
+              <li>&bull; The best number to call you (required).</li>
+              <li>&bull; Comments describing the help you need (optional, up to 200 characters).</li>
             </ul>
+            <p className={bodyClass}>
+              The form also contains a hidden anti-spam field that is not intended for you to fill
+              in. We do not ask for a company website, operational-area selections, revenue or
+              headcount ranges, or a budget in this form.
+            </p>
             <p className={bodyClass}>
               We also store a shortened one-way hash derived from your IP address, which lets us
               stop the form being used for abuse. We do not store the address itself, and the

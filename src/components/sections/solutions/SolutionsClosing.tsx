@@ -6,12 +6,13 @@ import Reveal from '@/components/ui/Reveal';
 import { solutions } from '@/content/solutions';
 
 /**
- * Closing navy band for `/solutions` (SPEC.md §4.2, item 4).
+ * Closing band for `/solutions` (SPEC.md §4.2, item 4), on the page's white
+ * surface with semantic dark ink.
  *
  * The background photo this band used to carry was hotlinked from a
  * third-party stock photo host, an external dependency the client does not
- * want. No client-supplied replacement photo exists, so the band now runs on
- * `Section`'s solid `tone="navy"` fill alone rather than an invented image.
+ * want. No client-supplied replacement photo exists, so the band uses the
+ * page's solid semantic surface rather than an invented image.
  *
  * Duplicated rather than shared with the Advantage closing band: this pass owns
  * `sections/solutions/**` and `sections/advantage/**` only, and
@@ -25,11 +26,11 @@ export default function SolutionsClosing(): JSX.Element {
   const { heading, body, cta } = solutions.closing;
 
   return (
-    <Section tone="navy" size="large">
+    <Section size="large">
       <Container>
         <Reveal>
-          <h2 className="max-w-[22ch] font-display text-h2 text-white">{heading}</h2>
-          <p className="mt-6 max-w-[62ch] text-body-lg text-white/74">{body}</p>
+          <h2 className="max-w-[22ch] font-display text-h2 text-[var(--ink)]">{heading}</h2>
+          <p className="mt-6 max-w-[62ch] text-body-lg text-[var(--ink-muted)]">{body}</p>
           <div className="mt-10">
             <Button
               href={cta.href}

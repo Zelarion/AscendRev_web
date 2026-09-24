@@ -58,8 +58,18 @@ function newIdempotencyKey(): string {
 const ENQUIRY_ENDPOINT =
   process.env.NEXT_PUBLIC_ENQUIRY_ENDPOINT || '/api/enquiry.php';
 
+/*
+ * Resting border is `--border-strong`, the token defined in globals.css
+ * specifically for input/control outlines (its own comment there: "never for
+ * dividers") because the ordinary `--border` hairline is only 1.22:1 and
+ * disappears on a text input, where the boundary is the only thing telling a
+ * visitor where to type. Focus swaps to `--focus-ring` rather than carrying
+ * the brand gold forward: gold-400 measures under 2:1 on white and this field
+ * ships with `outline-none`, so the border/shadow pair below is the only
+ * focus indicator there is and it has to clear 3:1 on its own.
+ */
 const inputClassName =
-  'mt-2 block min-h-12 w-full rounded-[6px] border border-white/12 bg-white/[0.035] px-3.5 text-[14px] text-white outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-white/28 focus:border-[var(--gold-400)] focus:bg-white/[0.055] focus:shadow-[0_0_0_3px_rgba(223,184,79,0.10)]';
+  'mt-2 block min-h-12 w-full rounded-[6px] border border-[var(--border-strong)] bg-[var(--surface-band-raised)] px-3.5 text-[16px] text-[var(--ink)] outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-[var(--ink-muted)] focus:border-[var(--focus-ring)] focus:bg-[var(--surface-raised)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--focus-ring)_18%,transparent)] lg:text-[14px]';
 
 interface ContactEnquiryFormProps {
   content: EnquiryFormContent;
@@ -195,22 +205,29 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
   }
 
   return (
-    <div className="w-full rounded-[10px] border border-white/[0.08] bg-[#111c2c] p-6 sm:p-8 lg:p-10">
-      <div className="border-b border-white/[0.08] pb-7">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-300)] sm:text-[11px]">
+    <div className="w-full rounded-[10px] border border-[var(--border)] bg-[var(--surface-raised)] p-5 sm:p-7 lg:p-10">
+      <div className="border-b border-[var(--border)] pb-7">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
           RFP &amp; DISCOVERY HUB
         </p>
-        <h2 className="mt-3 max-w-[16ch] font-display text-[clamp(2.2rem,3.5vw,3.5rem)] font-medium leading-[1] tracking-[-0.035em] text-white">
+        <h2 className="mt-3 max-w-[16ch] font-display text-[clamp(2.2rem,3.5vw,3.5rem)] font-medium leading-[1] tracking-[-0.035em] text-[var(--navy-900)]">
           {content.heading}
         </h2>
-        <p className="mt-4 max-w-[56ch] text-[14px] leading-6 text-white/52">
+        <p className="mt-4 max-w-[56ch] text-[14px] leading-6 text-[var(--ink-muted)]">
           {content.intro}
         </p>
-        <p className="mt-2 text-[12px] leading-5 text-white/38">
+        <p className="mt-2 text-[12px] leading-5 text-[var(--ink-muted)]">
           {content.requiredNote}
         </p>
       </div>
 
+      {/*
+        Danger/success now come from the semantic `--danger`/`--success`
+        tokens rather than the literal hex pair this block used to carry
+        (`#c46b60`/`#efaaa1`, tuned to sit on a dark card). Those two hexes
+        read at roughly 2:1 on white — invisible as an error colour, not just
+        dim — so this was a correctness fix, not a cosmetic one.
+      */}
       {status && (
         <div
           id={summaryId}
@@ -218,8 +235,8 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
           aria-live="polite"
           className={`mt-6 border px-4 py-3 text-[13px] leading-5 ${
             status.tone === 'error'
-              ? 'border-[#c46b60]/35 bg-[#c46b60]/[0.06] text-[#efaaa1]'
-              : 'border-[var(--gold-400)]/35 bg-[var(--gold-400)]/[0.06] text-[var(--gold-300)]'
+              ? 'border-[var(--danger)]/35 bg-[var(--danger)]/[0.06] text-[var(--danger)]'
+              : 'border-[var(--success)]/35 bg-[var(--success)]/[0.06] text-[var(--success)]'
           }`}
         >
           {status.message}
@@ -345,14 +362,14 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
             </span>
           </button>
 
-          <p className="mt-4 text-center text-[11px] leading-5 text-white/42">
+          <p className="mt-4 text-center text-[11px] leading-5 text-[var(--ink-muted)]">
             {content.consent.text}
           </p>
 
-          <p className="mt-3 text-center text-[10px] leading-4 text-white/28">
+          <p className="mt-3 text-center text-[10px] leading-4 text-[var(--ink-muted)]">
             <Link
               href={content.consent.policyHref}
-              className="underline decoration-white/20 underline-offset-4 transition-colors hover:text-white/55"
+              className="underline decoration-[var(--border)] underline-offset-4 transition-colors hover:text-[var(--navy-900)]"
             >
               {content.consent.policyLinkLabel}
             </Link>
@@ -390,11 +407,11 @@ function TextField({
 }: TextFieldProps) {
   return (
     <div>
-      <label htmlFor={id} className="text-[12px] font-semibold tracking-[0.02em] text-white/78">
+      <label htmlFor={id} className="text-[12px] font-semibold tracking-[0.02em] text-[var(--ink)]">
         {label}
       </label>
       {helper && helperId && (
-        <p id={helperId} className="mt-1.5 text-[11px] leading-4 text-white/36">
+        <p id={helperId} className="mt-1.5 text-[11px] leading-4 text-[var(--ink-muted)]">
           {helper}
         </p>
       )}
@@ -451,20 +468,20 @@ function TextAreaField({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
-        <label htmlFor={id} className="text-[12px] font-semibold tracking-[0.02em] text-white/78">
+        <label htmlFor={id} className="text-[12px] font-semibold tracking-[0.02em] text-[var(--ink)]">
           {label}
         </label>
         <span
           id={counterId}
           aria-live="polite"
           aria-atomic="true"
-          className="shrink-0 text-[11px] tabular-nums text-white/36"
+          className="shrink-0 text-[11px] tabular-nums text-[var(--ink-muted)]"
         >
           {value.length} / {maxLength}
         </span>
       </div>
       {helper && helperId && (
-        <p id={helperId} className="mt-1.5 text-[11px] leading-4 text-white/36">
+        <p id={helperId} className="mt-1.5 text-[11px] leading-4 text-[var(--ink-muted)]">
           {helper}
         </p>
       )}
@@ -488,7 +505,7 @@ function TextAreaField({
 
 function FieldError({ id, error }: { id: string; error?: string }) {
   return error ? (
-    <p id={id} role="alert" className="mt-2 text-[11px] leading-4 text-[#efaaa1]">
+    <p id={id} role="alert" className="mt-2 text-[11px] leading-4 text-[var(--danger)]">
       {error}
     </p>
   ) : null;

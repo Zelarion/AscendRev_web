@@ -85,7 +85,7 @@ export default function ThemeToggle({ className }: ThemeToggleProps): JSX.Elemen
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       className={cn(
         'inline-flex h-11 w-11 items-center justify-center rounded-[6px] outline-none transition-colors',
-        'text-white hover:bg-white/10',
+        'text-[var(--ink)] hover:bg-[var(--surface-band-raised)]',
         className
       )}
       style={hoverTransitionStyle}

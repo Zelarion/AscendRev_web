@@ -17,10 +17,10 @@ export default function AdvantageClosing(): JSX.Element {
   const { heading, body, cta } = advantage.closing;
 
   return (
-    <Section tone="navy" size="large">
+    <Section tone="light" size="large">
       <Container>
         <Reveal>
-          <h2 className="max-w-[22ch] font-display text-h2 text-white">{heading}</h2>
+          <h2 className="max-w-[22ch] font-display text-h2 text-[var(--navy-900)]">{heading}</h2>
           <p className="mt-6 max-w-[62ch] text-body-lg text-[var(--steel-400)]">{body}</p>
           <div className="mt-10">
             <Button href={cta.href} size="lg">

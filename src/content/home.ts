@@ -78,8 +78,14 @@ export interface HeroContent {
   eyebrow: string;
   headline: string;
   subheadline: string;
-  /** Short line rendered beneath the subheadline, ahead of the CTAs. */
-  tagline: string;
+  /**
+   * Short line rendered beneath the subheadline, ahead of the CTAs. A tuple of
+   * exactly the three clauses the client's own colour treatment assigns to
+   * green / blue / gold (email, 2026-09-24), because HeroSection pairs each
+   * entry with a fixed colour by array position, not by parsing punctuation.
+   * Rendered joined by a single space beneath the main headline.
+   */
+  tagline: readonly [string, string, string];
   primaryCta: Cta;
   secondaryCta: Cta;
   trustLead: string;
@@ -161,6 +167,8 @@ export interface IndustriesContent {
 export interface HomeContent {
   meta: PageMeta;
   hero: HeroContent;
+  approachStages: readonly [string, string, string];
+  officeStages: readonly [string, string, string];
   trustBand: TrustBandContent;
   pillars: PillarsContent;
   industries: IndustriesContent;
@@ -187,14 +195,11 @@ export const home: HomeContent = {
     // reads as wanting the named attribution used in the trust band below.
     subheadline:
       "Backed by Founder's career track record of CAD$1B+ in generated sales revenue, we provide fully managed front- and back-office teams that scale your business. We absorb the infrastructure costs, talent shortages, and administrative burdens—so you can focus entirely on growth.",
-    tagline: 'Identify the gap. Build the team. Improve the outcome.',
+    tagline: ['Identify the gap.', 'Build the team.', 'Improve the outcome.'],
     primaryCta: { label: 'Build Your Dedicated Team', href: '/contact' },
     secondaryCta: {
-      // The query param preselects the cost-analysis intent on the enquiry form
-      // (SPEC.md §4.1). The value is read by the contact page; see
-      // `src/content/contact.ts`.
-      label: 'Run a Cost-Savings Analysis',
-      href: '/contact?intent=cost-analysis',
+      label: 'Explore our approach',
+      href: '/#approach-story',
     },
     trustLead: 'LED BY',
     // Client copy revision, 2026-09-24, verbatim including the hyphen and the
@@ -203,6 +208,10 @@ export const home: HomeContent = {
       "Harvard Certificate in Leadership Excellence - Harvard Business Impact Enterprise | Lean Six Sigma Certified | 100M Dollar Club Recognition | 2X President's Club Award",
     sideWords: ['PEOPLE', 'PROCESS', 'PERFORMANCE'],
   },
+
+  approachStages: ['Find the pressure point.', 'Design around the work.', 'Measure what moves.'] as const,
+
+  officeStages: ['Decide what matters.', 'Connect people to the plan.', 'Give good work room to grow.'] as const,
 
   trustBand: {
     // The source brief's trust banner read "Led by Harvard Business Impact

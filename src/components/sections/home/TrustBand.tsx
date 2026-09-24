@@ -10,7 +10,7 @@ interface TrustBandProps {
 }
 
 /**
- * The credential rail, directly under the hero and still on navy.
+ * The credential rail, directly under the hero on the white page surface.
  *
  * WHY IT LOOKS NOTHING LIKE THE PILLARS BELOW IT
  *
@@ -35,16 +35,16 @@ interface TrustBandProps {
 export default function TrustBand({ content }: TrustBandProps): JSX.Element {
   return (
     <Section
-      tone="navy"
+      tone="light"
       // Tighter than the standard section rhythm. This is a rail between the
       // hero and the first real section rather than a destination, and full
-      // section padding would make it read as one. The top hairline is what
-      // separates it from the hero, which is the same navy.
-      className="border-t border-[var(--border-navy)] py-[clamp(3rem,6vw,4.5rem)]"
+      // section padding would make it read as one. The top hairline provides
+      // a quiet transition from the hero into the page.
+      className="border-t border-[var(--line)] py-[clamp(3rem,6vw,4.5rem)]"
     >
       <Container>
         <RevealOnScroll>
-          <p className="max-w-[46ch] text-body-lg text-white">{content.lead}</p>
+          <p className="max-w-[46ch] text-body-lg text-[var(--text-primary)]">{content.lead}</p>
         </RevealOnScroll>
 
         <RevealOnScroll
@@ -58,7 +58,7 @@ export default function TrustBand({ content }: TrustBandProps): JSX.Element {
               key={item.text}
               data-pending-approval={item.pendingApproval ? 'true' : undefined}
               className={cn(
-                'border-[var(--border-navy)]',
+                'border-[var(--line)]',
                 // The rule separates, so the first item never carries one, and
                 // it turns with the layout: a horizontal rule above each item
                 // while they are stacked, a vertical rule beside each item once
@@ -66,7 +66,7 @@ export default function TrustBand({ content }: TrustBandProps): JSX.Element {
                 index > 0 && 'border-t pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8'
               )}
             >
-              <p className="max-w-[38ch] text-body text-white/86">{item.text}</p>
+              <p className="max-w-[38ch] text-body text-[var(--text-muted)]">{item.text}</p>
             </li>
           ))}
         </RevealOnScroll>

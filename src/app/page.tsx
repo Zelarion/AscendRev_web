@@ -1,5 +1,13 @@
 import type { Metadata } from 'next';
-import { ClosingBand, HeroSection, IndustriesSection, PillarsSection } from '@/components/sections/home';
+import {
+  CareerStatsSection,
+  ClosingBand,
+  HeroSection,
+  IndustriesSection,
+  PillarsSection,
+} from '@/components/sections/home';
+import ApproachStory from '@/components/sections/home/ApproachStory';
+import OfficeFrameStory from '@/components/sections/home/OfficeFrameStory';
 import SectionCraftStyles from '@/components/sections/shared/SectionCraftStyles';
 import { home } from '@/content/home';
 
@@ -11,19 +19,17 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * Landing-page build is intentionally staged. The approved direction is being
- * implemented from the top down, so this branch currently renders only the
- * navigation and hero. The remaining homepage sections will be added after the
- * top-of-page composition is signed off.
- */
 export default function HomePage() {
   return (
     <>
       <SectionCraftStyles />
       <HeroSection content={home.hero} />
+      <span id="approach-story" className="block h-px scroll-mt-24" aria-hidden="true" />
+      <ApproachStory stages={home.approachStages} />
+      <OfficeFrameStory stages={home.officeStages} />
       <PillarsSection content={home.pillars} />
       <IndustriesSection content={home.industries} />
+      <CareerStatsSection />
       <ClosingBand content={home.closing} />
     </>
   );

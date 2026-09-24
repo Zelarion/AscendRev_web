@@ -15,16 +15,32 @@ interface StoryStep {
   kind?: 'career' | 'commercial' | 'operating';
 }
 
+/** Cycles the four stat-card glyphs through gold, blue and green so the grid
+ * reads as varied rather than one repeated accent colour (build brief,
+ * 2026-09-24). All three are the *-text tokens, not the brighter *-300/400
+ * ones the dark version used: those measure under 2:1 on white and are only
+ * safe against the dark navy bands this page no longer has as a background. */
+const STAT_ICON_TONES = [
+  'text-[var(--gold-text)]',
+  'text-[var(--steel-600)]',
+  'text-[var(--green-600)]',
+] as const;
+
 /**
  * One "PROVEN COMMERCIAL EXPERIENCE" stat card. The trophy mark renders as a
- * Phosphor line icon (thin weight, small, muted gold) rather than the literal
- * emoji stored in content, per the build brief: an emoji glyph carries its
- * own fixed colour and cannot be muted to match the site's accent palette.
- * The other three glyphs are plain text characters and render as given.
+ * Phosphor line icon (thin weight, small) rather than the literal emoji
+ * stored in content, per the build brief: an emoji glyph carries its own
+ * fixed colour and cannot be muted to match the site's accent palette. The
+ * other three glyphs are plain text characters and render as given.
  */
-function StatIcon({ glyph }: { glyph: string }): JSX.Element {
+function StatIcon({ glyph, toneIndex }: { glyph: string; toneIndex: number }): JSX.Element {
   return (
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] border border-[var(--gold-400)]/30 bg-white/[0.03] text-[var(--gold-300)]/80">
+    <span
+      className={cn(
+        'flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] border border-[var(--border)] bg-[var(--surface-band-raised)]',
+        STAT_ICON_TONES[toneIndex % STAT_ICON_TONES.length]
+      )}
+    >
       {glyph === '🏆' ? (
         <Trophy aria-hidden="true" size={16} weight="thin" />
       ) : (
@@ -33,33 +49,6 @@ function StatIcon({ glyph }: { glyph: string }): JSX.Element {
         </span>
       )}
     </span>
-  );
-}
-
-function FounderPortraitPlaceholder(): JSX.Element {
-  return (
-    <figure>
-      <div className="relative aspect-[4/5] overflow-hidden border border-white/12 bg-[var(--navy-800)]">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(circle_at_50%_36%,rgba(223,184,79,0.09),transparent_32%),linear-gradient(145deg,rgba(255,255,255,0.035),transparent_45%)]"
-        />
-        <div aria-hidden="true" className="absolute inset-x-[18%] top-[14%] h-px bg-white/8" />
-        <div aria-hidden="true" className="absolute inset-x-[18%] bottom-[14%] h-px bg-white/8" />
-        <div aria-hidden="true" className="absolute inset-y-[14%] left-[18%] w-px bg-white/8" />
-        <div aria-hidden="true" className="absolute inset-y-[14%] right-[18%] w-px bg-white/8" />
-
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-          <span className="font-display text-[clamp(4rem,7vw,7rem)] font-medium leading-none tracking-[-0.06em] text-white/10">
-            RV
-          </span>
-          <span className="mt-5 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/38">
-            Founder Portrait Placeholder
-          </span>
-        </div>
-      </div>
-      {/* TODO: Replace this development placeholder with the approved Rio Vidal portrait. */}
-    </figure>
   );
 }
 
@@ -78,12 +67,12 @@ function MilestoneShell({
   return (
     <div
       className={cn(
-        'transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none',
+        'transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:translate-y-0 motion-reduce:transition-none',
         active
-          ? 'translate-y-0 opacity-100'
+          ? 'translate-y-0'
           : completed
-            ? 'translate-y-1 opacity-50'
-            : 'translate-y-4 opacity-32'
+            ? 'translate-y-1'
+            : 'translate-y-4'
       )}
     >
       {children}
@@ -158,37 +147,41 @@ export default function LeadershipBlock(): JSX.Element {
     <section
       id={leadership.id}
       data-tone="navy"
-      className="relative border-t border-white/8 bg-[var(--navy-900)] px-[clamp(1.25rem,5vw,5.5rem)] py-[clamp(6rem,10vw,9rem)] text-white"
+      className="relative border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] text-[var(--ink)]"
     >
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(223,184,79,0.045),transparent_28%)]"
       />
 
-      <div className="relative mx-auto grid w-full max-w-[1540px] gap-16 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-20 xl:gap-24">
-        <aside className="lg:sticky lg:top-28 lg:self-start lg:h-fit">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-300)] sm:text-[11px]">
+      {/*
+        The sticky aside and the scrolling step column used to separate purely
+        by being the same navy everywhere; nothing needed a visible seam. On
+        white the same layout reads as one undifferentiated block without a
+        seam, so the aside gets a hairline right border plus its own raised
+        panel background (build brief: "--surface-band-raised or a hairline
+        border ... rather than a dark panel").
+      */}
+      <div className="relative mx-auto grid w-full max-w-[1540px] gap-9 sm:gap-11 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-20 xl:gap-24">
+        <aside className="lg:sticky lg:top-28 lg:self-start lg:h-fit lg:border-r lg:border-[var(--border)] lg:pr-8 xl:pr-10">
+          <div className="rounded-[10px] bg-[var(--surface-band-raised)] p-6 lg:bg-transparent lg:p-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
               THE ASCENDREV ADVANTAGE / 01
             </p>
 
-            <h2 className="mt-5 max-w-[20ch] font-display text-[clamp(2.4rem,4vw,4.4rem)] font-medium leading-[0.98] tracking-[-0.04em] text-white">
+            <h2 className="mt-5 max-w-[20ch] font-display text-[clamp(2.4rem,4vw,4.4rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)]">
               {leadership.heading}
             </h2>
 
-            <div className="mt-9 max-w-[460px] sm:mt-10 lg:max-w-[300px] xl:max-w-[340px]">
-              <FounderPortraitPlaceholder />
-            </div>
+          <div className="mt-6 border-t border-[var(--border)] pt-5 sm:mt-7 sm:pt-6">
+              <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>
+              <p className="mt-1 text-sm text-[var(--ink-muted)]">Founder / Canadian Leadership</p>
 
-            <div className="mt-7 border-t border-white/12 pt-6">
-              <p className="text-[13px] font-semibold tracking-[0.16em] text-white">RIO VIDAL</p>
-              <p className="mt-1 text-sm text-white/52">Founder / Canadian Leadership</p>
-
-              <p className="mt-5 max-w-[46ch] text-[15px] leading-[1.7] text-white/66">
+              <p className="mt-5 max-w-[46ch] text-[15px] leading-[1.7] text-[var(--ink-muted)]">
                 Commercial experience translated into the systems, scripts, and operating standards deployed by AscendRev.
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-white/10 pt-5 text-[10px] font-medium uppercase tracking-[0.16em] text-white/42">
+              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-[var(--border)] pt-5 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-muted)]">
                 <span>Canadian Leadership</span>
                 <span>Direct Accountability</span>
                 <span>Commercial Experience</span>
@@ -198,7 +191,7 @@ export default function LeadershipBlock(): JSX.Element {
         </aside>
 
         <div className="relative">
-          <div aria-hidden="true" className="absolute bottom-10 left-[21px] top-10 w-px bg-white/10 sm:bottom-14 sm:left-[25px] sm:top-14">
+          <div aria-hidden="true" className="absolute bottom-10 left-[21px] top-10 w-px bg-[var(--border)] sm:bottom-14 sm:left-[25px] sm:top-14">
             <span
               className="absolute left-0 top-0 w-px bg-[var(--gold-400)] transition-[height] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
               style={{ height: `${progress}%` }}
@@ -217,38 +210,38 @@ export default function LeadershipBlock(): JSX.Element {
                     milestoneRefs.current[index] = node;
                   }}
                   data-founder-step={index}
-                  className="relative py-12 pl-16 sm:py-16 sm:pl-20 lg:py-20"
+                  className="relative py-9 pl-14 sm:py-14 sm:pl-20 lg:py-20"
                 >
                   <span
                     aria-hidden="true"
                     className={cn(
-                      'absolute left-[10px] top-[36px] z-[2] h-6 w-6 rounded-full border bg-[var(--navy-900)] transition-[border-color,box-shadow,background-color] duration-500 sm:left-[14px] sm:top-[52px] lg:top-[68px]',
+                      'absolute left-[8px] top-[31px] z-[2] h-6 w-6 rounded-full border bg-[var(--surface-band-raised)] transition-[border-color,box-shadow,background-color] duration-500 sm:left-[14px] sm:top-[52px] lg:top-[68px]',
                       active
-                        ? 'border-[var(--gold-300)] bg-[var(--gold-400)] shadow-[0_0_0_7px_rgba(223,184,79,0.08)]'
+                        ? 'border-[var(--green-600)] bg-[var(--green-600)] shadow-[0_0_0_7px_rgba(30,94,70,0.12)]'
                         : completed
-                          ? 'border-[var(--gold-400)]/70 bg-[var(--navy-900)]'
-                          : 'border-white/18 bg-[var(--navy-900)]'
+                          ? 'border-[var(--gold-text)]/70 bg-[var(--surface-band-raised)]'
+                          : 'border-[var(--border-strong)] bg-[var(--surface-band-raised)]'
                     )}
                   >
                     <span
                       className={cn(
                         'absolute inset-[7px] rounded-full transition-colors duration-500',
-                        active || completed ? 'bg-[var(--gold-300)]' : 'bg-white/20'
+                        active ? 'bg-white' : completed ? 'bg-[var(--gold-text)]' : 'bg-[var(--border-strong)]'
                       )}
                     />
                   </span>
 
                   <MilestoneShell index={index} activeIndex={activeIndex}>
-                    <div className="border-t border-white/12 pt-6 sm:pt-7">
+                    <div className="border-t border-[var(--border)] pt-6 sm:pt-7">
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-300)]">
+                        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">
                           {step.number} / {step.label}
                         </span>
                         <span
                           aria-hidden="true"
                           className={cn(
                             'h-px transition-[width,background-color] duration-500',
-                            active ? 'w-14 bg-[var(--gold-400)]' : 'w-8 bg-white/16'
+                            active ? 'w-14 bg-[var(--gold-text)]' : 'w-8 bg-[var(--border-strong)]'
                           )}
                         />
                       </div>
@@ -264,7 +257,7 @@ export default function LeadershipBlock(): JSX.Element {
                             {leadership.narrative.map((paragraph) => (
                               <p
                                 key={paragraph}
-                                className="max-w-[64ch] text-[clamp(1rem,1.2vw,1.16rem)] leading-[1.75] text-white/64"
+                                className="max-w-[64ch] text-[clamp(1rem,1.2vw,1.16rem)] leading-[1.75] text-[var(--ink-muted)]"
                               >
                                 {paragraph}
                               </p>
@@ -274,14 +267,14 @@ export default function LeadershipBlock(): JSX.Element {
                       ) : step.kind === 'commercial' ? (
                         <div className="mt-7 max-w-[820px]">
                           <div className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
-                            {leadership.commercialStats.map((stat) => (
+                            {leadership.commercialStats.map((stat, index) => (
                               <div key={stat.label} className="flex items-start gap-4">
-                                <StatIcon glyph={stat.icon} />
+                                <StatIcon glyph={stat.icon} toneIndex={index} />
                                 <div>
-                                  <p className="font-display text-[clamp(1.1rem,1.4vw,1.3rem)] font-medium leading-[1.3] text-white">
+                                  <p className="font-display text-[clamp(1.1rem,1.4vw,1.3rem)] font-medium leading-[1.3] text-[var(--navy-900)]">
                                     {stat.label}
                                   </p>
-                                  <p className="mt-2 text-sm leading-[1.6] text-white/58">{stat.description}</p>
+                                  <p className="mt-2 text-sm leading-[1.6] text-[var(--ink-muted)]">{stat.description}</p>
                                 </div>
                               </div>
                             ))}
@@ -289,36 +282,36 @@ export default function LeadershipBlock(): JSX.Element {
                         </div>
                       ) : step.kind === 'operating' ? (
                         <div className="mt-7 max-w-[840px]">
-                          <h3 className="max-w-[15ch] font-display text-[clamp(2.8rem,5vw,5.4rem)] font-medium leading-[0.96] tracking-[-0.045em] text-white">
+                          <h3 className="max-w-[15ch] font-display text-[clamp(2.8rem,5vw,5.4rem)] font-medium leading-[0.96] tracking-[-0.045em] text-[var(--navy-900)]">
                             {step.title}
                           </h3>
-                          <blockquote className="mt-8 max-w-[62ch] border-l border-[var(--gold-400)]/70 pl-6 text-[clamp(1rem,1.25vw,1.18rem)] leading-[1.75] text-white/68">
+                          <blockquote className="mt-8 max-w-[62ch] border-l border-[var(--gold-text)]/70 pl-6 text-[clamp(1rem,1.25vw,1.18rem)] leading-[1.75] text-[var(--ink-muted)]">
                             {step.body}
                           </blockquote>
 
-                          <div className="mt-10 grid items-center gap-5 border-y border-white/10 py-7 sm:grid-cols-[1fr_auto_1fr] sm:gap-7">
+                          <div className="mt-10 grid items-center gap-5 border-y border-[var(--border)] py-7 sm:grid-cols-[1fr_auto_1fr] sm:gap-7">
                             <div>
-                              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-300)]">Canada</p>
-                              <p className="mt-3 text-sm leading-7 text-white/72">Leadership · Strategy · Standards</p>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">Canada</p>
+                              <p className="mt-3 text-sm leading-7 text-[var(--ink-muted)]">Leadership · Strategy · Standards</p>
                             </div>
                             <ArrowRight
                               size={25}
                               weight="thin"
                               aria-hidden="true"
-                              className="rotate-90 text-[var(--gold-300)] sm:rotate-0"
+                              className="rotate-90 text-[var(--steel-600)] sm:rotate-0"
                             />
                             <div>
-                              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-300)]">Philippines</p>
-                              <p className="mt-3 text-sm leading-7 text-white/72">Execution · Teams · Operations</p>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">Philippines</p>
+                              <p className="mt-3 text-sm leading-7 text-[var(--ink-muted)]">Execution · Teams · Operations</p>
                             </div>
                           </div>
                         </div>
                       ) : (
                         <div className="mt-7 max-w-[780px]">
-                          <h3 className="max-w-[16ch] font-display text-[clamp(2.8rem,5vw,5.5rem)] font-medium leading-[0.96] tracking-[-0.045em] text-white">
+                          <h3 className="max-w-[16ch] font-display text-[clamp(2.8rem,5vw,5.5rem)] font-medium leading-[0.96] tracking-[-0.045em] text-[var(--navy-900)]">
                             {step.title}
                           </h3>
-                          <p className="mt-7 max-w-[62ch] text-[clamp(1rem,1.25vw,1.18rem)] leading-[1.75] text-white/64">
+                          <p className="mt-7 max-w-[62ch] text-[clamp(1rem,1.25vw,1.18rem)] leading-[1.75] text-[var(--ink-muted)]">
                             {step.body}
                           </p>
                         </div>
@@ -330,9 +323,9 @@ export default function LeadershipBlock(): JSX.Element {
             })}
           </div>
 
-          <div className="ml-16 border-t border-white/10 pt-7 sm:ml-20">
-            <p className="max-w-[72ch] text-xs leading-[1.75] text-white/38">{leadership.attribution}</p>
-            <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-300)]">
+          <div className="ml-16 border-t border-[var(--border)] pt-7 sm:ml-20">
+            <p className="max-w-[72ch] text-xs leading-[1.75] text-[var(--ink-muted)]">{leadership.attribution}</p>
+            <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
               Next / Philippine Infrastructure
             </p>
           </div>

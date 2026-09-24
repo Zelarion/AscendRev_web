@@ -1,0 +1,571 @@
+.section {
+  --scene-inset: clamp(1.25rem, 6.2vw, 7.5rem);
+  position: relative;
+  overflow: clip;
+  background: var(--surface-page);
+  color: var(--text-primary);
+}
+
+.intro {
+  width: min(100% - 2 * var(--scene-inset), 1320px);
+  margin-inline: auto;
+  padding-block: clamp(4rem, 8vw, 8rem) clamp(2.25rem, 4vw, 4rem);
+}
+
+.kicker,
+.sceneEyebrow,
+.brandMark,
+.liveNote,
+.sceneIndex,
+.chapterNumber {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+.kicker {
+  margin: 0 0 1.1rem;
+  color: var(--gold-text);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.intro h2 {
+  max-width: 18ch;
+  margin: 0;
+  color: var(--navy-900);
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 8vw, 3.6rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.97;
+  text-wrap: balance;
+}
+
+.introDetail {
+  max-width: 44rem;
+  margin: 1.4rem 0 0;
+  color: var(--text-muted);
+  font-size: clamp(0.96rem, 1.2vw, 1.14rem);
+  line-height: 1.65;
+}
+
+.runway {
+  position: relative;
+  height: 320svh;
+  background: #071329;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100svh;
+  min-height: 36rem;
+  overflow: hidden;
+  isolation: isolate;
+  background: #071329;
+  color: #fff;
+}
+
+.poster,
+.canvas,
+.scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.posterFrame {
+  position: absolute;
+  z-index: -3;
+  inset: 0;
+}
+
+.poster {
+  object-fit: cover;
+  object-position: center;
+}
+
+.canvas {
+  z-index: -2;
+  opacity: 0;
+  object-fit: cover;
+  transition: opacity 500ms ease;
+}
+
+.canvasReady {
+  opacity: 1;
+}
+
+.scrim {
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(4, 14, 31, 0.88) 0%, rgba(4, 14, 31, 0.61) 42%, rgba(4, 14, 31, 0.08) 100%),
+    linear-gradient(0deg, rgba(4, 14, 31, 0.72) 0%, transparent 35%, rgba(4, 14, 31, 0.22) 100%);
+}
+
+.topline {
+  position: absolute;
+  top: clamp(1.3rem, 4.2vh, 3.4rem);
+  left: var(--scene-inset);
+  right: var(--scene-inset);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brandMark,
+.liveNote {
+  font-size: 0.63rem;
+  font-weight: 600;
+  letter-spacing: 0.19em;
+}
+
+.brandMark i {
+  padding-inline: 0.35rem;
+  color: var(--gold-300);
+  font-style: normal;
+}
+
+.liveNote {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.copyRail {
+  position: absolute;
+  bottom: clamp(7.5rem, 17vh, 12.5rem);
+  left: var(--scene-inset);
+  width: min(59vw, 790px);
+  height: clamp(15rem, 35vh, 25rem);
+}
+
+.sceneCopy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  will-change: transform, opacity, clip-path;
+}
+
+.sceneCopy:not(:first-child) {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.sceneEyebrow {
+  margin: 0 0 1.1rem;
+  color: var(--gold-300);
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.19em;
+}
+
+.sceneCopy[data-accent='green'] .sceneEyebrow,
+.sceneCopy[data-accent='green'] h3 {
+  color: #72d3a1;
+}
+
+.sceneCopy[data-accent='blue'] .sceneEyebrow,
+.sceneCopy[data-accent='blue'] h3 {
+  color: #a9cfff;
+}
+
+.sceneCopy[data-accent='gold'] .sceneEyebrow,
+.sceneCopy[data-accent='gold'] h3 {
+  color: var(--gold-300);
+}
+
+.sceneCopy h3 {
+  max-width: 13ch;
+  margin: 0;
+  color: white;
+  font-family: var(--font-display);
+  font-size: clamp(3.15rem, 7.2vw, 7.4rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  text-wrap: balance;
+}
+
+.sceneDetail {
+  max-width: 38rem;
+  margin: 1.45rem 0 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: clamp(0.94rem, 1.25vw, 1.08rem);
+  line-height: 1.65;
+}
+
+.sceneIndex {
+  position: absolute;
+  right: var(--scene-inset);
+  bottom: clamp(4rem, 9vh, 6rem);
+  display: flex;
+  gap: clamp(0.65rem, 2.2vw, 2rem);
+  align-items: flex-end;
+}
+
+.sceneIndexItem {
+  display: grid;
+  gap: 0.45rem;
+  min-width: clamp(4.8rem, 8vw, 7rem);
+}
+
+.sceneMarker {
+  color: var(--gold-300);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.sceneName {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.callout {
+  position: absolute;
+  top: 28%;
+  right: clamp(3rem, 12vw, 13rem);
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+  perspective: 900px;
+  will-change: transform;
+}
+
+.calloutOrbit {
+  position: relative;
+  display: block;
+  width: clamp(4.5rem, 8vw, 7.6rem);
+  aspect-ratio: 1;
+  border: 1px solid rgba(240, 212, 123, 0.75);
+  border-radius: 50%;
+  box-shadow: 0 0 0 12px rgba(240, 212, 123, 0.08), inset 0 0 26px rgba(240, 212, 123, 0.09);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.calloutOrbit::before,
+.calloutOrbit::after {
+  position: absolute;
+  inset: 15%;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 50%;
+  transform: rotateX(66deg) rotateZ(28deg);
+  content: '';
+}
+
+.calloutOrbit::after {
+  inset: 31%;
+  border-color: rgba(240, 212, 123, 0.55);
+  transform: rotateX(66deg) rotateZ(-34deg) translateZ(12px);
+}
+
+.orbitDot,
+.orbitDotSecondary {
+  position: absolute;
+  top: 9%;
+  left: 52%;
+  width: 0.45rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--gold-300);
+  box-shadow: 0 0 14px rgba(240, 212, 123, 0.8);
+}
+
+.orbitDotSecondary {
+  top: auto;
+  bottom: 10%;
+  left: 24%;
+  width: 0.28rem;
+  background: white;
+}
+
+.calloutText {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-display);
+  font-size: clamp(0.85rem, 1.2vw, 1.1rem);
+  line-height: 1.45;
+}
+
+.progressTrack {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.progressFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: var(--gold-300);
+  box-shadow: 0 0 18px rgba(240, 212, 123, 0.62);
+}
+
+.chapters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(100% - 2 * var(--scene-inset), 1320px);
+  margin-inline: auto;
+  padding-block: clamp(3.5rem, 7vw, 7rem);
+}
+
+.chapter {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  gap: clamp(0.8rem, 1.6vw, 1.5rem);
+  padding: 0 clamp(1rem, 2.6vw, 2.4rem);
+  border-left: 1px solid var(--line);
+}
+
+.chapter:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.chapterNumber {
+  padding-top: 0.25rem;
+  color: var(--gold-text);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.chapter h3 {
+  margin: 0;
+  color: var(--navy-900);
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.chapter p {
+  margin: 0.7rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+@media (min-width: 1024px) {
+  .intro h2 {
+    font-size: clamp(3.25rem, 6.1vw, 6.6rem);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .section {
+    --scene-inset: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .intro {
+    padding-block: 4.5rem 3rem;
+  }
+
+  .intro h2 {
+    max-width: 15ch;
+    font-size: clamp(3rem, 6vw, 4.2rem);
+  }
+
+  .runway {
+    height: 250svh;
+  }
+
+  .stage {
+    min-height: 34rem;
+  }
+
+  .copyRail {
+    bottom: 9.5rem;
+    width: min(66vw, 690px);
+    height: 18rem;
+  }
+
+  .sceneCopy h3 {
+    max-width: 12ch;
+    font-size: clamp(3rem, 6.3vw, 4.6rem);
+  }
+
+  .sceneIndex {
+    bottom: 3rem;
+    left: var(--scene-inset);
+    right: var(--scene-inset);
+    justify-content: flex-start;
+  }
+
+  .callout {
+    top: 25%;
+    right: var(--scene-inset);
+  }
+
+  .chapters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    padding-block: 3.5rem;
+  }
+
+  .chapter,
+  .chapter:first-child {
+    min-width: 0;
+    padding: 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+  }
+
+  .chapter:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .intro {
+    padding-block: 3.75rem 2rem;
+  }
+
+  .intro h2 {
+    max-width: 14ch;
+    font-size: clamp(2.25rem, 10vw, 3.25rem);
+  }
+
+  .introDetail {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .runway {
+    height: 260svh;
+  }
+
+  .stage {
+    min-height: 36rem;
+  }
+
+  .scrim {
+    background:
+      linear-gradient(0deg, rgba(4, 14, 31, 0.92) 0%, rgba(4, 14, 31, 0.56) 56%, rgba(4, 14, 31, 0.16) 100%),
+      linear-gradient(90deg, rgba(4, 14, 31, 0.2), transparent 70%);
+  }
+
+  .topline {
+    top: max(1.25rem, env(safe-area-inset-top));
+  }
+
+  .brandMark,
+  .liveNote {
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+  }
+
+  .copyRail {
+    bottom: clamp(8.5rem, 19vh, 11rem);
+    width: calc(100% - 2 * var(--scene-inset));
+    height: clamp(13rem, 34vh, 19rem);
+  }
+
+  .sceneCopy h3 {
+    max-width: 11ch;
+    font-size: clamp(2.55rem, 11vw, 4rem);
+    line-height: 0.94;
+  }
+
+  .sceneDetail {
+    max-width: 34ch;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .sceneIndex {
+    bottom: 3rem;
+    right: var(--scene-inset);
+    left: var(--scene-inset);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .sceneIndexItem {
+    min-width: 0;
+    gap: 0.32rem;
+  }
+
+  .sceneName {
+    max-width: none;
+    font-size: clamp(0.52rem, 2.5vw, 0.62rem);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .callout {
+    top: 17%;
+    right: var(--scene-inset);
+    gap: 0.6rem;
+  }
+
+  .calloutOrbit {
+    width: clamp(2.8rem, 13vw, 3.5rem);
+  }
+
+  .calloutText {
+    max-width: 7rem;
+    font-size: 0.75rem;
+  }
+
+  .chapters {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-block: 2.8rem;
+  }
+
+  .chapter,
+  .chapter:first-child {
+    padding: 1.3rem 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .chapter:first-child {
+    border-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas {
+    display: none;
+  }
+
+  .runway {
+    height: auto;
+    padding-bottom: 2rem;
+  }
+
+  .stage {
+    position: relative;
+    height: min(68svh, 42rem);
+    min-height: 23rem;
+  }
+
+  .sceneCopy {
+    display: none;
+  }
+
+  .sceneCopy:first-child {
+    display: flex;
+  }
+
+  .chapters {
+    display: grid;
+  }
+}

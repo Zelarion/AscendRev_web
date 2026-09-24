@@ -39,7 +39,7 @@ const linkClass = 'text-[var(--steel-600)] underline underline-offset-2 outline-
 export default function TermsPage() {
   return (
     <Section size="large">
-      <div className="mx-auto w-full max-w-[1200px] px-[clamp(1.25rem,5vw,4rem)]">
+      <div className="mx-auto w-full max-w-[1200px] px-[var(--site-gutter,clamp(1.25rem,5vw,4rem))]">
         <div className="max-w-[68ch]">
           <h1 className="text-h1 font-display font-medium tracking-[-0.025em] text-[var(--ink)]">
             Terms of Use
@@ -54,7 +54,7 @@ export default function TermsPage() {
           </p>
         </div>
 
-        <div className="mt-14 max-w-[68ch] space-y-10">
+        <div className="mt-10 max-w-[68ch] space-y-8 sm:mt-14 sm:space-y-10">
           <section aria-labelledby="terms-site">
             <h2 id="terms-site" className={headingClass}>
               What this site is

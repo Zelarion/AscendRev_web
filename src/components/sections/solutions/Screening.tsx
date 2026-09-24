@@ -27,11 +27,11 @@ export default function Screening(): JSX.Element {
       <Container>
         <h2 className="max-w-[20ch] font-display text-h2 text-[var(--ink)]">{heading}</h2>
 
-        <Stagger className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <Stagger className="mt-8 grid gap-3 sm:mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-3 lg:gap-5">
           {items.map((item, index) => (
             <div
               key={item.id}
-              className="flex items-center gap-4 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-5"
+              className="flex min-h-[76px] items-center gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-4 sm:min-h-[88px] sm:gap-4 sm:p-5"
             >
               <GlyphIcon
                 glyph={item.glyph}
@@ -42,7 +42,7 @@ export default function Screening(): JSX.Element {
           ))}
         </Stagger>
 
-        <Reveal className="mt-16 flex flex-col gap-8 border-t border-[var(--border)] pt-10 md:flex-row md:items-center md:justify-between md:gap-12">
+        <Reveal className="mt-10 flex flex-col gap-6 border-t border-[var(--border)] pt-7 sm:mt-14 sm:gap-8 sm:pt-9 md:flex-row md:items-center md:justify-between md:gap-12">
           <p className="max-w-[52ch] text-body-lg text-[var(--ink)]">{note}</p>
           <Button
             href={cta.href}

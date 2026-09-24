@@ -37,14 +37,14 @@ export default function ServiceGrid(): JSX.Element {
           {heading}
         </WordReveal>
 
-        <p className="mt-6 max-w-[68ch] text-body-lg text-[var(--ink-muted)]">{intro}</p>
+        <p className="mt-4 max-w-[68ch] text-body-lg text-[var(--ink-muted)] sm:mt-6">{intro}</p>
 
-        <Stagger className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <Stagger className="mt-9 grid gap-3 sm:mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-3 lg:gap-5">
           {items.map((item, index) => (
             <article
               key={item.id}
               // Hover deepens the hairline (DESIGN.md §4). No shadow bloom.
-              className="flex items-center gap-4 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-5 transition-[border-color] hover:border-[var(--border-strong)]"
+              className="flex min-h-[76px] items-center gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-4 transition-[border-color] hover:border-[var(--border-strong)] sm:min-h-[88px] sm:gap-4 sm:p-5"
               style={stateTransitionStyle}
             >
               <GlyphIcon

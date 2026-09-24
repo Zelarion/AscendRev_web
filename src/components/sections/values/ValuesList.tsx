@@ -23,18 +23,18 @@ function ValueItem({ value, withDivider }: ValueItemProps): JSX.Element {
     <article
       className={
         withDivider
-          ? 'border-t border-[var(--border)] pt-14'
+          ? 'border-t border-[var(--border)] pt-9 sm:pt-12'
           : undefined
       }
     >
       <h2 className="font-display text-h2 text-[var(--ink)]">
         {value.number} — {value.name}
       </h2>
-      <p className="mt-4 font-display text-body-lg italic text-[var(--ink)]">
+      <p className="mt-3 font-display text-body-lg italic text-[var(--ink)] sm:mt-4">
         {value.principle}
       </p>
-      <p className="mt-5 max-w-[68ch] text-body text-[var(--ink-muted)]">{value.body}</p>
-      <p className="mt-5 max-w-[68ch] text-body font-semibold text-[var(--ink)]">
+      <p className="mt-4 max-w-[68ch] text-body text-[var(--ink-muted)] sm:mt-5">{value.body}</p>
+      <p className="mt-4 max-w-[68ch] text-body font-semibold text-[var(--ink)] sm:mt-5">
         {value.closing}
       </p>
     </article>
@@ -43,7 +43,7 @@ function ValueItem({ value, withDivider }: ValueItemProps): JSX.Element {
 
 export default function ValuesList({ values }: ValuesListProps): JSX.Element {
   return (
-    <div className="mt-14 space-y-14">
+    <div className="mt-9 space-y-9 sm:mt-12 sm:space-y-12 lg:mt-14 lg:space-y-14">
       {values.map((value, index) => (
         <ValueItem key={value.name} value={value} withDivider={index > 0} />
       ))}

@@ -19,20 +19,19 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
   return (
     <section
       id={content.id}
-      data-tone="navy"
-      className="relative overflow-hidden bg-[var(--navy-900)] px-[clamp(1.25rem,5vw,5.5rem)] py-[clamp(6rem,11vw,10rem)] text-white"
+      className="relative overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] py-[clamp(4rem,9vw,8rem)] text-[var(--text-primary)]"
     >
       <div className="mx-auto w-full max-w-[1540px]">
         <header className="mx-auto max-w-[900px] text-center">
-          <h2 className="mx-auto max-w-[18ch] font-display text-[clamp(3rem,5.8vw,6.2rem)] font-medium leading-[0.96] tracking-[-0.04em] text-white">
+          <h2 className="mx-auto max-w-[18ch] font-display text-[clamp(2.45rem,9vw,3.6rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)] md:text-[clamp(3.1rem,5.3vw,4.5rem)] lg:text-[clamp(3rem,5.8vw,6.2rem)] lg:leading-[0.96]">
             {content.heading}
           </h2>
-          <p className="mx-auto mt-7 max-w-[66ch] text-[clamp(1rem,1.2vw,1.18rem)] leading-[1.75] text-white/64">
+          <p className="mx-auto mt-5 max-w-[66ch] text-[clamp(0.98rem,1.2vw,1.18rem)] leading-[1.7] text-[var(--text-muted)] md:mt-6 lg:mt-7 lg:leading-[1.75]">
             {content.intro}
           </p>
         </header>
 
-        <p className="mx-auto mt-[clamp(3.5rem,6vw,5.5rem)] max-w-[900px] text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-300)] sm:text-xs">
+        <p className="mx-auto mt-[clamp(3.5rem,6vw,5.5rem)] max-w-[900px] text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-xs">
           {content.subheading}
         </p>
 
@@ -40,19 +39,19 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
           as="ul"
           stagger
           delayMs={80}
-          className="mx-auto mt-10 grid max-w-[1180px] grid-cols-1 gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
+          className="mx-auto mt-8 grid max-w-[1180px] grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-2 md:gap-x-10 md:gap-y-9 lg:mt-10 lg:grid-cols-3 lg:gap-y-10"
         >
           {content.items.map((item) => (
             <li key={item.question} className="flex items-start gap-4">
               <span
                 aria-hidden="true"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--gold-400)]/40 text-[15px] text-[var(--gold-300)]"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--line-strong)] text-[15px] text-[var(--gold-text)] md:h-9 md:w-9"
               >
                 {item.icon}
               </span>
               <div className="min-w-0">
-                <p className="text-[15px] font-semibold leading-snug text-white">{item.question}</p>
-                <p className="mt-2 text-sm leading-relaxed text-white/64">{item.answer}</p>
+                <p className="text-[15px] font-semibold leading-snug text-[var(--text-primary)]">{item.question}</p>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">{item.answer}</p>
               </div>
             </li>
           ))}

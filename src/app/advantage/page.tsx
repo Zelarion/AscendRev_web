@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import AdvantageClosing from '@/components/sections/advantage/AdvantageClosing';
 import AdvantageHero from '@/components/sections/advantage/AdvantageHero';
 import InfrastructureBlock from '@/components/sections/advantage/InfrastructureBlock';
 import LeadershipBlock from '@/components/sections/advantage/LeadershipBlock';
@@ -27,7 +26,6 @@ export default function AdvantagePage() {
       <AdvantageHero />
       <LeadershipBlock />
       <InfrastructureBlock />
-      {/* <AdvantageClosing /> */}
     </>
   );
 }

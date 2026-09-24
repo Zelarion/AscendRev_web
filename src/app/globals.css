@@ -15,14 +15,11 @@
  * ---------------------------------------------------------------------------
  * HOW THE THREE LAYERS FIT TOGETHER
  *
- *   1. `@theme`            the light palette, plus type, spacing and motion.
- *   2. `:root`             DESIGN.md's own token names, mapped onto layer 1
- *                          and onto the semantic names below.
- *   3. dark overrides      the same names, redefined. Nothing else in the
- *                          codebase changes for dark mode.
+ *   1. `@theme`            the white-primary palette, plus type and motion.
+ *   2. `:root`             semantic names mapped onto that palette.
  *
- * A component never asks which theme is active. It asks for `--bg` or
- * `--ink`, and the answer differs. That is the whole mechanism.
+ * Components ask for `--bg` and `--ink`; those semantic names keep the
+ * white page and readable text consistent across every section.
  * ---------------------------------------------------------------------------
  */
 
@@ -30,20 +27,31 @@
 
 @theme {
   /* ---- Colour, light (DESIGN.md §1) -------------------------------------- */
-  /* Lightened and saturated on client feedback (23 Sep 2026: "background is
-     too dark, let's make it lighter, more vibrant"). Every value was measured
-     against the text that sits on it rather than eyeballed: white clears 7.3:1
-     at worst, gold-300 clears 5.0:1, and 52% white body copy clears 3.2:1, so
-     all three stay above WCAG AA on every band. */
-  --color-navy-900: #16294d;
-  --color-navy-800: #22407a;
-  --color-navy-700: #2f5596;
+  /* Navy is no longer a background. The client asked for white as the primary
+     surface (24 Sep 2026), so these now serve as heading and brand text on
+     white, where the original darker values read better than the lightened
+     ones did. Measured on white: 13.9:1, 10.4:1 and 7.1:1. */
+  --color-navy-900: #0f1b33;
+  --color-navy-800: #192b51;
+  --color-navy-700: #23406c;
+
+  /* Band surfaces. White is primary; the other two are the faintest tints that
+     still separate a band from the page without reading as a grey box. */
+  --color-band: #ffffff;
+  --color-band-raised: #f4f7fb;
+  --color-band-deep: #eef2f8;
+
+  /* Gold cannot carry text on white at its brand value: #c89731 measures
+     2.65:1, which fails even the large-text threshold. Two safe stops instead,
+     both measured. Display is for headline-scale type only. */
+  --color-gold-display: #a97a1c; /* 3.83:1, large text only */
+  --color-gold-text: #8f6410; /* 5.25:1, safe for body */
   --color-steel-600: #326292;
   --color-steel-400: #6e93bc;
   --color-green-700: #174a37;
   --color-green-600: #1e5e46;
   --color-green-500: #286d50;
-  --color-bg: #fcfcfd;
+  --color-bg: #ffffff;
   --color-surface: #ffffff;
   --color-ink: #111827;
   --color-ink-muted: #4b5563;
@@ -127,6 +135,16 @@
   --z-backdrop: 30;
   --z-modal: 40;
   --z-toast: 50;
+  --z-nav: 100;
+  --z-nav-backdrop: 110;
+  --z-nav-sheet: 120;
+
+  /* Named layout tiers: tablet begins at the common 768px breakpoint; the
+     full inline navigation waits until 1536px so intermediate screens keep a
+     deliberately compact menu instead of squeezing all links together. */
+  --breakpoint-tablet: 48rem;
+  --breakpoint-desktop: 64rem;
+  --breakpoint-wide-nav: 96rem;
 
   /* ---- Motion (DESIGN.md §4) ----------------------------------------------
    * --ease-* is a recognised Tailwind v4 namespace and generates
@@ -148,9 +166,8 @@
  * SEMANTIC TOKENS
  *
  * DESIGN.md names its tokens after the colours themselves (`--navy-800`,
- * `--bg`), which reads fine in one theme and stops being true in two: in dark
- * mode the band surface is not navy-800 any more, it is a desaturated slate
- * that plays the same role.
+ * `--bg`), which read as colours rather than roles once the band surface
+ * changed from navy to white.
  *
  * So there are two sets of names here, and they point at the same values:
  *
@@ -165,39 +182,61 @@
 :root {
   color-scheme: light;
 
-  /* Approved AscendRev web direction: restrained metallic gold on deep navy. */
+  /* Responsive layout source of truth. Components should consume these
+     variables instead of inventing independent viewport clamps. The values
+     step at the breakpoints above so tablet can use a middle composition. */
+  --site-gutter: clamp(1.25rem, 5vw, 2rem);
+  --section-space: clamp(4rem, 12vw, 5rem);
+  --section-space-large: clamp(4.25rem, 12vw, 5.75rem);
+  --type-display: clamp(2.25rem, 10vw, 3.5rem);
+  --type-heading: clamp(2rem, 8vw, 3rem);
+  --type-subheading: clamp(1.65rem, 6.5vw, 2.35rem);
+  --type-body-lg: clamp(1.0625rem, 4.5vw, 1.125rem);
+  --type-body: clamp(0.9375rem, 4vw, 1rem);
+  --type-small: clamp(0.8125rem, 3.5vw, 0.875rem);
+  --header-height: 4.5rem;
+  --header-logo-height: 3.25rem;
+
+  /* Tailwind's semantic size utilities resolve through this same responsive
+     scale, so `text-h1` and the raw layout tokens cannot drift apart. */
+  --text-display: var(--type-display);
+  --text-h1: var(--type-heading);
+  --text-h2: var(--type-subheading);
+  --text-body-lg: var(--type-body-lg);
+  --text-body: var(--type-body);
+  --text-small: var(--type-small);
+
+  /* Brand gold remains for accents and filled calls to action. */
   --gold-300: #f0d47b;
   --gold-400: #dfb84f;
   --gold-500: #c89731;
   --gold-ink: #081321;
-  --nav-glass: rgba(5, 19, 36, 0.34);
-  --nav-glass-scrolled: rgba(4, 16, 31, 0.5);
+  /* The bar is white glass now, not smoked navy. Opacity climbs on scroll so
+     the nav stays legible once content runs underneath it. */
+  --nav-glass: rgba(255, 255, 255, 0.78);
+  --nav-glass-scrolled: rgba(255, 255, 255, 0.94);
 
   /* -- Semantic layer ------------------------------------------------------
-   * Aliases only. Every value here resolves through a `--color-*` slot, and
-   * the dark blocks further down redefine those slots, so this layer is
-   * written once and is correct in both palettes.
+   * Aliases only. Every value here resolves through a `--color-*` slot.
    *
-   * The `--color-*` slots keep the names DESIGN.md gave them, which describe
-   * the light-mode colour. This layer says what each slot is FOR, which is
-   * what stays true when the colour changes. */
+   * The `--color-*` slots keep the names DESIGN.md gave them. This layer says
+   * what each slot is FOR, so components use semantic names consistently. */
 
   /* Surfaces, from the page outward. */
-  --surface-page: var(--color-bg); /* the off-white band */
+  --surface-page: var(--color-bg); /* the white page */
   --surface-raised: var(--color-surface); /* cards and the form */
-  --surface-band: var(--color-navy-800); /* full-bleed feature band */
-  --surface-band-raised: var(--color-navy-700); /* raised inside a band */
-  --surface-band-deep: var(--color-navy-900); /* footer */
+  --surface-band: var(--color-band); /* full-bleed feature band, now white */
+  --surface-band-raised: var(--color-band-raised); /* raised inside a band */
+  --surface-band-deep: var(--color-band-deep); /* footer */
 
   /* Text. */
   --text-primary: var(--color-ink);
   --text-muted: var(--color-ink-muted);
-  --text-on-band-muted: var(--color-steel-400);
+  --text-on-band-muted: var(--color-ink-muted);
 
-  /* White in both palettes, because the band is a deep surface in both. These
-   * two are the only colours here that are not theme-dependent, which is why
-   * they are literals with no slot behind them. */
-  --text-on-band: #ffffff;
+  /* Bands use the same dark text as the page; --on-accent stays white on
+   * the deep green CTA. */
+  --text-on-band: var(--color-ink);
   --on-accent: #ffffff;
 
   /* The single accent. Green appears on primary CTAs and nowhere else. */
@@ -208,15 +247,18 @@
   /* Lines, links, focus. */
   --line: var(--color-border);
   --line-strong: var(--color-border-strong);
-  --line-on-band: var(--color-border-navy);
+  --line-on-band: var(--color-border);
   --link: var(--color-steel-600);
   --focus-ring: var(--color-steel-600);
   --focus-ring-on-band: var(--color-steel-400);
 
   /* -- DESIGN.md's own names, mapped onto the above ----------------------- */
-  --navy-900: var(--surface-band-deep);
-  --navy-800: var(--surface-band);
-  --navy-700: var(--surface-band-raised);
+  /* These name colours, not roles, and components use them for headings and
+   * brand accents. They must resolve to actual navy: aliasing them to the band
+   * surfaces would now resolve them to white and erase every navy heading. */
+  --navy-900: var(--color-navy-900);
+  --navy-800: var(--color-navy-800);
+  --navy-700: var(--color-navy-700);
   --steel-600: var(--link);
   --steel-400: var(--text-on-band-muted);
   --green-700: var(--accent-pressed);
@@ -229,110 +271,80 @@
   --border: var(--line);
   --border-strong: var(--line-strong);
   --border-navy: var(--line-on-band);
+  --gold-display: var(--color-gold-display);
+  --gold-text: var(--color-gold-text);
   --danger: var(--color-danger);
   --success: var(--color-success);
 }
 
-/* ===========================================================================
- * DARK MODE
- *
- * Not an inversion. The navy family is carried across as desaturated, lighter
- * tonal variants, and every pair below was computed rather than judged by eye.
- * Measured contrast (WCAG 2.x, sRGB):
- *
- *   text-primary   #e8ecf3  on page   #0b1018   15.9:1   body
- *   text-primary   #e8ecf3  on raised #141c29   14.4:1   cards
- *   text-primary   #e8ecf3  on band   #1b2433   12.5:1   feature band
- *   text-muted     #97a3b7  on page   #0b1018    7.4:1   secondary
- *   text-muted     #97a3b7  on band   #1b2433    5.8:1   secondary on band
- *   text-on-band   #ffffff  on band   #1b2433   15.4:1   text on band
- *   on-band-muted  #93a5c0  on band   #1b2433    5.9:1   muted on band
- *   on-band-muted  #93a5c0  on deep   #070b12    7.8:1   footer body
- *   on-accent      #ffffff  on accent #2a7d5c    5.0:1   CTA label
- *   accent         #2a7d5c  vs band   #1b2433    3.1:1   CTA boundary
- *   accent         #2a7d5c  vs page   #0b1018    3.8:1   CTA boundary
- *   link           #7fa9d8  on page   #0b1018    7.7:1   links
- *   link           #7fa9d8  on band   #1b2433    6.1:1   links on band
- *   danger         #e5675a  on raised #141c29    5.2:1   form errors
- *   success        #46b184  on raised #141c29    6.4:1   form success
- *   line-strong    #606d86  vs raised #141c29    3.3:1   input boundary
- *
- * Every body pair clears 4.5:1 and every non-text boundary clears 3:1. The
- * one figure below 3:1 is `--accent-pressed` against the band (2.6:1), which
- * exists only while a pointer is held down on a button the reader is already
- * touching and whose label stays at 5.9:1 throughout.
- *
- * Only the `--color-*` slots are redefined below. The semantic layer and
- * DESIGN.md's short names are pure aliases onto those slots, so every one of
- * them follows automatically and there is exactly one place per value where a
- * dark-mode colour is written down.
- *
- * The two blocks are separated on purpose. The media query is scoped to
- * `:not([data-theme='light'])`, so a reader on a dark machine gets the dark
- * palette from CSS alone, before any JavaScript runs and therefore with no
- * possible flash. The attribute block after it exists only for a reader whose
- * explicit choice disagrees with their machine; it comes second so that an
- * explicit choice always wins the cascade. See src/lib/theme.ts.
- * =========================================================================== */
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-
-    --color-bg: #0b1018;
-    --color-surface: #141c29;
-    --color-navy-800: #1b2433;
-    --color-navy-700: #2a3547;
-    --color-navy-900: #070b12;
-
-    --color-ink: #e8ecf3;
-    --color-ink-muted: #97a3b7;
-    --color-steel-400: #93a5c0;
-    --color-steel-600: #7fa9d8;
-
-    --color-green-600: #2a7d5c;
-    --color-green-500: #2c8462;
-    --color-green-700: #24714f;
-
-    --color-border: #2b3442;
-    --color-border-strong: #606d86;
-    --color-border-navy: rgba(255, 255, 255, 0.16);
-
-    --color-danger: #e5675a;
-    --color-success: #46b184;
+@media (min-width: 48rem) {
+  :root {
+    --site-gutter: clamp(2rem, 5vw, 3.5rem);
+    --section-space: clamp(5rem, 9vw, 7rem);
+    --section-space-large: clamp(5.75rem, 9vw, 7.5rem);
+    --type-display: clamp(3.25rem, 7vw, 5rem);
+    --type-heading: clamp(3rem, 6vw, 4rem);
+    --type-subheading: clamp(2.1rem, 4.5vw, 2.75rem);
+    --type-body-lg: 1.125rem;
+    --type-body: 1rem;
+    --type-small: 0.875rem;
+    --header-height: 5.5rem;
+    --header-logo-height: 4rem;
   }
 }
 
-:root[data-theme='dark'] {
-  color-scheme: dark;
-
-  --color-bg: #0b1018;
-  --color-surface: #141c29;
-  --color-navy-800: #1b2433;
-  --color-navy-700: #2a3547;
-  --color-navy-900: #070b12;
-
-  --color-ink: #e8ecf3;
-  --color-ink-muted: #97a3b7;
-  --color-steel-400: #93a5c0;
-  --color-steel-600: #7fa9d8;
-
-  --color-green-600: #2a7d5c;
-  --color-green-500: #2c8462;
-  --color-green-700: #24714f;
-
-  --color-border: #2b3442;
-  --color-border-strong: #606d86;
-  --color-border-navy: rgba(255, 255, 255, 0.16);
-
-  --color-danger: #e5675a;
-  --color-success: #46b184;
+@media (min-width: 64rem) {
+  :root {
+    --site-gutter: clamp(3rem, 6vw, 6rem);
+    --section-space: clamp(6rem, 8vw, 8rem);
+    --section-space-large: clamp(7rem, 8vw, 10rem);
+    --type-display: clamp(4rem, 5.2vw, 6rem);
+    --type-heading: clamp(3.5rem, 4.5vw, 4.75rem);
+    --type-subheading: clamp(2.5rem, 3.4vw, 3.5rem);
+    --header-height: 6rem;
+    --header-logo-height: 4.5rem;
+  }
 }
+
+/* The site follows a single light palette so its primary surface stays white. */
 
 /* ---- Base (DESIGN.md §2, §6) --------------------------------------------- */
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Keep the native scroll affordance while removing the browser's wide,
+     shaded gutter from the page edge on platforms that render scrollbars in
+     layout. */
+  scrollbar-color: rgba(15, 27, 51, 0.28) transparent;
+  scrollbar-width: thin;
+}
+
+html::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-color: rgba(15, 27, 51, 0.28);
+  background-clip: content-box;
+}
+
+/* Mobile and tablet keep their native touch/wheel scrolling, but do not reserve
+   a visible scrollbar gutter that reads as a shaded strip beside the layout. */
+@media (max-width: 63.999rem) {
+  html {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
+    width: 0;
+  }
 }
 
 /*
@@ -373,11 +385,8 @@ p {
  * distinction is what keeps a ring this heavy from feeling like a bug on
  * pointer input while still being non-negotiable for keyboard users.
  *
- * The ring lightens on navy surfaces, keyed off the `data-tone="navy"`
- * attribute that Section, Header and Footer already set. In dark mode both
- * variables resolve to lighter blues, because steel-600 at its light-mode
- * value is only 2.9:1 against the dark page and would be a ring you cannot
- * see.
+ * The ring uses a steel-blue token on the white page and remains visible on
+ * the lightly tinted bands.
  */
 :focus-visible {
   outline: 3px solid var(--focus-ring);
@@ -399,45 +408,6 @@ p {
 
 [data-tone='navy'] :focus-visible {
   outline-color: var(--focus-ring-on-band);
-}
-
-/* ---- Theme toggle glyphs -------------------------------------------------
- * ThemeToggle ships both icons and CSS shows one, keyed off exactly the same
- * conditions that pick the palette. Doing it in CSS rather than in React is
- * what makes the glyph correct in the server-rendered HTML and correct on the
- * first paint: there is no frame in which a sun sits on a dark page.
- *
- * The icon shows the palette that is currently active; the button's title
- * attribute says what pressing it will do. */
-
-.theme-icon-dark {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .theme-icon-light {
-    display: none;
-  }
-
-  :root:not([data-theme='light']) .theme-icon-dark {
-    display: inline-block;
-  }
-}
-
-:root[data-theme='dark'] .theme-icon-light {
-  display: none;
-}
-
-:root[data-theme='dark'] .theme-icon-dark {
-  display: inline-block;
-}
-
-:root[data-theme='light'] .theme-icon-light {
-  display: inline-block;
-}
-
-:root[data-theme='light'] .theme-icon-dark {
-  display: none;
 }
 
 /* ---- Lenis ---------------------------------------------------------------

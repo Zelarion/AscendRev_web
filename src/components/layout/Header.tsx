@@ -129,18 +129,17 @@ export default function Header(): JSX.Element {
       aria-hidden={storyNavHidden || undefined}
       inert={storyNavHidden}
       className={cn(
-        'fixed inset-x-0 top-0 isolate z-[var(--z-nav)] w-full transition-[padding,transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
-        storyNavHidden ? 'pointer-events-none -translate-y-[125%] opacity-0' : 'translate-y-0 opacity-100',
-        scrolled ? 'px-3 pt-3 sm:px-5 sm:pt-4 lg:px-7' : 'px-0 pt-0'
+        'fixed inset-x-0 top-0 isolate z-[var(--z-nav)] w-full px-0 pt-0 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+        storyNavHidden ? 'pointer-events-none -translate-y-[125%] opacity-0' : 'translate-y-0 opacity-100'
       )}
     >
       <div
         className={cn(
-          'ar-nav-shell mx-auto flex h-[var(--header-height)] w-full items-center justify-between border px-4 backdrop-blur-[22px] sm:px-6 lg:px-8 xl:px-10',
-          'transition-[max-width,border-radius,background-color,border-color,box-shadow] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
+          'ar-nav-shell mx-auto flex h-[var(--header-height)] w-full items-center justify-between border-b border-white/15 bg-[#001c41] px-4 text-white backdrop-blur-[22px] sm:px-6 lg:px-8 xl:px-10',
+          'transition-[background-color,border-color,box-shadow] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
           scrolled
-            ? 'max-w-[1540px] rounded-[18px] border-[var(--border)] bg-[var(--nav-glass-scrolled)] shadow-[0_18px_55px_rgba(0,0,0,0.24)]'
-            : 'max-w-[100vw] rounded-none border-x-transparent border-t-transparent border-b-white/10 bg-[var(--nav-glass)] shadow-[0_8px_28px_rgba(0,0,0,0.12)]'
+            ? 'shadow-[0_8px_28px_rgba(0,0,0,0.2)]'
+            : 'shadow-none'
         )}
       >
         <Link
@@ -154,8 +153,8 @@ export default function Header(): JSX.Element {
             <img
               src="/new-logo.png"
               alt="AscendRev"
-              width={206}
-              height={68}
+              width={2048}
+              height={682}
               className="h-[var(--header-logo-height)] w-auto object-contain"
             />
           </span>
@@ -169,7 +168,7 @@ export default function Header(): JSX.Element {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className="ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-[var(--ink)] outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--navy-900)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px]"
+                className="ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px]"
                 style={{ ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` }}
               >
                 {item.label}
@@ -202,7 +201,7 @@ export default function Header(): JSX.Element {
             aria-controls="mobile-nav-sheet"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             onClick={() => setMenuOpen((open) => !open)}
-            className="relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--ink)] outline-none transition-colors hover:bg-[var(--surface-band-raised)] active:scale-[0.98]"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full text-white outline-none transition-colors hover:bg-white/10 active:scale-[0.98]"
             style={hoverTransitionStyle}
           >
             <List

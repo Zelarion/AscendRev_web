@@ -24,12 +24,14 @@ export default function ClosingBand({ content }: ClosingBandProps): JSX.Element 
         </RevealOnScroll>
 
         <RevealOnScroll delayMs={100} className="lg:max-w-[470px] lg:justify-self-end">
-          <p className="max-w-[42ch] text-[clamp(0.95rem,1.15vw,1.12rem)] leading-[1.6] text-[var(--text-muted)]">
-            {content.body}
-          </p>
+          {content.body.trim() ? (
+            <p className="max-w-[42ch] text-[clamp(0.95rem,1.15vw,1.12rem)] leading-[1.6] text-[var(--text-muted)]">
+              {content.body}
+            </p>
+          ) : null}
           <Link
             href={content.cta.href}
-            className="group mt-5 inline-flex min-h-12 items-center justify-center gap-3 rounded-[6px] border border-[var(--accent)] bg-[var(--accent)] px-6 text-[14px] font-semibold text-[var(--on-accent)] shadow-[0_8px_22px_rgba(30,94,70,0.16)] outline-none transition-[transform,box-shadow,filter] duration-300 hover:-translate-y-0.5 hover:bg-[var(--accent-hover)] hover:shadow-[0_12px_28px_rgba(30,94,70,0.22)] sm:text-[15px]"
+            className={`group ${content.body.trim() ? 'mt-5' : ''} inline-flex min-h-12 items-center justify-center gap-3 rounded-[6px] border border-[var(--accent)] bg-[var(--accent)] px-6 text-[14px] font-semibold text-[var(--on-accent)] shadow-[0_8px_22px_rgba(30,94,70,0.16)] outline-none transition-[transform,box-shadow,filter] duration-300 hover:-translate-y-0.5 hover:bg-[var(--accent-hover)] hover:shadow-[0_12px_28px_rgba(30,94,70,0.22)] sm:text-[15px]`}
           >
             <span>{content.cta.label}</span>
             <ArrowRight

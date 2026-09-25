@@ -20,7 +20,7 @@ export default function CareerStatsSection() {
       <div className="mx-auto max-w-[1280px]">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--green-600)]">
-            Rio Vidal
+            Rio Vidal | Co-Founder and President
           </p>
           <h2
             id="career-stats-heading"
@@ -33,7 +33,7 @@ export default function CareerStatsSection() {
         <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2 xl:grid-cols-4">
           <article className="bg-[var(--surface)] p-6 sm:p-8">
             <p className="font-display text-[clamp(2.15rem,6vw,3rem)] leading-none text-[var(--navy-800)]">
-              <CountUp value={1} prefix="Over CAD$" suffix="B+" />
+              <CountUp value={1} prefix="Over CAD" suffix="B+" />
             </p>
             <h3 className="mt-4 text-sm font-semibold text-[var(--text-primary)] sm:mt-5">
               Revenue generated throughout his career

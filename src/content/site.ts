@@ -101,6 +101,4 @@ export const site: Site = {
   enquiryEmailSecondary: 'ralph.tomines@ascend-rev.ca',
   linkedinUrl: 'https://www.linkedin.com/in/rio-mendoza-vidal-56900210b/',
   facebookUrl: 'https://www.facebook.com/profile.php?id=61594055567709',
-  slaLine:
-    "Founded and Led by Harvard Business Impact Enterprise & Lean Six Sigma Certified | 100M Dollar Club Recognized | 2X President's Club Winner",
 };

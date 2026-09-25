@@ -45,8 +45,8 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
       <div className="mx-auto grid w-full max-w-[1540px] gap-10 px-[clamp(1.25rem,5vw,5.5rem)] py-[clamp(3.75rem,7vw,8rem)] md:grid-cols-[0.82fr_1.18fr] md:items-start md:gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:gap-20 xl:gap-28">
         <aside className="md:sticky md:top-[7rem] md:self-start lg:top-[8.5rem]">
           <div className="max-w-[560px]">
-            <p className="text-[11px] font-semibold tracking-[0.22em] text-[var(--gold-text)] sm:text-xs">
-              THE TURNKEY FINANCIAL ADVANTAGE
+            <p className="text-xs font-semibold leading-relaxed tracking-[0.16em] text-[var(--gold-text)] sm:text-[13px]">
+              THE TURNKEY OUTSOURCE AND OFFSHORE ADVANTAGE
             </p>
 
             <h2 className="mt-5 max-w-[12ch] font-display text-[clamp(2.5rem,8vw,3.5rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)] md:text-[clamp(2.7rem,4.6vw,3.7rem)] lg:text-[clamp(3rem,4.7vw,5.5rem)] lg:leading-[0.94]">

@@ -147,40 +147,26 @@ export default function Header(): JSX.Element {
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[#001c41]"
         >
           <picture className="block h-full w-full">
-            <source media="(min-width: 96rem)" srcSet="/images/ascendrev-header-background-desktop.webp" />
-            <source media="(min-width: 48rem)" srcSet="/images/ascendrev-header-background-tablet.webp" />
+            <source media="(min-width: 96rem)" srcSet="/images/ascendrev-header-integrated-desktop.webp" />
+            <source media="(min-width: 48rem)" srcSet="/images/ascendrev-header-tablet.webp" />
             <img
-              src="/images/ascendrev-header-background-mobile.webp"
+              src="/images/ascendrev-header-mobile.webp"
               alt=""
               width={2172}
               height={724}
-              className="h-full w-full object-cover object-[50%_45%]"
+              className="h-full w-full object-cover object-[50%_47%]"
             />
           </picture>
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,28,65,0.24)_0%,rgba(0,28,65,0.1)_28%,rgba(0,28,65,0)_55%)]" />
-        </div>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 -z-10 flex w-[var(--header-brand-space)] max-w-[calc(100vw-5.5rem)] items-center overflow-hidden"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element -- cropped from the supplied brand banner to preserve its exact lockup proportions. */}
-          <img
-            src="/images/ascendrev-header-brand.webp"
-            alt=""
-            width={950}
-            height={330}
-            className="h-full w-full object-contain object-left"
-          />
         </div>
         <Link
           href="/"
           aria-label="AscendRev home"
-          className="absolute inset-y-0 left-0 z-20 w-[var(--header-brand-space)] max-w-[calc(100vw-5.5rem)] outline-none"
+          className="absolute inset-y-0 left-0 z-20 w-[47vw] max-w-[calc(100vw-5.5rem)] outline-none md:w-[38vw] md:max-w-none wide-nav:w-[32vw]"
         >
           <span className="sr-only">AscendRev home</span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-4 wide-nav:ml-[var(--header-brand-space)] wide-nav:flex wide-nav:gap-5">
+        <nav aria-label="Primary" className="hidden items-center gap-4 wide-nav:ml-[32vw] wide-nav:flex wide-nav:gap-5 max-[120rem]:wide-nav:gap-2">
           {navItems.map((item, index) => {
             const active = isActiveRoute(pathname, item.href);
             return (
@@ -188,7 +174,7 @@ export default function Header(): JSX.Element {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className="ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px]"
+                className="ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px] max-[120rem]:wide-nav:text-[13px]"
                 style={{ ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` }}
               >
                 {item.label}
@@ -197,10 +183,10 @@ export default function Header(): JSX.Element {
           })}
         </nav>
 
-        <div className="hidden items-center gap-4 wide-nav:flex wide-nav:gap-5">
+        <div className="hidden items-center gap-4 wide-nav:flex wide-nav:gap-5 max-[120rem]:wide-nav:gap-2">
           <Link
             href={ctaItem.href}
-            className="ar-nav-item group inline-flex min-h-12 min-w-[255px] items-center justify-center gap-4 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-7 text-[15px] font-semibold text-[var(--gold-ink)] shadow-[0_8px_24px_rgba(197,151,49,0.22)] outline-none transition-[transform,box-shadow,filter] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(197,151,49,0.32)] hover:brightness-105 active:translate-y-0 xl:min-w-[285px] xl:text-base"
+            className="ar-nav-item group inline-flex min-h-12 min-w-[255px] items-center justify-center gap-4 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-7 text-[15px] font-semibold text-[var(--gold-ink)] shadow-[0_8px_24px_rgba(197,151,49,0.22)] outline-none transition-[transform,box-shadow,filter] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(197,151,49,0.32)] hover:brightness-105 active:translate-y-0 xl:min-w-[285px] xl:text-base wide-nav:min-w-[220px] wide-nav:gap-2 wide-nav:px-3 max-[120rem]:wide-nav:text-[13px] min-[120rem]:wide-nav:min-w-[285px] min-[120rem]:wide-nav:px-7"
             style={{ animationDelay: '540ms' }}
           >
             <span>{ctaItem.label}</span>

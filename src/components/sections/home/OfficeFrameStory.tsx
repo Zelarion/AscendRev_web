@@ -15,26 +15,30 @@ interface OfficeFrameStoryProps {
 
 const SCENES = [
   {
-    eyebrow: 'Boardroom · Direction',
-    detail: 'A focused conversation turns the operating challenge into a practical brief.',
     place: 'Boardroom',
-    tag: '01 / ALIGN',
     accent: 'green',
   },
   {
-    eyebrow: 'Hallway · Connection',
-    detail: 'The right roles connect the plan to the daily work that moves it forward.',
-    place: 'Office hallway',
-    tag: '02 / BUILD',
+    place: 'Hallway',
     accent: 'blue',
   },
   {
-    eyebrow: 'Workspace · Momentum',
-    detail: 'A prepared team gives your business more room to deliver and grow.',
-    place: 'Furnished workspace',
-    tag: '03 / GROW',
+    place: 'Workspace',
     accent: 'gold',
   },
+] as const;
+
+const FACILITIES = [
+  { label: 'Hallway', src: '/images/hallway1.jpg', alt: 'Interior hallway at the AscendRev campus.' },
+  { label: 'Operations', src: '/images/office4.jpg', alt: 'Cubicles and workstations on the operations floor.' },
+  { label: 'Break / Coffee Area', src: '/images/new1.jpg', alt: 'Shared cafeteria and break area.' },
+  { label: 'Boardroom', src: '/images/office3.jpg', alt: 'Boardroom meeting space with a conference table and seating.' },
+  { label: 'Staff Parking', src: '/images/parking2.jpg', alt: 'Staff parking entrance with attendant and vehicles.' },
+  { label: 'Elevator', src: '/images/elev.jpg', alt: 'Elevator in the AscendRev building.' },
+  { label: 'Lobby', src: '/images/lobby1.jpg', alt: 'Reception and lobby seating area.' },
+  { label: 'Stairs', src: '/images/staircase1.jpg', alt: 'Interior staircase connecting the building floors.' },
+  { label: 'Washrooms', src: '/images/bathroom2.jpg', alt: 'Washroom sinks and mirrors.' },
+  { label: 'AscendRev Campus', src: '/images/outside.jpg', alt: 'Exterior of the AscendRev campus with its building sign.' },
 ] as const;
 
 const FRAME_COUNT = 72;
@@ -67,9 +71,8 @@ function drawCover(
 }
 
 /**
- * Scroll-scrubbed, static-host friendly visual story. Its actual poster and all
- * three chapter descriptions remain in the HTML; canvas playback enhances the
- * experience only when motion is available and the visitor permits it.
+ * Scroll-scrubbed frame sequence with an accessible, responsive facilities
+ * gallery. The poster and gallery remain available when motion is reduced.
  */
 export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX.Element {
   const rootRef = useRef<HTMLElement>(null);
@@ -133,15 +136,10 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
 
       const playhead = { frame: 0 };
       const sceneCards = gsap.utils.toArray<HTMLElement>('[data-office-scene]', root);
-      const sceneMarkers = gsap.utils.toArray<HTMLElement>('[data-office-marker]', root);
       const progress = root.querySelector<HTMLElement>('[data-office-progress]');
-      const orbit = root.querySelector<HTMLElement>('[data-office-orbit]');
-      const callout = root.querySelector<HTMLElement>('[data-office-callout]');
 
       gsap.set(sceneCards, { autoAlpha: 0, y: 22, clipPath: 'inset(0 0 24% 0)' });
-      gsap.set(sceneMarkers, { opacity: 0.4, scale: 0.86, transformOrigin: 'center' });
       gsap.set(sceneCards[0], { autoAlpha: 1, y: 0, clipPath: 'inset(0 0 0% 0)' });
-      gsap.set(sceneMarkers[0], { opacity: 1, scale: 1 });
 
       const timeline = gsap.timeline({
         defaults: { ease: 'none' },
@@ -161,12 +159,9 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
       }, 0);
 
       if (progress) timeline.fromTo(progress, { scaleX: 0 }, { scaleX: 1, duration: 3 }, 0);
-      if (orbit) timeline.to(orbit, { rotation: 280, scale: 1.1, duration: 3 }, 0);
-      if (callout) timeline.to(callout, { y: -24, duration: 3 }, 0);
 
       sceneCards.forEach((card, index) => {
         const start = index;
-        const marker = sceneMarkers[index];
         if (index > 0) {
           timeline.to(sceneCards[index - 1], {
             autoAlpha: 0,
@@ -184,10 +179,6 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
             clipPath: 'inset(0 0 0% 0)',
             duration: 0.18,
           }, start);
-          if (marker) {
-            timeline.to(sceneMarkers[index - 1], { opacity: 0.4, scale: 0.86, duration: 0.12 }, start - 0.06);
-            timeline.to(marker, { opacity: 1, scale: 1, duration: 0.12 }, start);
-          }
         }
       });
 
@@ -203,14 +194,44 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
     { scope: rootRef, dependencies: [framesReady, stages] },
   );
 
+  useGSAP(
+    () => {
+      const gallery = rootRef.current?.querySelector<HTMLElement>('[data-facilities-gallery]');
+      const track = gallery?.querySelector<HTMLElement>('[data-facilities-track]');
+      if (!gallery || !track) return;
+
+      const media = gsap.matchMedia();
+      media.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
+        const distance = () => Math.max(0, track.scrollWidth - gallery.clientWidth);
+        if (distance() <= 0) return;
+
+        registerMotion();
+        gallery.classList.add(styles.scrollDriven);
+        gsap.to(track, {
+          x: () => -distance(),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: gallery,
+            start: 'top top',
+            end: () => `+=${distance()}`,
+            pin: true,
+            scrub: 0.6,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        return () => gallery.classList.remove(styles.scrollDriven);
+      });
+
+      return () => media.revert();
+    },
+    { scope: rootRef, dependencies: [stages] },
+  );
+
   return (
     <section ref={rootRef} data-office-story className={styles.section} aria-labelledby="office-story-title">
       <div className={styles.intro}>
-        <p className={styles.kicker}>A dedicated team, built around your work</p>
-        <h2 id="office-story-title">People, process, and a place to move forward.</h2>
-        <p className={styles.introDetail}>
-          See the path from a clear brief to a team ready to deliver.
-        </p>
+        <h2 id="office-story-title">Our Facilities in Action</h2>
       </div>
 
       <div data-office-runway className={styles.runway}>
@@ -218,7 +239,7 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
           <div className={styles.posterFrame}>
             <Image
               src={frameUrl(0)}
-              alt="AscendRev's boardroom, the first scene in a three-part view of its office."
+              alt="A frame from the AscendRev facilities tour."
               fill
               priority={false}
               sizes="100vw"
@@ -228,44 +249,16 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
           <canvas ref={canvasRef} aria-hidden="true" className={`${styles.canvas} ${framesReady ? styles.canvasReady : ''}`} />
           <div aria-hidden="true" className={styles.scrim} />
 
-          <div className={styles.topline}>
-            <span className={styles.brandMark}>ASCENDREV <i>·</i> OFFICE</span>
-            <span className={styles.liveNote}>{framesReady ? 'SCROLL TO EXPLORE' : 'OFFICE STORY'}</span>
-          </div>
-
           <div className={styles.copyRail}>
             <div className={styles.sceneCopy} data-office-scene data-accent={SCENES[0].accent}>
-              <p className={styles.sceneEyebrow}>{SCENES[0].eyebrow}</p>
-              <h3>{stages[0]}</h3>
-              <p className={styles.sceneDetail}>{SCENES[0].detail}</p>
+              <h3>{SCENES[0].place}</h3>
             </div>
             <div className={styles.sceneCopy} data-office-scene data-accent={SCENES[1].accent}>
-              <p className={styles.sceneEyebrow}>{SCENES[1].eyebrow}</p>
-              <h3>{stages[1]}</h3>
-              <p className={styles.sceneDetail}>{SCENES[1].detail}</p>
+              <h3>{SCENES[1].place}</h3>
             </div>
             <div className={styles.sceneCopy} data-office-scene data-accent={SCENES[2].accent}>
-              <p className={styles.sceneEyebrow}>{SCENES[2].eyebrow}</p>
-              <h3>{stages[2]}</h3>
-              <p className={styles.sceneDetail}>{SCENES[2].detail}</p>
+              <h3>{SCENES[2].place}</h3>
             </div>
-          </div>
-
-          <div className={styles.sceneIndex} aria-label="Story scenes">
-            {SCENES.map((scene, index) => (
-              <div key={scene.tag} className={styles.sceneIndexItem}>
-                <span className={styles.sceneMarker} data-office-marker aria-hidden="true">0{index + 1}</span>
-                <span className={styles.sceneName}>{scene.place}</span>
-              </div>
-            ))}
-          </div>
-
-          <div data-office-callout className={styles.callout} aria-hidden="true">
-            <span className={styles.calloutOrbit} data-office-orbit>
-              <span className={styles.orbitDot} />
-              <span className={styles.orbitDotSecondary} />
-            </span>
-            <span className={styles.calloutText}>A practical plan.<br />A team built to deliver.</span>
           </div>
 
           <div className={styles.progressTrack} aria-hidden="true">
@@ -274,17 +267,28 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
         </div>
       </div>
 
-      <div className={styles.chapters}>
-        {SCENES.map((scene, index) => (
-          <article key={scene.tag} className={styles.chapter}>
-            <span className={styles.chapterNumber}>0{index + 1}</span>
-            <div>
-              <h3>{stages[index]}</h3>
-              <p>{scene.detail}</p>
-            </div>
-          </article>
-        ))}
+      <div className={styles.facilitiesGallery} data-facilities-gallery aria-label="AscendRev facilities photo gallery">
+        <div className={styles.galleryViewport} tabIndex={0} aria-label="Scroll through facility photos">
+          <div className={styles.galleryTrack} data-facilities-track>
+            {FACILITIES.map((facility, index) => (
+              <figure className={styles.facilityCard} key={facility.label}>
+                <div className={styles.facilityImage}>
+                  <Image
+                    src={facility.src}
+                    alt={facility.alt}
+                    fill
+                    sizes="(max-width: 767px) 82vw, (max-width: 1023px) 48vw, 30vw"
+                    className={styles.facilityPhoto}
+                  />
+                  <span className={styles.facilityNumber}>0{index + 1}</span>
+                </div>
+                <figcaption>{facility.label}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
       </div>
+      <span className={styles.srOnly}>Frame-by-frame visual tour, with {stages.length} scenes.</span>
     </section>
   );
 }

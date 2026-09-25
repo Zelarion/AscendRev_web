@@ -28,20 +28,20 @@ export default function Footer(): JSX.Element {
         ASCENDREV
       </div>
 
-      <div className="relative z-10 w-full overflow-hidden bg-[#001c41]">
-        <div className="relative mx-auto w-full max-w-[1540px]">
+      <div className="relative z-10 h-[clamp(12rem,25vw,30rem)] w-full overflow-hidden bg-[#001c41]">
+        <div className="relative h-full w-full">
           {/* eslint-disable-next-line @next/next/no-img-element -- supplied white-gradient brand banner blends into the light footer. */}
           <img
             src="/images/ascendrev-footer-artwork.webp"
             alt=""
             width={2172}
             height={724}
-            className="mx-auto block h-auto w-full"
+            className="block h-full w-full object-cover object-[50%_60%]"
           />
           <Link
             href="/"
             aria-label="AscendRev home"
-            className="absolute inset-y-0 left-0 z-10 w-[48%] max-w-[720px] outline-none"
+            className="absolute inset-y-0 left-0 z-10 w-[42%] outline-none"
           >
             <span className="sr-only">AscendRev home</span>
           </Link>

@@ -195,8 +195,6 @@
   --type-body: clamp(0.9375rem, 4vw, 1rem);
   --type-small: clamp(0.8125rem, 3.5vw, 0.875rem);
   --header-height: 4.5rem;
-  --header-logo-height: 3.25rem;
-  --header-brand-space: clamp(10.5rem, 47vw, 18rem);
 
   /* Tailwind's semantic size utilities resolve through this same responsive
      scale, so `text-h1` and the raw layout tokens cannot drift apart. */
@@ -290,8 +288,6 @@
     --type-body: 1rem;
     --type-small: 0.875rem;
     --header-height: 5.5rem;
-    --header-logo-height: 4rem;
-    --header-brand-space: clamp(17.5rem, 38vw, 23rem);
   }
 }
 
@@ -304,8 +300,13 @@
     --type-heading: clamp(3.5rem, 4.5vw, 4.75rem);
     --type-subheading: clamp(2.5rem, 3.4vw, 3.5rem);
     --header-height: 6rem;
-    --header-logo-height: 4.5rem;
-    --header-brand-space: clamp(18rem, 25vw, 25rem);
+  }
+}
+
+@media (min-width: 96rem) {
+  :root {
+    /* Keep the integrated full-width header lockup intact on ultrawide screens. */
+    --header-height: max(7.25rem, 6vw);
   }
 }
 

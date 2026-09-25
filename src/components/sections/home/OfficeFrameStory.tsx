@@ -27,7 +27,7 @@ const FACILITIES = [
   { label: 'Staff Parking', src: '/images/parking1.jpg', alt: 'Covered staff parking with vehicles.' },
   { label: 'Guards on Duty', src: '/images/guards-on-duty-cropped.webp', alt: 'A uniformed security guard monitoring the parking entrance.' },
   { label: 'Elevator', src: '/images/elev.jpg', alt: 'Elevator in the AscendRev building.' },
-  { label: 'Lobby', src: '/images/lobby1.jpg', alt: 'Reception and lobby seating area.' },
+  { label: 'Reception', src: '/images/lobby1.jpg', alt: 'Reception and lobby seating area.' },
   { label: 'Stairs', src: '/images/staircase1.jpg', alt: 'Interior staircase connecting the building floors.' },
   { label: 'Washroom Vanity', src: '/images/bathroom3-reflection-clean.webp', alt: 'Washroom vanity with sinks and mirrors; the mirror reflection is clear of people.' },
   { label: 'AscendRev Campus', src: '/images/outside.jpg', alt: 'Exterior of the AscendRev campus with its building sign.' },

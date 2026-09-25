@@ -11,7 +11,7 @@
  * rather than silently corrected.
  */
 
-import type { ClosingBandContent, Cta, PageMeta } from './home';
+import type { Cta, PageMeta } from './home';
 
 export interface SolutionsHeroContent {
   headline: string;
@@ -57,7 +57,9 @@ export interface SolutionsContent {
   services: ServiceGridContent;
   hiring: HiringStandardContent;
   screening: ScreeningContent;
-  closing: ClosingBandContent;
+  closing: {
+    heading: string;
+  };
 }
 
 export const solutions: SolutionsContent = {
@@ -137,8 +139,6 @@ export const solutions: SolutionsContent = {
   },
 
   closing: {
-    heading: 'Not sure which function to move first?',
-    body: 'Most companies pick the one that hurts most and get it wrong. Bring the whole picture to a fifteen minute call and you will get a view on which function actually moves offshore well, which one should stay where it is, and why.',
-    cta: { label: 'Schedule Your Growth Briefing', href: '/contact' },
+    heading: 'Unsure which ones are a good fit',
   },
 };

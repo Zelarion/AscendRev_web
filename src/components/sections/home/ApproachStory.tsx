@@ -5,7 +5,6 @@ import Image from 'next/image';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { registerMotion } from '@/components/motion/registerMotion';
-import { prefersReducedMotion } from '@/lib/motion';
 
 interface ApproachStoryProps {
   stages: readonly [string, string, string];
@@ -39,9 +38,9 @@ const STAGE_COLORS = [
 ] as const;
 
 /**
- * Scroll-linked brand sequence. The server-rendered default is a readable
- * vertical stack; when motion is allowed, GSAP turns it into a pinned
- * horizontal story at phone, tablet, and desktop widths.
+ * Scroll-linked brand sequence. It stays a readable vertical stack on phones,
+ * tablets, compact widths and short displays; larger desktop viewports get a
+ * single pinned horizontal pass.
  */
 export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Element {
   const sectionRef = useRef<HTMLElement>(null);
@@ -51,126 +50,77 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
     () => {
       const section = sectionRef.current;
       const track = trackRef.current;
-      if (!section || !track || prefersReducedMotion()) return;
+      if (!section || !track) return;
 
-      registerMotion();
+      const responsiveMotion = gsap.matchMedia();
+      responsiveMotion.add(
+        '(min-width: 84rem) and (min-height: 42rem) and (prefers-reduced-motion: no-preference)',
+        () => {
+          registerMotion();
+          const panels = gsap.utils.toArray<HTMLElement>('[data-approach-panel]', section);
+          if (panels.length < 2) return;
 
-      // Keep the same scroll-led horizontal story on phones, tablets, and
-      // desktop. Reduced-motion visitors returned above and retain the
-      // readable vertical stack.
-      const panels = gsap.utils.toArray<HTMLElement>('[data-approach-panel]', section);
-      if (panels.length < 2) return;
-
-      section.style.height = 'calc(100svh - var(--header-height))';
-      section.style.minHeight = '0px';
-      track.style.display = 'flex';
-      track.style.flexDirection = 'row';
-      track.style.width = `${panels.length * 100}%`;
-      track.style.height = '100%';
-      panels.forEach((panel) => {
-        panel.style.flex = `0 0 ${100 / panels.length}%`;
-        panel.style.width = `${100 / panels.length}%`;
-        panel.style.height = '100%';
-        panel.style.minHeight = '0px';
-      });
-      section.dataset.scrollStoryReady = 'true';
-
-      const horizontalDistance = () => Math.max(0, track.scrollWidth - section.clientWidth);
-      const pinDistance = () => {
-        const width = window.innerWidth;
-        const readingRoom = width < 768 ? 1.8 : width < 1024 ? 1.35 : 1;
-        return Math.max(1, Math.ceil(horizontalDistance() * readingRoom));
-      };
-      const headerOffset = () => {
-        const value = getComputedStyle(document.documentElement).getPropertyValue('--header-height');
-        return Number.parseFloat(value) || 96;
-      };
-      const horizontal = gsap.to(track, {
-        x: () => -horizontalDistance(),
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section,
-          start: () => `top top+=${headerOffset()}`,
-          end: () => `+=${pinDistance()}`,
-          pin: true,
-          // This is a standalone section in the page's normal block flow.
-          // Keep its scroll distance in the document so the video story and
-          // every section after it retain their measured positions on refresh.
-          pinSpacing: true,
-          pinType: 'fixed',
-          // Keep the pin and its horizontal track on the same progress. A
-          // numeric scrub eases the track behind the pin; on a quick touch
-          // scroll the pin can reach its end and leave before the track does.
-          scrub: true,
-          anticipatePin: 1,
-          // The downstream sticky office story is registered asynchronously
-          // after its image sequence loads. Refresh this pin before measuring
-          // that later trigger so its spacer is included in the page flow.
-          refreshPriority: 1,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      panels.forEach((panel, index) => {
-        const art = panel.querySelector<HTMLElement>('[data-approach-art]');
-        const copy = panel.querySelector<HTMLElement>('[data-approach-copy]');
-        if (art) {
-          gsap.to(art, {
-            y: index % 2 === 0 ? -22 : 22,
-            rotationY: index % 2 === 0 ? 14 : -14,
-            rotationZ: index % 2 === 0 ? -4 : 4,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: panel,
-              containerAnimation: horizontal,
-              start: 'left right',
-              end: 'right left',
-              scrub: 0.65,
-            },
+          gsap.set(section, { height: 'calc(100svh - var(--header-height))', minHeight: 0 });
+          gsap.set(track, {
+            display: 'flex',
+            flexDirection: 'row',
+            width: `${panels.length * 100}%`,
+            height: '100%',
           });
-        }
-        if (copy && index > 0) {
-          gsap.fromTo(
-            copy,
-            { x: 36, opacity: 0.45 },
-            {
-              x: 0,
-              opacity: 1,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: panel,
-                containerAnimation: horizontal,
-                start: 'left 82%',
-                end: 'left 38%',
-                scrub: true,
-              },
-            }
-          );
-        }
-      });
+          gsap.set(panels, {
+            flex: `0 0 ${100 / panels.length}%`,
+            width: `${100 / panels.length}%`,
+            height: '100%',
+            minHeight: 0,
+          });
 
-      const progress = section.querySelector<HTMLElement>('[data-approach-progress]');
-      if (progress) {
-        gsap.fromTo(
-          progress,
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            transformOrigin: 'left center',
+          const horizontalDistance = () => Math.max(0, track.scrollWidth - section.clientWidth);
+          const headerOffset = () => {
+            const value = getComputedStyle(document.documentElement).getPropertyValue('--header-height');
+            return Number.parseFloat(value) || 84;
+          };
+
+          gsap.to(track, {
+            x: () => -horizontalDistance(),
             ease: 'none',
             scrollTrigger: {
               trigger: section,
               start: () => `top top+=${headerOffset()}`,
-              end: () => `+=${pinDistance()}`,
+              end: () => `+=${horizontalDistance()}`,
+              pin: true,
+              pinSpacing: true,
               scrub: true,
+              anticipatePin: 1,
+              refreshPriority: 1,
+              invalidateOnRefresh: true,
             },
-          }
-        );
-      }
+          });
 
-      return () => {
-        delete section.dataset.scrollStoryReady;
-      };
+          const progress = section.querySelector<HTMLElement>('[data-approach-progress]');
+          if (progress) {
+            gsap.fromTo(
+              progress,
+              { scaleX: 0 },
+              {
+                scaleX: 1,
+                transformOrigin: 'left center',
+                ease: 'none',
+                scrollTrigger: {
+                  trigger: section,
+                  start: () => `top top+=${headerOffset()}`,
+                  end: () => `+=${horizontalDistance()}`,
+                  scrub: true,
+                },
+              }
+            );
+          }
+
+          section.dataset.scrollStoryReady = 'true';
+          return () => delete section.dataset.scrollStoryReady;
+        }
+      );
+
+      return () => responsiveMotion.revert();
     },
     { scope: sectionRef, dependencies: [stages] }
   );
@@ -195,7 +145,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
                 <p className="font-mono text-xs font-medium tracking-[0.2em] text-[var(--gold-text)]">
                   {String(index + 1).padStart(2, '0')} <span aria-hidden="true">/</span> 03
                 </p>
-                <h2 className={`mt-4 max-w-[11ch] font-display text-[clamp(2.15rem,8vw,3.4rem)] font-medium leading-[0.94] tracking-[-0.045em] md:mt-4 md:text-[clamp(2.55rem,5vw,4rem)] lg:mt-6 lg:text-[clamp(3.25rem,7.2vw,7.8rem)] lg:leading-[0.91] ${STAGE_COLORS[index]}`}>
+                <h2 className={`mt-3 max-w-[11ch] font-display text-[clamp(1.9rem,6vw,2.8rem)] font-medium leading-[0.94] tracking-[-0.045em] md:mt-4 md:text-[clamp(2.25rem,4vw,3.5rem)] xl:mt-5 xl:text-[clamp(3rem,4.2vw,5rem)] xl:leading-[0.91] ${STAGE_COLORS[index]}`}>
                   {stages[index]}
                 </h2>
                 <div className="mt-5 h-px w-20 bg-[var(--gold-text)] sm:mt-7 lg:mt-10" />
@@ -252,7 +202,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-[clamp(1.25rem,5vw,5.5rem)] right-[clamp(1.25rem,5vw,5.5rem)] z-30 hidden h-[2px] bg-[var(--line)] md:block"
+        className="ar-approach-progress-rail pointer-events-none absolute bottom-0 left-[clamp(1.25rem,5vw,5.5rem)] right-[clamp(1.25rem,5vw,5.5rem)] z-30 hidden h-[2px] bg-[var(--line)]"
       >
         <span data-approach-progress className="block h-full w-full origin-left bg-[var(--gold-text)]" />
       </div>

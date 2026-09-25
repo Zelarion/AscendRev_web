@@ -147,8 +147,8 @@ export default function Header(): JSX.Element {
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[#001c41]"
         >
           <picture className="block h-full w-full">
-            <source media="(min-width: 96rem)" srcSet="/images/ascendrev-header-integrated-desktop.webp" />
-            <source media="(min-width: 48rem)" srcSet="/images/ascendrev-header-tablet.webp" />
+            <source media="(min-width: 44rem)" srcSet="/images/ascendrev-header-integrated-desktop.webp" />
+            <source media="(min-width: 32rem)" srcSet="/images/ascendrev-header-tablet.webp" />
             <img
               src="/images/ascendrev-header-mobile.webp"
               alt=""
@@ -166,7 +166,7 @@ export default function Header(): JSX.Element {
           <span className="sr-only">AscendRev home</span>
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-[15.7vw] top-[57%] -translate-y-1/2 origin-left scale-x-[0.7] whitespace-nowrap bg-[#001c41] px-px font-sans text-[clamp(7px,1.85vw,12px)] font-semibold uppercase leading-none tracking-[0.2px] text-white md:hidden"
+            className="pointer-events-none absolute left-[15.7vw] top-[57%] -translate-y-1/2 w-[38vw] whitespace-nowrap bg-[#001c41] pr-2 font-sans text-[clamp(7px,1.85vw,12px)] font-semibold uppercase leading-none tracking-[0.2px] text-white min-[44rem]:hidden"
           >
             Outsourcing &amp; Offshoring Solutions
           </span>
@@ -290,7 +290,7 @@ export default function Header(): JSX.Element {
               tabIndex={menuOpen ? 0 : -1}
               onClick={closeMenu}
               className={cn(
-                'inline-flex min-h-12 items-center border-b border-[var(--border)] py-3 font-display text-[clamp(1.9rem,8vw,3rem)] font-medium leading-none text-[var(--navy-900)] outline-none transition-[color,opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--accent)] motion-reduce:transition-none',
+                'inline-flex min-h-11 items-center border-b border-[var(--border)] py-2.5 font-display text-[clamp(1.5rem,4vw,2.25rem)] font-medium leading-[1.05] text-[var(--navy-900)] outline-none transition-[color,opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--accent)] motion-reduce:transition-none',
                 menuOpen ? 'translate-x-0 opacity-100' : 'translate-x-5 opacity-0'
               )}
               style={{ transitionDelay: menuOpen ? `${210 + index * 70}ms` : '0ms' }}

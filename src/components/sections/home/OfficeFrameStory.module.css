@@ -26,7 +26,7 @@
 
 .runway {
   position: relative;
-  height: 320svh;
+  height: 270svh;
   background: #071329;
 }
 
@@ -35,7 +35,7 @@
   top: 0;
   width: 100%;
   height: 100svh;
-  min-height: 36rem;
+  min-height: 30rem;
   overflow: hidden;
   isolation: isolate;
   background: #071329;
@@ -75,9 +75,14 @@
 
 .scrim {
   z-index: -1;
-  background:
-    linear-gradient(90deg, rgba(4, 14, 31, 0.88) 0%, rgba(4, 14, 31, 0.61) 42%, rgba(4, 14, 31, 0.08) 100%),
-    linear-gradient(0deg, rgba(4, 14, 31, 0.72) 0%, transparent 35%, rgba(4, 14, 31, 0.22) 100%);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(4, 14, 31, 0.42) 0%,
+    rgba(4, 14, 31, 0.24) 30%,
+    rgba(4, 14, 31, 0.08) 57%,
+    transparent 76%
+  );
 }
 
 .copyRail {
@@ -119,10 +124,11 @@
   margin: 0;
   color: white;
   font-family: var(--font-display);
-  font-size: clamp(2.8rem, 6.3vw, 6rem);
+  font-size: clamp(2.15rem, 4.8vw, 5.2rem);
   font-weight: 500;
   letter-spacing: -0.05em;
   line-height: 0.9;
+  text-shadow: 0 2px 14px rgba(4, 14, 31, 0.48);
   text-wrap: balance;
 }
 
@@ -181,11 +187,14 @@
   width: max-content;
   gap: clamp(1rem, 2vw, 1.7rem);
   padding-inline: max(var(--gallery-gutter), calc((100vw - 1320px) / 2));
+}
+
+.scrollDriven .galleryTrack {
   will-change: transform;
 }
 
 .facilityCard {
-  flex: 0 0 clamp(17rem, 30vw, 27rem);
+  flex: 0 0 clamp(18rem, 23vw, 25rem);
   margin: 0;
   scroll-snap-align: start;
 }
@@ -195,9 +204,9 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border: 1px solid rgba(14, 36, 66, 0.12);
-  border-radius: 0.65rem;
+  border-radius: 0.9rem;
   background: #dce3e9;
-  box-shadow: 0 1.1rem 2.4rem rgba(12, 32, 56, 0.12);
+  box-shadow: 0 1rem 2rem rgba(12, 32, 56, 0.12);
 }
 
 .facilityPhoto {
@@ -219,20 +228,20 @@
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: 50%;
-  background: rgba(5, 25, 50, 0.72);
+  background: rgba(5, 25, 50, 0.88);
   color: white;
   font-family: var(--font-mono);
   font-size: 0.64rem;
   font-weight: 600;
-  backdrop-filter: blur(8px);
 }
 
 .facilityCard figcaption {
   margin-top: 0.8rem;
   color: var(--navy-900);
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  line-height: 1.35;
 }
 
 .srOnly {
@@ -287,11 +296,11 @@
 
 @media (min-width: 1024px) {
   .intro h2 {
-    font-size: clamp(3.25rem, 6.1vw, 6.6rem);
+    font-size: clamp(2.8rem, 5vw, 5.4rem);
   }
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1439px) {
   .section {
     --scene-inset: clamp(2rem, 5vw, 3.5rem);
   }
@@ -301,27 +310,27 @@
   }
 
   .intro h2 {
-    max-width: 15ch;
-    font-size: clamp(3rem, 6vw, 4.2rem);
+    max-width: 19ch;
+    font-size: clamp(2.5rem, 5vw, 3.8rem);
   }
 
   .runway {
-    height: 250svh;
+    height: 230svh;
   }
 
   .stage {
-    min-height: 34rem;
+    min-height: 28rem;
   }
 
   .copyRail {
-    bottom: 9.5rem;
-    width: min(66vw, 690px);
-    height: 18rem;
+    bottom: clamp(5rem, 14vh, 8rem);
+    width: min(62vw, 650px);
+    height: clamp(12rem, 31vh, 19rem);
   }
 
   .sceneCopy h3 {
-    max-width: 12ch;
-    font-size: clamp(3rem, 6.3vw, 4.6rem);
+    max-width: 14ch;
+    font-size: clamp(2.15rem, 4.6vw, 4.25rem);
   }
 
   .chapters {
@@ -338,7 +347,7 @@
   }
 
   .facilityCard {
-    flex-basis: min(48vw, 24rem);
+    flex-basis: clamp(19rem, 38vw, 25rem);
     scroll-snap-align: start;
   }
 
@@ -366,17 +375,21 @@
   }
 
   .runway {
-    height: 260svh;
+    height: 220svh;
   }
 
   .stage {
-    min-height: 36rem;
+    min-height: 30rem;
   }
 
   .scrim {
-    background:
-      linear-gradient(0deg, rgba(4, 14, 31, 0.92) 0%, rgba(4, 14, 31, 0.56) 56%, rgba(4, 14, 31, 0.16) 100%),
-      linear-gradient(90deg, rgba(4, 14, 31, 0.2), transparent 70%);
+    background: linear-gradient(
+      90deg,
+      rgba(4, 14, 31, 0.48) 0%,
+      rgba(4, 14, 31, 0.22) 48%,
+      rgba(4, 14, 31, 0.06) 76%,
+      transparent 100%
+    );
   }
 
   .copyRail {
@@ -386,9 +399,9 @@
   }
 
   .sceneCopy h3 {
-    max-width: 11ch;
-    font-size: clamp(2.55rem, 11vw, 4rem);
-    line-height: 0.94;
+    max-width: 12ch;
+    font-size: clamp(2.15rem, 8.3vw, 3.25rem);
+    line-height: 0.96;
   }
 
   .chapters {

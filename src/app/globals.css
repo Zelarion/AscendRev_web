@@ -139,12 +139,12 @@
   --z-nav-backdrop: 110;
   --z-nav-sheet: 120;
 
-  /* Named layout tiers: tablet begins at the common 768px breakpoint; the
-     full inline navigation waits until 1536px so intermediate screens keep a
-     deliberately compact menu instead of squeezing all links together. */
+  /* Named layout tiers: tablet begins at 768px; inline navigation begins at
+     1344px so compact laptop viewports do not spend an unnecessary tier in
+     the oversized drawer layout. */
   --breakpoint-tablet: 48rem;
   --breakpoint-desktop: 64rem;
-  --breakpoint-wide-nav: 96rem;
+  --breakpoint-wide-nav: 84rem;
 
   /* ---- Motion (DESIGN.md §4) ----------------------------------------------
    * --ease-* is a recognised Tailwind v4 namespace and generates
@@ -281,13 +281,13 @@
     --site-gutter: clamp(2rem, 5vw, 3.5rem);
     --section-space: clamp(5rem, 9vw, 7rem);
     --section-space-large: clamp(5.75rem, 9vw, 7.5rem);
-    --type-display: clamp(3.25rem, 7vw, 5rem);
-    --type-heading: clamp(3rem, 6vw, 4rem);
+    --type-display: clamp(2.75rem, 5vw, 4rem);
+    --type-heading: clamp(2.5rem, 4.5vw, 3.5rem);
     --type-subheading: clamp(2.1rem, 4.5vw, 2.75rem);
     --type-body-lg: 1.125rem;
     --type-body: 1rem;
     --type-small: 0.875rem;
-    --header-height: 5.5rem;
+    --header-height: 4.75rem;
   }
 }
 
@@ -296,17 +296,17 @@
     --site-gutter: clamp(3rem, 6vw, 6rem);
     --section-space: clamp(6rem, 8vw, 8rem);
     --section-space-large: clamp(7rem, 8vw, 10rem);
-    --type-display: clamp(4rem, 5.2vw, 6rem);
-    --type-heading: clamp(3.5rem, 4.5vw, 4.75rem);
+    --type-display: clamp(3.25rem, 4.4vw, 5rem);
+    --type-heading: clamp(2.75rem, 3.7vw, 4.25rem);
     --type-subheading: clamp(2.5rem, 3.4vw, 3.5rem);
-    --header-height: 6rem;
+    --header-height: 5.25rem;
   }
 }
 
-@media (min-width: 96rem) {
+@media (min-width: 84rem) {
   :root {
-    /* Keep the integrated full-width header lockup intact on ultrawide screens. */
-    --header-height: max(7.25rem, 6vw);
+    /* A fluid cap preserves the integrated logo art without an oversized bar. */
+    --header-height: clamp(5.25rem, 5vw, 6rem);
   }
 }
 
@@ -370,6 +370,41 @@ body {
   background: var(--surface-page);
   color: var(--text-primary);
   font-family: var(--font-sans);
+}
+
+@media (min-width: 84rem) and (min-height: 42rem) and (prefers-reduced-motion: no-preference) {
+  .ar-approach-progress-rail {
+    display: block;
+  }
+}
+
+/* Keep the hero balanced on short laptop screens and zoomed browser viewports.
+   CSS viewport dimensions, rather than physical display size, drive the layout. */
+@media (max-height: 46rem) {
+  .ar-home-hero-content {
+    padding-block-start: calc(var(--header-height) + 0.75rem);
+    padding-block-end: 2rem;
+  }
+
+  .ar-home-hero-content > div:first-child {
+    padding-block: 0.5rem;
+  }
+
+  .ar-home-hero-title {
+    font-size: clamp(2rem, 5.4vw, 3rem);
+  }
+
+  .ar-home-hero-eyebrow {
+    margin-block-end: 0.75rem;
+  }
+
+  .ar-home-hero-copy {
+    margin-block-start: 1rem;
+  }
+
+  .ar-home-hero-cta {
+    margin-block-start: 1.25rem;
+  }
 }
 
 h1,

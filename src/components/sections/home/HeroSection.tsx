@@ -36,14 +36,14 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
     <>
       <section
         data-tone="navy"
-        className="relative isolate flex min-h-[100svh] w-full overflow-hidden bg-[#061329] text-white lg:h-[100vh] lg:min-h-0 supports-[height:100svh]:lg:h-[100svh]"
+        className="ar-home-hero relative isolate flex min-h-[100svh] w-full overflow-hidden bg-[#061329] text-white lg:h-[100vh] lg:min-h-0 supports-[height:100svh]:lg:h-[100svh]"
       >
         <HeroMedia sideWords={content.sideWords} />
-        <div className="relative z-[2] mx-auto flex min-h-[100svh] w-full max-w-[1540px] flex-col justify-center px-[clamp(1.25rem,5vw,5.5rem)] pb-20 pt-[7.25rem] sm:pb-24 sm:pt-[8rem] lg:h-full lg:min-h-0 lg:pb-28 lg:pt-[9rem]">
-          <div className="flex w-full flex-1 items-center py-5 sm:py-8 lg:py-12">
+        <div className="ar-home-hero-content relative z-[2] mx-auto flex min-h-[100svh] w-full max-w-[1540px] flex-col justify-center px-[clamp(1.25rem,5vw,5.5rem)] pb-12 pt-[6.25rem] sm:pb-16 sm:pt-[7rem] lg:h-full lg:min-h-0 lg:pb-20 lg:pt-[calc(var(--header-height)+2.5rem)]">
+          <div className="flex w-full flex-1 items-center py-4 sm:py-6 lg:py-8">
             <div className="w-full max-w-[820px] text-left">
               <p
-                className="ar-fade-rise mb-3.5 text-[10px] font-semibold tracking-[0.22em] text-[var(--gold-300)] sm:mb-5 sm:text-[11px] lg:mb-6 lg:text-xs"
+                className="ar-home-hero-eyebrow ar-fade-rise mb-3.5 text-[10px] font-semibold tracking-[0.22em] text-[var(--gold-300)] sm:mb-5 sm:text-[11px] lg:mb-6 lg:text-xs"
                 style={{ animationDelay: '260ms' }}
               >
                 {content.eyebrow}
@@ -51,7 +51,8 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
 
               <h1
                 aria-label={content.headline}
-                className="max-w-[19ch] font-display text-[clamp(2.35rem,9.5vw,3.45rem)] font-medium leading-[0.96] tracking-[-0.035em] drop-shadow-[0_3px_28px_rgba(0,0,0,0.32)] sm:text-[clamp(3.1rem,7vw,5.25rem)] lg:text-[clamp(3.5rem,5.5vw,5.75rem)]"
+                data-home-hero-title
+                className="ar-home-hero-title max-w-[19ch] font-display text-[clamp(1.95rem,6.8vw,2.85rem)] font-medium leading-[0.96] tracking-[-0.035em] drop-shadow-[0_3px_28px_rgba(0,0,0,0.32)] sm:text-[clamp(2.55rem,5.6vw,3.65rem)] lg:text-[clamp(3rem,4.3vw,5rem)]"
               >
                 {lines.map((line, index) => (
                   <span key={line} className="block overflow-hidden pb-[0.09em]">
@@ -66,7 +67,7 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
               </h1>
 
               <p
-                className="ar-fade-rise mt-4 max-w-[58ch] text-[0.9rem] leading-[1.55] text-white/85 drop-shadow-[0_2px_16px_rgba(0,0,0,0.38)] sm:mt-5 sm:text-[0.98rem] sm:leading-[1.65] lg:mt-7 lg:text-[clamp(0.95rem,1.05vw,1.08rem)] lg:leading-[1.7]"
+                className="ar-home-hero-copy ar-fade-rise mt-4 max-w-[58ch] text-[0.9rem] leading-[1.55] text-white/85 drop-shadow-[0_2px_16px_rgba(0,0,0,0.38)] sm:mt-5 sm:text-[0.98rem] sm:leading-[1.65] lg:mt-6 lg:text-[clamp(0.95rem,1.05vw,1.08rem)] lg:leading-[1.65]"
                 style={{ animationDelay: `${HERO_SUPPORT_DELAY_MS}ms` }}
               >
                 {content.subheadline}
@@ -74,7 +75,7 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
 
               <p
                 aria-label={content.tagline.join(' ')}
-                className="ar-fade-rise mt-3 flex max-w-[52ch] flex-wrap gap-x-1.5 text-[0.78rem] font-semibold tracking-[0.04em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-[0.85rem] lg:mt-5 lg:text-[0.92rem]"
+                className="ar-fade-rise mt-3 flex max-w-[52ch] flex-wrap gap-x-1.5 text-[0.78rem] font-semibold tracking-[0.04em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-[0.85rem] lg:mt-4 lg:text-[0.92rem]"
                 style={{ animationDelay: `${HERO_SUPPORT_DELAY_MS + 120}ms` }}
               >
                 {content.tagline.map((clause, index) => (
@@ -85,7 +86,7 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
               </p>
 
               <div
-                className="ar-fade-rise mt-5 flex w-full max-w-[22rem] flex-col items-stretch justify-start gap-2.5 sm:mt-7 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-start sm:gap-3 lg:mt-8"
+                className="ar-home-hero-cta ar-fade-rise mt-5 flex w-full max-w-[22rem] flex-col items-stretch justify-start gap-2.5 sm:mt-6 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-start sm:gap-3 lg:mt-7"
                 style={{ animationDelay: `${HERO_CTA_DELAY_MS}ms` }}
               >
                 <Button

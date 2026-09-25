@@ -143,15 +143,20 @@ export interface PillarsContent {
   closingLine: string;
 }
 
-/**
- * One revenue-gap question in the "Our Revenue Impact" grid. `icon` is a
- * literal glyph character (not an icon-library key, unlike `PillarIcon`)
- * because the client's brief specified these exact characters directly;
- * the component renders it in a small bordered container rather than
- * mapping it to a library icon.
- */
+/** Semantic icon key for a revenue-gap question in the impact grid. */
+export type IndustryIcon =
+  | 'leads'
+  | 'sales-capacity'
+  | 'customer-service'
+  | 'follow-up'
+  | 'operations'
+  | 'retention'
+  | 'scale'
+  | 'receivables'
+  | 'growth';
+
 export interface IndustryQuestion {
-  icon: string;
+  icon: IndustryIcon;
   question: string;
   answer: string;
 }
@@ -283,53 +288,48 @@ export const home: HomeContent = {
     intro:
       'AscendRev supports all industries that keep Canada moving with tailored operational functions built for efficiency, scale, and measurable growth.',
     subheading: 'Revenue Gaps and Solution Framework.',
-    // Client copy revision, 2026-09-24, verbatim. Two items are kept exactly
-    // as written though they read oddly and are flagged in the delivery
-    // report rather than corrected: item 8's icon is the two-character
-    // "$✓" glyph as given, and item 9's question ("Unheard 30%-50% growth
-    // potential?") and answer both read as if a word is missing or
-    // mis-parallel ("...follow up more consistently and broader market
-    // coverage").
+    // Client copy revision, 2026-09-24, verbatim. Icon keys are semantic and
+    // mapped to the shared Phosphor family by IndustriesSection.
     items: [
-      { icon: '🎯', question: 'Insufficient leads?', answer: 'We build the pipeline behind you.' },
+      { icon: 'leads', question: 'Insufficient leads?', answer: 'We build the pipeline behind you.' },
       {
-        icon: '⚡',
+        icon: 'sales-capacity',
         question: 'More leads than your team can follow up?',
         answer: 'We add sales development capacity.',
       },
       {
-        icon: '◉',
+        icon: 'customer-service',
         question: 'Customer inquiries piling up?',
         answer: 'We extend your customer-service capacity.',
       },
       {
-        icon: '↗',
+        icon: 'follow-up',
         question: 'Quotes and opportunities going cold?',
         answer: 'We build the follow-up engine.',
       },
       {
-        icon: '⚙',
+        icon: 'operations',
         question: 'Too much administrative work?',
         answer: "We take the repetitive work off your team's plate.",
       },
       {
-        icon: '♢',
+        icon: 'retention',
         question: 'Existing customers going untouched?',
         answer: 'We reactivate, re-engage, keep, and identify cross-sell opportunities.',
       },
       {
-        icon: '⊕',
+        icon: 'scale',
         question: 'Need to scale without adding every function in-house?',
         answer: 'We build a dedicated team around the gap.',
       },
       {
-        icon: '$✓',
+        icon: 'receivables',
         question: 'Cash sitting on receivables?',
         answer:
           'We maintain consistent contact with customers and keep outstanding balances moving toward resolution.',
       },
       {
-        icon: '◈',
+        icon: 'growth',
         question: 'Unheard 30%-50% growth potential?',
         answer:
           'We add a dedicated sales, customer and operational capacity needed to pursue more opportunities, follow up more consistently and broader market coverage.',

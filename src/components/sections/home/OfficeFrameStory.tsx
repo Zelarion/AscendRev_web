@@ -284,33 +284,27 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
   useGSAP(
     () => {
       const gallery = rootRef.current?.querySelector<HTMLElement>('[data-facilities-gallery]');
-      const track = gallery?.querySelector<HTMLElement>('[data-facilities-track]');
-      if (!gallery || !track) return;
+      const cards = gallery?.querySelectorAll<HTMLElement>('[data-facility-card]');
+      if (!gallery || !cards?.length || prefersReducedMotion()) return;
 
-      const media = gsap.matchMedia();
-      media.add('(min-width: 1440px) and (prefers-reduced-motion: no-preference)', () => {
-        const distance = () => Math.max(0, track.scrollWidth - gallery.clientWidth);
-        if (distance() <= 0) return;
-
-        registerMotion();
-        gallery.classList.add(styles.scrollDriven);
-        gsap.to(track, {
-          x: () => -distance(),
-          ease: 'none',
-          scrollTrigger: {
-            trigger: gallery,
-            start: 'top top',
-            end: () => `+=${distance()}`,
-            pin: true,
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
-        });
-
-        return () => gallery.classList.remove(styles.scrollDriven);
+      registerMotion();
+      gsap.set(cards, { autoAlpha: 0, y: 18 });
+      const revealTriggers = ScrollTrigger.batch(cards, {
+        start: 'top 88%',
+        once: true,
+        onEnter: (visibleCards) => {
+          gsap.to(visibleCards, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.42,
+            stagger: 0.055,
+            ease: 'power2.out',
+            overwrite: true,
+          });
+        },
       });
 
-      return () => media.revert();
+      return () => revealTriggers.forEach((trigger) => trigger.kill());
     },
     { scope: rootRef, dependencies: [stages] },
   );
@@ -355,10 +349,10 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
       </div>
 
       <div className={styles.facilitiesGallery} data-facilities-gallery aria-label="AscendRev facilities photo gallery">
-        <div className={styles.galleryViewport} tabIndex={0} aria-label="Scroll through facility photos">
+        <div className={styles.galleryViewport}>
           <div className={styles.galleryTrack} data-facilities-track>
             {FACILITIES.map((facility, index) => (
-              <figure className={styles.facilityCard} key={facility.label}>
+              <figure className={styles.facilityCard} data-facility-card key={facility.label}>
                 <div className={styles.facilityImage}>
                   <Image
                     src={facility.src}

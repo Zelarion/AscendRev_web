@@ -38,9 +38,9 @@ const STAGE_COLORS = [
 ] as const;
 
 /**
- * Scroll-linked brand sequence. It stays a readable vertical stack on phones,
- * tablets, compact widths and short displays; larger desktop viewports get a
- * single pinned horizontal pass.
+ * Scroll-linked brand sequence. It stays a readable vertical stack on phones
+ * and very short displays; tablets, laptops and desktops get a
+ * single pinned horizontal pass driven by normal vertical page scrolling.
  */
 export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Element {
   const sectionRef = useRef<HTMLElement>(null);
@@ -54,7 +54,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
 
       const responsiveMotion = gsap.matchMedia();
       responsiveMotion.add(
-        '(min-width: 84rem) and (min-height: 42rem) and (prefers-reduced-motion: no-preference)',
+        '(min-width: 42rem) and (min-height: 34rem) and (prefers-reduced-motion: no-preference)',
         () => {
           registerMotion();
           const panels = gsap.utils.toArray<HTMLElement>('[data-approach-panel]', section);
@@ -140,21 +140,21 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
               index === 1 ? 'bg-[var(--surface-band-raised)]' : 'bg-[var(--surface-page)]'
             }`}
           >
-            <div className="mx-auto grid w-full max-w-[1540px] items-center gap-4 sm:gap-5 md:grid-cols-[0.95fr_1.05fr] md:gap-8 lg:gap-20">
+            <div className="mx-auto grid w-full max-w-[1540px] items-center gap-3 sm:gap-5 min-[42rem]:grid-cols-[0.9fr_1.1fr] min-[42rem]:gap-4 lg:gap-12 xl:gap-20">
               <div data-approach-copy className="relative z-10 max-w-[690px]">
                 <p className="font-mono text-xs font-medium tracking-[0.2em] text-[var(--gold-text)]">
                   {String(index + 1).padStart(2, '0')} <span aria-hidden="true">/</span> 03
                 </p>
-                <h2 className={`mt-3 max-w-[11ch] font-display text-[clamp(1.9rem,6vw,2.8rem)] font-medium leading-[0.94] tracking-[-0.045em] md:mt-4 md:text-[clamp(2.25rem,4vw,3.5rem)] xl:mt-5 xl:text-[clamp(3rem,4.2vw,5rem)] xl:leading-[0.91] ${STAGE_COLORS[index]}`}>
+                <h2 className={`mt-2 max-w-[11ch] font-display text-[clamp(1.8rem,6vw,2.8rem)] font-medium leading-[0.94] tracking-[-0.045em] sm:mt-3 min-[42rem]:text-[clamp(1.85rem,3.1vw,3.25rem)] xl:mt-5 xl:text-[clamp(3rem,4.2vw,5rem)] xl:leading-[0.91] ${STAGE_COLORS[index]}`}>
                   {stages[index]}
                 </h2>
-                <div className="mt-5 h-px w-20 bg-[var(--gold-text)] sm:mt-7 lg:mt-10" />
-                <p className="mt-4 max-w-full whitespace-nowrap text-[clamp(0.56rem,1.5vw,1rem)] font-medium uppercase tracking-[0.03em] text-[var(--text-muted)] sm:mt-5">
+                <div className="mt-3 h-px w-20 bg-[var(--gold-text)] sm:mt-5 lg:mt-8" />
+                <p className="mt-3 max-w-full text-[clamp(0.56rem,1.5vw,1rem)] font-medium uppercase tracking-[0.03em] text-[var(--text-muted)] sm:mt-4">
                   ASCENDREV <span className="text-[var(--steel-600)]">·</span> PEOPLE · PROCESS · PERFORMANCE
                 </p>
               </div>
 
-              <figure className="relative mx-auto w-full max-w-[560px] md:w-full md:justify-self-end lg:max-w-[440px] lg:w-[min(40vw,440px)]">
+              <figure className="relative mx-auto w-full max-w-[560px] min-[42rem]:max-w-none min-[42rem]:justify-self-end lg:w-full">
                 <div
                   data-approach-art
                   aria-hidden="true"
@@ -181,7 +181,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
                   />
                 </div>
 
-                <div className="relative aspect-[16/10] overflow-hidden rounded-[8px] border border-[var(--line-strong)] bg-[var(--surface-band-raised)] shadow-[0_24px_64px_rgba(15,27,51,0.12)] lg:aspect-[4/5]">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-[8px] border border-[var(--line-strong)] bg-[var(--surface-band-raised)] shadow-[0_24px_64px_rgba(15,27,51,0.12)]">
                   <Image
                     src={story.image}
                     alt={story.alt}

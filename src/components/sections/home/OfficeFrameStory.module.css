@@ -78,9 +78,9 @@
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    rgba(4, 14, 31, 0.42) 0%,
-    rgba(4, 14, 31, 0.24) 30%,
-    rgba(4, 14, 31, 0.08) 57%,
+    rgba(4, 14, 31, 0.17) 0%,
+    rgba(4, 14, 31, 0.09) 30%,
+    rgba(4, 14, 31, 0.025) 57%,
     transparent 76%
   );
 }
@@ -163,40 +163,25 @@
   --gallery-gutter: clamp(1.25rem, 6.2vw, 7.5rem);
   position: relative;
   width: 100%;
-  overflow: hidden;
+  overflow: clip;
   padding-block: clamp(3.5rem, 7vw, 7rem) clamp(4rem, 8vw, 8rem);
   background: #f3f6f8;
 }
 
 .galleryViewport {
-  width: 100%;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
-}
-
-.scrollDriven .galleryViewport {
-  overflow: hidden;
-  scroll-snap-type: none;
+  width: min(100% - 2 * var(--gallery-gutter), 1320px);
+  margin-inline: auto;
 }
 
 .galleryTrack {
-  display: flex;
-  width: max-content;
-  gap: clamp(1rem, 2vw, 1.7rem);
-  padding-inline: max(var(--gallery-gutter), calc((100vw - 1320px) / 2));
-}
-
-.scrollDriven .galleryTrack {
-  will-change: transform;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.25rem, 2.2vw, 2rem);
 }
 
 .facilityCard {
-  flex: 0 0 clamp(18rem, 23vw, 25rem);
+  min-width: 0;
   margin: 0;
-  scroll-snap-align: start;
 }
 
 .facilityImage {
@@ -339,16 +324,9 @@
     padding-block: 3.5rem;
   }
 
-  .galleryViewport {
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
-  }
-
-  .facilityCard {
-    flex-basis: clamp(19rem, 38vw, 25rem);
-    scroll-snap-align: start;
+  .galleryTrack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
   }
 
   .chapter,
@@ -380,16 +358,6 @@
 
   .stage {
     min-height: 30rem;
-  }
-
-  .scrim {
-    background: linear-gradient(
-      90deg,
-      rgba(4, 14, 31, 0.48) 0%,
-      rgba(4, 14, 31, 0.22) 48%,
-      rgba(4, 14, 31, 0.06) 76%,
-      transparent 100%
-    );
   }
 
   .copyRail {
@@ -426,26 +394,16 @@
   }
 
   .galleryViewport {
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
-    -webkit-overflow-scrolling: touch;
+    width: min(100% - 2 * var(--gallery-gutter), 34rem);
   }
 
   .galleryTrack {
-    gap: 0.85rem;
-    padding-inline: var(--gallery-gutter);
-    will-change: auto;
-  }
-
-  .facilityCard {
-    flex-basis: 82vw;
-    scroll-snap-align: start;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
   }
 
   .facilityCard figcaption {
-    font-size: 0.88rem;
+    font-size: 1rem;
   }
 }
 
@@ -479,5 +437,11 @@
 
   .facilityPhoto {
     transition: none;
+  }
+
+  .facilityCard {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

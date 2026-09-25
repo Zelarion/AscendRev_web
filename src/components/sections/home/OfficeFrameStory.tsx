@@ -25,7 +25,7 @@ const FACILITIES = [
   { label: 'Break / Coffee Area', src: '/images/new1.jpg', alt: 'Shared cafeteria and break area.' },
   { label: 'Boardroom', src: '/images/office3.jpg', alt: 'Boardroom meeting space with a conference table and seating.' },
   { label: 'Staff Parking', src: '/images/parking1.jpg', alt: 'Covered staff parking with vehicles.' },
-  { label: 'Guards on Duty', src: '/images/guards-on-duty-privacy.webp', alt: 'A uniformed security guard monitoring the parking entrance.' },
+  { label: 'Guards on Duty', src: '/images/guards-on-duty-cropped.webp', alt: 'A uniformed security guard monitoring the parking entrance.' },
   { label: 'Elevator', src: '/images/elev.jpg', alt: 'Elevator in the AscendRev building.' },
   { label: 'Lobby', src: '/images/lobby1.jpg', alt: 'Reception and lobby seating area.' },
   { label: 'Stairs', src: '/images/staircase1.jpg', alt: 'Interior staircase connecting the building floors.' },
@@ -232,12 +232,12 @@ export default function OfficeFrameStory(): JSX.Element {
       <div className={styles.intro}>
         <h2 id="office-story-title" tabIndex={-1}>Our Facilities in Action</h2>
         <a className={styles.viewAllButton} href="#all-facilities-grid" onClick={openAllFacilities} aria-controls="all-facilities-grid" aria-expanded={showAllFacilities}>
-          View all facilities <span aria-hidden="true">→</span>
+          Facilities Gallery <span aria-hidden="true">→</span>
         </a>
       </div>
 
       <div id="all-facilities-grid" className={`${styles.facilitiesGallery} ${showAllFacilities ? styles.allFacilitiesMode : ''}`} data-facilities-gallery role="region" aria-label="AscendRev facilities photo gallery" tabIndex={-1}>
-        {showAllFacilities && <h3 className={styles.galleryTitle} id="all-facilities-title" tabIndex={-1}>All AscendRev facilities</h3>}
+        {showAllFacilities && <h3 className={styles.galleryTitle} id="all-facilities-title" tabIndex={-1}>Facilities Gallery</h3>}
         <div className={styles.galleryViewport} data-facilities-viewport>
           <div className={styles.galleryTrack} data-facilities-track>
             {FACILITIES.map((facility, index) => (

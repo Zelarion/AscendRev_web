@@ -42,8 +42,6 @@ export interface TeamCapabilityContent {
 export interface ScreeningContent {
   heading: string;
   items: readonly IconLabelItem[];
-  /** Closing line under the steps. */
-  cta: Cta;
 }
 
 export interface HiringStandardContent {
@@ -59,6 +57,7 @@ export interface SolutionsContent {
   screening: ScreeningContent;
   closing: {
     heading: string;
+    cta: Cta;
   };
 }
 
@@ -134,11 +133,10 @@ export const solutions: SolutionsContent = {
       { id: 'client-partner-final-interview', glyph: '◉◆', label: 'Client / Partner Final Interview' },
       { id: 'background-check-clearance', glyph: '⛨✓', label: 'Background Check & Clearance' },
     ],
-    // Carried over from the old combined block, unchanged.
-    cta: { label: 'Request Outsourcing Blueprint', href: '/contact' },
   },
 
   closing: {
     heading: 'Unsure which ones are a good fit',
+    cta: { label: 'Request Outsourcing Blueprint', href: '/contact' },
   },
 };

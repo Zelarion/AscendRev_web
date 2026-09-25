@@ -1,8 +1,6 @@
 import type { JSX } from 'react';
-import Button from '@/components/ui/Button';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
-import Reveal from '@/components/ui/Reveal';
 import Stagger from '@/components/ui/Stagger';
 import { solutions } from '@/content/solutions';
 import GlyphIcon, { GLYPH_ACCENT_CYCLE } from './GlyphIcon';
@@ -15,11 +13,10 @@ import GlyphIcon, { GLYPH_ACCENT_CYCLE } from './GlyphIcon';
  * gives this its own heading and its own six icon-plus-label steps, the same
  * subtle line-icon-in-geometric-container treatment as the nine-service grid.
  *
- * The CTA remains at the end of the hiring/screening flow, directly above
- * the closing band.
+ * The blueprint CTA now sits beneath the solutions closing headline.
  */
 export default function Screening(): JSX.Element {
-  const { heading, items, cta } = solutions.screening;
+  const { heading, items } = solutions.screening;
 
   return (
     <Section>
@@ -41,15 +38,6 @@ export default function Screening(): JSX.Element {
           ))}
         </Stagger>
 
-        <Reveal className="mt-10 flex flex-col gap-6 border-t border-[var(--border)] pt-7 sm:mt-14 sm:gap-8 sm:pt-9 md:flex-row md:items-center md:justify-between md:gap-12">
-          <Button
-            href={cta.href}
-            size="lg"
-            className="self-start border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] text-[var(--gold-ink)] shadow-[0_8px_22px_rgba(197,151,49,0.2)] transition-[transform,box-shadow,filter] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_12px_28px_rgba(197,151,49,0.28)] active:translate-y-0 md:self-auto"
-          >
-            {cta.label}
-          </Button>
-        </Reveal>
       </Container>
     </Section>
   );

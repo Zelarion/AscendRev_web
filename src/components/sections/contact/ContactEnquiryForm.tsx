@@ -301,9 +301,11 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
             <TextField
               id={fieldId('bestNumberToCall')}
               label={content.fields.bestNumberToCall.label}
+              helper={content.fields.bestNumberToCall.helper}
+              helperId={helperId('bestNumberToCall')}
               error={errors.bestNumberToCall?.message}
               errorId={errorId('bestNumberToCall')}
-              describedBy={describedBy('bestNumberToCall')}
+              describedBy={describedBy('bestNumberToCall', [helperId('bestNumberToCall')])}
               registration={register('bestNumberToCall')}
               type="tel"
               autoComplete="tel"

@@ -6,7 +6,6 @@ import {
   IndustriesSection,
   PillarsSection,
 } from '@/components/sections/home';
-import ApproachStory from '@/components/sections/home/ApproachStory';
 import OfficeFrameStory from '@/components/sections/home/OfficeFrameStory';
 import SectionCraftStyles from '@/components/sections/shared/SectionCraftStyles';
 import { home } from '@/content/home';
@@ -24,9 +23,7 @@ export default function HomePage() {
     <>
       <SectionCraftStyles />
       <HeroSection content={home.hero} />
-      <span id="approach-story" className="block h-px scroll-mt-24" aria-hidden="true" />
-      <ApproachStory stages={home.approachStages} />
-      <OfficeFrameStory stages={home.officeStages} />
+      <OfficeFrameStory />
       <PillarsSection content={home.pillars} />
       <IndustriesSection content={home.industries} />
       <CareerStatsSection />

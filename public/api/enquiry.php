@@ -147,6 +147,10 @@ const FORBIDDEN_NAME_CHARACTERS = '0123456789@<>{}[]\\/|_=+*#$%^~`';
 
 /** Characters a phone number may contain. Mirrors PHONE_CHARACTERS_PATTERN in src/lib/enquirySchema.ts. */
 const PHONE_ALLOWED_PATTERN = '/^[0-9 ()+.-]+$/';
+const PHONE_REQUIRED_MESSAGE = 'Enter the best number to call so we can reach you directly.';
+const PHONE_TOO_LONG_MESSAGE = 'That is longer than 32 characters. Check it for a paste that went wrong.';
+const PHONE_CHARACTERS_MESSAGE = 'A phone number can only contain digits, spaces, and + ( ) - . Remove any letters or other characters.';
+const PHONE_DIGIT_COUNT_MESSAGE = 'Enter exactly 10 digits. Phone numbers with fewer or more digits cannot be accepted.';
 
 /** The complete set of accepted field names. Anything else is rejected. */
 const ALLOWED_FIELDS = [
@@ -349,14 +353,23 @@ function nameIsValid(string $value): bool
     return true;
 }
 
-/** 7 to 32 characters, digits/spaces/+()-. only. Mirrors the zod check exactly,
- *  including the order: too short is checked before the character set. */
-function phoneIsValid(string $value): bool
+/** Returns the same field message as the zod schema, or null when valid. */
+function phoneValidationMessage(string $value): ?string
 {
-    if (mb_strlen($value) < 7 || mb_strlen($value) > 32) {
-        return false;
+    if ($value === '') {
+        return PHONE_REQUIRED_MESSAGE;
     }
-    return preg_match(PHONE_ALLOWED_PATTERN, $value) === 1;
+    if (mb_strlen($value) > 32) {
+        return PHONE_TOO_LONG_MESSAGE;
+    }
+    if (preg_match(PHONE_ALLOWED_PATTERN, $value) !== 1) {
+        return PHONE_CHARACTERS_MESSAGE;
+    }
+    $digits = preg_replace('/[^0-9]/', '', $value);
+    if (!is_string($digits) || strlen($digits) !== 10) {
+        return PHONE_DIGIT_COUNT_MESSAGE;
+    }
+    return null;
 }
 
 $errors = [];
@@ -397,7 +410,8 @@ if ($entityName === '' || mb_strlen($entityName) > 240) {
 }
 
 $bestNumberToCall = field('bestNumberToCall');
-if (!phoneIsValid($bestNumberToCall)) {
+$phoneValidationMessage = phoneValidationMessage($bestNumberToCall);
+if ($phoneValidationMessage !== null) {
     $errors[] = 'bestNumberToCall';
 }
 
@@ -409,7 +423,14 @@ if (mb_strlen($comments) > 200) {
 
 if ($errors !== []) {
     logLine($STORAGE_DIR, 'validation_failed fields=' . implode(',', $errors));
-    respond(422, ['ok' => false, 'error' => 'validation_failed', 'fields' => $errors]);
+    respond(422, [
+        'ok' => false,
+        'error' => 'validation_failed',
+        'fields' => $errors,
+        'messages' => $phoneValidationMessage === null
+            ? []
+            : ['bestNumberToCall' => $phoneValidationMessage],
+    ]);
 }
 
 /* ---------------------------------------------------------------------------

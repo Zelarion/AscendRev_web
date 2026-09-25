@@ -108,7 +108,7 @@ export const contact: ContactContent = {
     // En dash, per the client's copy.
     heading: 'What to expect – the 15 minute Blueprint',
     steps: [
-      { title: 'REVENUE GAPS and COST EFFICIENCY DIAGNOSTICS' },
+      { title: 'REVENUE GAPS AND COST EFFICIENCY DIAGNOSTICS' },
       { title: 'DEFINE SCOPE OF WORK AND THE RIGHT DEDICATED TEAM' },
       { title: 'GO LIVE' },
     ],
@@ -127,7 +127,10 @@ export const contact: ContactContent = {
         helper: 'No free domains accepted.',
       },
       entityName: { label: 'Entity name' },
-      bestNumberToCall: { label: 'Best number to call' },
+      bestNumberToCall: {
+        label: 'Best number to call',
+        helper: 'Enter exactly 10 digits. Spaces, +, parentheses, hyphens, and periods are okay.',
+      },
       comments: { label: 'Comments (brief description of help needed)' },
     },
     consent: {

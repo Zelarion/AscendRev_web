@@ -104,14 +104,6 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
                     />
                   </span>
                 </Button>
-                <Button
-                  href={content.secondaryCta.href}
-                  variant="secondary"
-                  size="lg"
-                  className="min-h-11 rounded-[7px] border-white/55 bg-white/5 px-5 text-[13px] font-medium text-white backdrop-blur-sm hover:border-white/85 hover:bg-white/12 sm:min-h-12 sm:px-6 sm:text-sm lg:min-h-13 lg:px-7 lg:text-[15px]"
-                >
-                  {content.secondaryCta.label}
-                </Button>
               </div>
             </div>
           </div>

@@ -187,7 +187,7 @@ export default function LeadershipBlock(): JSX.Element {
               <p className="mt-1 text-sm text-[var(--ink-muted)]">Co-Founder and President</p>
 
               <p className="mt-5 max-w-[46ch] text-[15px] leading-[1.7] text-[var(--ink-muted)]">
-                Commercial experience translated into the systems, scripts, and operating standards deployed by AscendRev.
+                Decades of career experience translated to support People, Process, Performance and Results
               </p>
 
               <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-[var(--border)] pt-5 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-muted)]">

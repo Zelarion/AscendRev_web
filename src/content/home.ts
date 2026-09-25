@@ -87,7 +87,6 @@ export interface HeroContent {
    */
   tagline: readonly [string, string, string];
   primaryCta: Cta;
-  secondaryCta: Cta;
   trustLead: string;
   /**
    * One rendered credential line (client copy, 2026-09-24). Kept as a single
@@ -173,8 +172,6 @@ export interface IndustriesContent {
 export interface HomeContent {
   meta: PageMeta;
   hero: HeroContent;
-  approachStages: readonly [string, string, string];
-  officeStages: readonly [string, string, string];
   trustBand: TrustBandContent;
   pillars: PillarsContent;
   industries: IndustriesContent;
@@ -203,10 +200,6 @@ export const home: HomeContent = {
       "Backed by Founder's career track record of CAD1B+ in generated sales revenue, we provide fully managed front- and back-office teams that scale your business. We absorb the infrastructure costs, talent shortages, and administrative burdens—so you can focus entirely on growth.",
     tagline: ['Identify the gap.', 'Build the team.', 'Improve the outcome.'],
     primaryCta: { label: 'Build Your Dedicated Team', href: '/contact' },
-    secondaryCta: {
-      label: 'Explore our approach',
-      href: '/#approach-story',
-    },
     trustLead: 'LED BY',
     // Client copy revision, 2026-09-24, verbatim including the hyphen and the
     // pipe separators.
@@ -214,10 +207,6 @@ export const home: HomeContent = {
       "Harvard Certificate in Leadership Excellence - Harvard Business Impact Enterprise | Lean Six Sigma Certified | 100M Dollar Club Recognition | 2X President's Club Award",
     sideWords: ['PEOPLE', 'PROCESS', 'PERFORMANCE'],
   },
-
-  approachStages: ['Uncover the growth constraints.', 'Design around the work.', 'Measure what moves.'] as const,
-
-  officeStages: ['Decide what matters.', 'Connect people to the plan.', 'Give good work room to grow.'] as const,
 
   trustBand: {
     // The source brief's trust banner read "Led by Harvard Business Impact

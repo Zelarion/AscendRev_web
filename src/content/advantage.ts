@@ -131,7 +131,7 @@ export const advantage: AdvantageContent = {
   hero: {
     // Client revision, 2026-09-24: title and strapline verbatim, no full stop after "Impact".
     headline: 'The AscendRev Difference',
-    subheadline: 'Right Talent. Purpose-Built Teams. Disciplined Execution. Measurable Impact',
+    subheadline: 'Right Talent. Purposely-Built Teams. Disciplined Execution. Measurable Impact',
   },
 
   leadership: {

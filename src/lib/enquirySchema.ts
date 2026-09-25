@@ -152,8 +152,8 @@ const MESSAGES = {
     'That is longer than 240 characters. Check it for a paste that went wrong.',
   bestNumberToCallRequired:
     'Enter the best number to call so we can reach you directly.',
-  bestNumberToCallTooShort:
-    'That is too short to be a real phone number. Include the area code.',
+  bestNumberToCallDigitCount:
+    'Enter exactly 10 digits. Phone numbers with fewer or more digits cannot be accepted.',
   bestNumberToCallTooLong:
     'That is longer than 32 characters. Check it for a paste that went wrong.',
   bestNumberToCallCharacters:
@@ -207,7 +207,7 @@ export const enquirySchema = z
     /**
      * Length and character-set checks run inside one `superRefine` rather
      * than a chain of `.min()`/`.max()`/`.regex()` calls, so an empty value
-     * gets the "required" message instead of the "too short" one — the two
+     * gets the "required" message instead of the digit-count message — the two
      * are wrong for different reasons and a visitor should not have to guess
      * which applies.
      */
@@ -222,17 +222,18 @@ export const enquirySchema = z
           });
           return;
         }
-        if (value.length < 7) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: MESSAGES.bestNumberToCallTooShort,
-          });
-          return;
-        }
         if (!PHONE_CHARACTERS_PATTERN.test(value)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: MESSAGES.bestNumberToCallCharacters,
+          });
+          return;
+        }
+        const digitCount = value.replace(/[^0-9]/g, '').length;
+        if (digitCount !== 10) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: MESSAGES.bestNumberToCallDigitCount,
           });
         }
       }),

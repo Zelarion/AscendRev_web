@@ -117,7 +117,9 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
                     <span className="text-xs font-semibold tracking-[0.18em] text-[var(--gold-text)]">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <span className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">Financial Advantage</span>
+                    <span className="min-w-0 max-w-[72%] text-right text-[0.68rem] uppercase leading-[1.35] tracking-[0.1em] text-[var(--text-muted)] [overflow-wrap:anywhere] sm:max-w-none sm:text-xs sm:leading-normal sm:tracking-[0.16em]">
+                      Outsource/Offshore Advantage
+                    </span>
                   </div>
 
                   <p className="mt-6 font-display text-[clamp(2.65rem,10vw,4.4rem)] font-medium leading-[0.94] tracking-[-0.045em] text-[var(--navy-900)] md:mt-8 md:text-[clamp(3rem,5vw,4.5rem)] lg:text-[clamp(3.2rem,6vw,7rem)] lg:leading-[0.9]">

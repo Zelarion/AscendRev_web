@@ -73,7 +73,7 @@ export const solutions: SolutionsContent = {
     headline: 'The Core Behind Revenue Acceleration',
     // rather than rewritten on our own judgment.
     subheadline:
-      'Nine functions, staffed by people who do this for a career. Each one comes with a written playbook, a named supervisor and reporting you can read in ten minutes on a Monday.',
+      'Capabilities and scope of expertise with dedicated support team for execution',
   },
 
   services: {

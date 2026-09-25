@@ -27,35 +27,29 @@ export default function Footer(): JSX.Element {
         ASCENDREV
       </div>
 
+      <div className="relative z-10 w-full bg-[#001c41]">
+        <div className="mx-auto flex w-full max-w-[1540px] items-center px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-3 sm:py-4">
+          <Link
+            href="/"
+            aria-label="AscendRev home"
+            className="inline-flex items-center outline-none"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the supplied logo asset self-contained. */}
+            <img
+              src="/new-logo.png"
+              alt="AscendRev"
+              width={2048}
+              height={682}
+              className="h-[58px] w-auto object-contain sm:h-[68px] lg:h-[78px]"
+            />
+          </Link>
+        </div>
+      </div>
+
       <div className="relative z-10 mx-auto w-full max-w-[1540px] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-9 sm:py-14 lg:py-20">
         <div className="grid gap-8 border-b border-[var(--border)] pb-8 sm:gap-10 sm:pb-10 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] lg:gap-10 lg:pb-12 xl:gap-14">
           <div className="md:col-span-2 lg:col-span-1">
-            <Link
-              href="/"
-              aria-label="AscendRev home"
-              className="inline-flex items-center outline-none"
-            >
-              <span className="relative isolate inline-flex items-center">
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -inset-x-5 -inset-y-3 -z-10 rounded-full blur-[14px]"
-                  style={{
-                    background:
-                      'radial-gradient(ellipse at center, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.24) 42%, rgba(255,255,255,0.07) 66%, rgba(255,255,255,0) 82%)',
-                  }}
-                />
-                {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the transparent logo asset simple. */}
-                <img
-                  src="/new-logo.png"
-                  alt="AscendRev"
-                  width={220}
-                  height={72}
-                  className="h-[58px] w-auto object-contain sm:h-[68px] lg:h-[78px]"
-                />
-              </span>
-            </Link>
-
-            <div className="mt-6 sm:mt-8">
+            <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
                 Direct Contact
               </p>

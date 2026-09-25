@@ -38,27 +38,20 @@ export default function PageLoader(): JSX.Element | null {
       aria-hidden="true"
       role="presentation"
     >
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-1/2 h-[clamp(7rem,16vw,9rem)] -translate-y-1/2 bg-[#001c41]"
+      />
       <div className="relative z-10 flex h-full w-full items-center justify-center px-6">
-        <span className="loader-brand relative isolate inline-flex items-center justify-center">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -inset-10 -z-10 rounded-full"
-            style={{
-              background:
-                'radial-gradient(ellipse 54% 58% at 50% 50%, rgba(255,255,255,.72) 0%, rgba(255,255,255,.38) 35%, rgba(255,255,255,.12) 60%, rgba(255,255,255,0) 82%)',
-              mixBlendMode: 'screen',
-            }}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element -- static export
-              keeps this loader asset free of an image-optimizer dependency. */}
-          <img
-            src="/new-logo.png"
-            alt=""
-            width={230}
-            height={77}
-            className="h-auto w-[clamp(12rem,30vw,14.375rem)]"
-          />
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static export
+            keeps this loader asset free of an image-optimizer dependency. */}
+        <img
+          src="/new-logo.png"
+          alt=""
+          width={2048}
+          height={682}
+          className="relative z-10 h-auto w-[clamp(12rem,30vw,14.375rem)]"
+        />
       </div>
 
       <style jsx>{`

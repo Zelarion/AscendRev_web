@@ -255,7 +255,7 @@ export const home: HomeContent = {
         // heading/body replacement.
         icon: 'cost',
         heading: 'Up to 50% cost reduction',
-        body: 'by outsourcing/offshoring, we help organizations increase capacity, improve customer coverage, strengthen sales execution and reduce the operational burden— without the cost and complexity of building every function in-house.',
+        body: 'By outsourcing/offshoring, we help organizations increase capacity, improve customer coverage, strengthen sales execution and reduce the operational burden— without the cost and complexity of building every function in-house.',
       },
       {
         icon: 'record',
@@ -342,7 +342,7 @@ export const home: HomeContent = {
     // brief. "Profit Center" keeps the client's spelling; flagged to the
     // founder as a Canadian-spelling question, not changed unilaterally.
     heading: 'Ready to Turn Operations Into a Profit Center?',
-    body: 'Schedule a 15-minute operational cost analysis with our Canadian founder and leadership team.',
-    cta: { label: 'Schedule Your Growth Briefing', href: '/contact' },
+    body: '',
+    cta: { label: 'Schedule your growth dialogue', href: '/contact' },
   },
 };

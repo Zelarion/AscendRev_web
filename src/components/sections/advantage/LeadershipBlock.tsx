@@ -185,6 +185,9 @@ export default function LeadershipBlock(): JSX.Element {
 
               <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>
               <p className="mt-1 text-sm text-[var(--ink-muted)]">Co-Founder and President</p>
+              <p className="mt-1 text-sm leading-[1.6] text-[var(--ink-muted)]">
+                Previously with AcquireBPO / Acquire Intelligence, Custom Travel Solutions, and American Express Canada.
+              </p>
 
               <p className="mt-5 max-w-[46ch] text-[15px] leading-[1.7] text-[var(--ink-muted)]">
                 Decades of career experience translated to support People, Process, Performance and Results

@@ -4,10 +4,10 @@
  */
 
 export interface PostalAddress {
-  street: string;
+  street?: string;
   city: string;
   region: string;
-  postalCode: string;
+  postalCode?: string;
   country: string;
 }
 
@@ -72,10 +72,8 @@ export interface Site {
 }
 
 const addressParts: PostalAddress = {
-  street: '256 Yorkstone Rise',
   city: 'Calgary',
   region: 'AB',
-  postalCode: 'T2X 5N7',
   country: 'Canada',
 };
 
@@ -95,7 +93,7 @@ export const site: Site = {
   url: 'https://ascend-rev.ca',
   tagline: 'Dedicated Team. Targeted Solutions. Accelerated Revenue.',
   phone: '+1 (403) 903-2912',
-  address: `${addressParts.street}, ${addressParts.city}, ${addressParts.region} ${addressParts.postalCode}, ${addressParts.country}`,
+  address: 'Calgary, AB, Canada',
   addressParts,
   philippinesOfficeAddress: `${philippinesOfficeAddressParts.street}, ${philippinesOfficeAddressParts.city}, ${philippinesOfficeAddressParts.postalCode} ${philippinesOfficeAddressParts.region}, ${philippinesOfficeAddressParts.country}`,
   philippinesOfficeAddressParts,

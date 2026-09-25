@@ -199,7 +199,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
                   {stages[index]}
                 </h2>
                 <div className="mt-5 h-px w-20 bg-[var(--gold-text)] sm:mt-7 lg:mt-10" />
-                <p className="mt-4 max-w-[38ch] text-xs font-medium uppercase tracking-[0.12em] text-[var(--text-muted)] sm:mt-5 sm:text-sm sm:tracking-[0.15em] lg:text-base">
+                <p className="mt-4 max-w-full whitespace-nowrap text-[clamp(0.56rem,1.5vw,1rem)] font-medium uppercase tracking-[0.03em] text-[var(--text-muted)] sm:mt-5">
                   ASCENDREV <span className="text-[var(--steel-600)]">·</span> PEOPLE · PROCESS · PERFORMANCE
                 </p>
               </div>

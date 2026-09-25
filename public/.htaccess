@@ -7,6 +7,24 @@
 # HTTPS enforcement, caching and the custom 404.
 
 # ---------------------------------------------------------------------------
+# Public directory URLs behind Render's TLS proxy
+# ---------------------------------------------------------------------------
+# Apache's mod_dir DirectorySlash redirect derives its scheme and port from
+# the private connection to Render. That can expose the container port (for
+# example :10000) in Location and send visitors to an unreachable URL. When
+# Render tells us the original request used HTTPS, redirect directory paths
+# explicitly using the public Host header before mod_dir can construct one.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:X-Forwarded-Proto} =https [NC]
+  RewriteCond %{HTTP_HOST} ^(?:www\.)?ascend-rev\.ca$ [NC,OR]
+  RewriteCond %{HTTP_HOST} ^(?:ascendrev-web|ascendrev-api)\.onrender\.com$ [NC]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_URI} !/$
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}/ [R=302,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
 # 404
 # ---------------------------------------------------------------------------
 ErrorDocument 404 /404.html

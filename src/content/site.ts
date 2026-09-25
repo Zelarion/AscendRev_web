@@ -45,6 +45,8 @@ export interface Site {
    * optional and skips the icon entirely when it's absent.
    */
   linkedinUrl?: string;
+  /** Optional Facebook page linked from the site footer. */
+  facebookUrl?: string;
   /**
    * The footer's SLA/response-time line (DESIGN.md §2 permits the mono
    * `label` style here). SPEC.md §7 item 7 explicitly bans the client's
@@ -100,6 +102,7 @@ export const site: Site = {
   contactEmail: 'rio.vidal@ascend-rev.ca',
   enquiryEmailSecondary: 'ralph.tomines@ascend-rev.ca',
   linkedinUrl: 'https://www.linkedin.com/in/rio-mendoza-vidal-56900210b/',
+  facebookUrl: 'https://www.facebook.com/profile.php?id=61594055567709',
   slaLine:
     "Founded and Led by Harvard Business Impact Enterprise & Lean Six Sigma Certified | 100M Dollar Club Recognized | 2X President's Club Winner",
 };

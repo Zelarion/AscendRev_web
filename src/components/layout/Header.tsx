@@ -135,32 +135,52 @@ export default function Header(): JSX.Element {
     >
       <div
         className={cn(
-          'ar-nav-shell mx-auto flex h-[var(--header-height)] w-full items-center justify-between border-b border-white/15 bg-[#001c41] px-4 text-white backdrop-blur-[22px] sm:px-6 lg:px-8 xl:px-10',
+          'ar-nav-shell relative isolate mx-auto flex h-[var(--header-height)] w-full items-center justify-between border-b border-white/15 bg-transparent px-4 text-white backdrop-blur-[22px] sm:px-6 lg:px-8 xl:px-10',
           'transition-[background-color,border-color,box-shadow] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
           scrolled
             ? 'shadow-[0_8px_28px_rgba(0,0,0,0.2)]'
             : 'shadow-none'
         )}
       >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[#001c41]"
+        >
+          <picture className="block h-full w-full">
+            <source media="(min-width: 96rem)" srcSet="/images/ascendrev-header-background-desktop.webp" />
+            <source media="(min-width: 48rem)" srcSet="/images/ascendrev-header-background-tablet.webp" />
+            <img
+              src="/images/ascendrev-header-background-mobile.webp"
+              alt=""
+              width={2172}
+              height={724}
+              className="h-full w-full object-cover object-[50%_45%]"
+            />
+          </picture>
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,28,65,0.24)_0%,rgba(0,28,65,0.1)_28%,rgba(0,28,65,0)_55%)]" />
+        </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 -z-10 flex w-[var(--header-brand-space)] max-w-[calc(100vw-5.5rem)] items-center overflow-hidden"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- cropped from the supplied brand banner to preserve its exact lockup proportions. */}
+          <img
+            src="/images/ascendrev-header-brand.webp"
+            alt=""
+            width={950}
+            height={330}
+            className="h-full w-full object-contain object-left"
+          />
+        </div>
         <Link
           href="/"
           aria-label="AscendRev home"
-          className="ar-nav-item inline-flex min-h-11 shrink-0 items-center outline-none"
-          style={{ animationDelay: '90ms' }}
+          className="absolute inset-y-0 left-0 z-20 w-[var(--header-brand-space)] max-w-[calc(100vw-5.5rem)] outline-none"
         >
-          <span className="relative isolate inline-flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the logo self-contained. */}
-            <img
-              src="/new-logo.png"
-              alt="AscendRev"
-              width={2048}
-              height={682}
-              className="h-[var(--header-logo-height)] w-auto object-contain"
-            />
-          </span>
+          <span className="sr-only">AscendRev home</span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-4 wide-nav:flex wide-nav:gap-5">
+        <nav aria-label="Primary" className="hidden items-center gap-4 wide-nav:ml-[var(--header-brand-space)] wide-nav:flex wide-nav:gap-5">
           {navItems.map((item, index) => {
             const active = isActiveRoute(pathname, item.href);
             return (
@@ -193,7 +213,7 @@ export default function Header(): JSX.Element {
           </Link>
         </div>
 
-        <div className="flex items-center gap-1 wide-nav:hidden">
+        <div className="ml-auto flex items-center gap-1 wide-nav:hidden">
           <button
             ref={toggleRef}
             type="button"

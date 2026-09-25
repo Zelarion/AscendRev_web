@@ -210,7 +210,7 @@ export const home: HomeContent = {
     sideWords: ['PEOPLE', 'PROCESS', 'PERFORMANCE'],
   },
 
-  approachStages: ['Find the pressure point.', 'Design around the work.', 'Measure what moves.'] as const,
+  approachStages: ['Uncover the growth constraints.', 'Design around the work.', 'Measure what moves.'] as const,
 
   officeStages: ['Decide what matters.', 'Connect people to the plan.', 'Give good work room to grow.'] as const,
 
@@ -341,7 +341,7 @@ export const home: HomeContent = {
     // Heading and CTA label pinned by SPEC.md §4.1, verbatim from the client's
     // brief. "Profit Center" keeps the client's spelling; flagged to the
     // founder as a Canadian-spelling question, not changed unilaterally.
-    heading: 'Ready to Turn Operations Into a Profit Center?',
+    heading: 'Ready to Accelerate Profit and Revenue?',
     body: '',
     cta: { label: 'Schedule your growth dialogue', href: '/contact' },
   },

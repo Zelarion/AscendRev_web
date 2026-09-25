@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import Link from 'next/link';
 import {
   EnvelopeSimple,
+  FacebookLogo,
   LinkedinLogo,
   MapPin,
   Phone,
@@ -18,7 +19,7 @@ export default function Footer(): JSX.Element {
   return (
     <footer
       data-tone="navy"
-      className="relative isolate z-0 w-full overflow-hidden bg-[var(--surface-band-deep)] text-[var(--navy-900)] lg:sticky lg:bottom-0"
+      className="relative isolate z-0 w-full overflow-hidden bg-white text-[var(--navy-900)] lg:sticky lg:bottom-0"
     >
       <div
         aria-hidden="true"
@@ -27,21 +28,22 @@ export default function Footer(): JSX.Element {
         ASCENDREV
       </div>
 
-      <div className="relative z-10 w-full bg-[#001c41]">
-        <div className="mx-auto flex w-full max-w-[1540px] items-center px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-3 sm:py-4">
+      <div className="relative z-10 w-full overflow-hidden bg-[#001c41]">
+        <div className="relative mx-auto w-full max-w-[1540px]">
+          {/* eslint-disable-next-line @next/next/no-img-element -- supplied white-gradient brand banner blends into the light footer. */}
+          <img
+            src="/images/ascendrev-footer-artwork.webp"
+            alt=""
+            width={2172}
+            height={724}
+            className="mx-auto block h-auto w-full"
+          />
           <Link
             href="/"
             aria-label="AscendRev home"
-            className="inline-flex items-center outline-none"
+            className="absolute inset-y-0 left-0 z-10 w-[48%] max-w-[720px] outline-none"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps the supplied logo asset self-contained. */}
-            <img
-              src="/new-logo.png"
-              alt="AscendRev"
-              width={2048}
-              height={682}
-              className="h-[58px] w-auto object-contain sm:h-[68px] lg:h-[78px]"
-            />
+            <span className="sr-only">AscendRev home</span>
           </Link>
         </div>
       </div>
@@ -123,17 +125,34 @@ export default function Footer(): JSX.Element {
                 Terms of Service
               </Link>
 
-              {site.linkedinUrl && (
-                <a
-                  href={site.linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`mt-1 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--ink)] transition-[border-color,color,background-color] hover:border-[var(--border)] hover:bg-[var(--surface-band-raised)] hover:text-[var(--navy-900)] sm:mt-2 ${footerLinkClassName}`}
-                  style={hoverTransitionStyle}
-                  aria-label="LinkedIn"
-                >
-                  <LinkedinLogo size={22} weight="regular" aria-hidden="true" />
-                </a>
+              {(site.linkedinUrl || site.facebookUrl) && (
+                <div className="mt-1 flex items-center gap-3 sm:mt-2">
+                  {site.linkedinUrl && (
+                    <a
+                      href={site.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--ink)] transition-[border-color,color,background-color] hover:border-[var(--border)] hover:bg-[var(--surface-band-raised)] hover:text-[var(--navy-900)] ${footerLinkClassName}`}
+                      style={hoverTransitionStyle}
+                      aria-label="LinkedIn"
+                    >
+                      <LinkedinLogo size={22} weight="regular" aria-hidden="true" />
+                    </a>
+                  )}
+
+                  {site.facebookUrl && (
+                    <a
+                      href={site.facebookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--ink)] transition-[border-color,color,background-color] hover:border-[var(--border)] hover:bg-[var(--surface-band-raised)] hover:text-[var(--navy-900)] ${footerLinkClassName}`}
+                      style={hoverTransitionStyle}
+                      aria-label="Facebook"
+                    >
+                      <FacebookLogo size={22} weight="regular" aria-hidden="true" />
+                    </a>
+                  )}
+                </div>
               )}
             </div>
           </nav>

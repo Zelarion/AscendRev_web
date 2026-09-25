@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type JSX } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -39,7 +39,6 @@ const FACILITIES = [
   { label: 'Lobby', src: '/images/lobby1.jpg', alt: 'Reception and lobby seating area.' },
   { label: 'Stairs', src: '/images/staircase1.jpg', alt: 'Interior staircase connecting the building floors.' },
   { label: 'Washroom Vanity', src: '/images/bathroom2.jpg', alt: 'Close view of the washroom vanity, sinks, and mirrors.' },
-  { label: 'Washroom Stall', src: '/images/bathroom1.jpg', alt: 'A private washroom stall and its entrance.' },
   { label: 'AscendRev Campus', src: '/images/outside.jpg', alt: 'Exterior of the AscendRev campus with its building sign.' },
 ] as const;
 
@@ -87,20 +86,23 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
   const requestedFrameRef = useRef(0);
   const lastDrawnFrameRef = useRef(-1);
   const drawRafRef = useRef<number | null>(null);
+  const galleryTweenRef = useRef<gsap.core.Tween | null>(null);
+  const pendingTourReturnRef = useRef(false);
   const [framesReady, setFramesReady] = useState(false);
+  const [showAllFacilities, setShowAllFacilities] = useState(false);
+  const [tourBypassed, setTourBypassed] = useState(false);
 
   useEffect(() => {
-    if (prefersReducedMotion()) return;
+    if (prefersReducedMotion() || tourBypassed) return;
     let cancelled = false;
+    const runway = rootRef.current?.querySelector<HTMLElement>('[data-office-runway]');
+    if (!runway) return;
     const images = Array.from({ length: FRAME_COUNT }, () => {
       const image = new window.Image();
       image.decoding = 'async';
       return image;
     });
     imagesRef.current = images;
-
-    const runway = rootRef.current?.querySelector<HTMLElement>('[data-office-runway]');
-    if (!runway) return;
 
     // Keep the home page light on first paint. Begin loading the sequence shortly
     // before its pinned section enters the viewport, with a small bounded queue.
@@ -172,9 +174,10 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
       images.forEach((image) => {
         image.onload = null;
         image.onerror = null;
+        image.removeAttribute('src');
       });
     };
-  }, []);
+  }, [tourBypassed]);
 
   useGSAP(
     () => {
@@ -182,7 +185,7 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
       const canvas = canvasRef.current;
       const images = imagesRef.current;
       const context = canvas?.getContext('2d', { alpha: false });
-      if (!root || !canvas || !context || !framesReady || prefersReducedMotion()) return;
+      if (!root || !canvas || !context || !framesReady || tourBypassed || prefersReducedMotion()) return;
       const runway = root.querySelector<HTMLElement>('[data-office-runway]');
       if (!runway) return;
 
@@ -278,41 +281,143 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
         }
       };
     },
-    { scope: rootRef, dependencies: [framesReady, stages] },
+    { scope: rootRef, dependencies: [framesReady, stages, tourBypassed] },
   );
 
   useGSAP(
     () => {
       const gallery = rootRef.current?.querySelector<HTMLElement>('[data-facilities-gallery]');
-      const cards = gallery?.querySelectorAll<HTMLElement>('[data-facility-card]');
-      if (!gallery || !cards?.length || prefersReducedMotion()) return;
+      const viewport = gallery?.querySelector<HTMLElement>('[data-facilities-viewport]');
+      const track = gallery?.querySelector<HTMLElement>('[data-facilities-track]');
+      if (!gallery || !viewport || !track || showAllFacilities || prefersReducedMotion()) return;
 
       registerMotion();
-      gsap.set(cards, { autoAlpha: 0, y: 18 });
-      const revealTriggers = ScrollTrigger.batch(cards, {
-        start: 'top 88%',
-        once: true,
-        onEnter: (visibleCards) => {
-          gsap.to(visibleCards, {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.42,
-            stagger: 0.055,
-            ease: 'power2.out',
-            overwrite: true,
-          });
+      // Killing a scrubbed tween removes its pin spacer but may leave its last
+      // inline transform behind. Every newly mounted tour must begin on card 1.
+      gsap.set(track, { x: 0 });
+      const horizontalDistance = (): number => Math.max(0, track.scrollWidth - viewport.clientWidth);
+      const horizontalTour = gsap.to(track, {
+        x: () => -horizontalDistance(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: gallery,
+          pin: viewport,
+          start: 'top top',
+          end: () => `+=${horizontalDistance()}`,
+          scrub: 0.35,
+          invalidateOnRefresh: true,
+          anticipatePin: 1,
         },
       });
+      galleryTweenRef.current = horizontalTour;
 
-      return () => revealTriggers.forEach((trigger) => trigger.kill());
+      const refresh = (): void => ScrollTrigger.refresh();
+      window.addEventListener('resize', refresh, { passive: true });
+      return () => {
+        window.removeEventListener('resize', refresh);
+        horizontalTour.scrollTrigger?.kill(true);
+        horizontalTour.kill();
+        if (galleryTweenRef.current === horizontalTour) galleryTweenRef.current = null;
+      };
     },
-    { scope: rootRef, dependencies: [stages] },
+    { scope: rootRef, dependencies: [showAllFacilities, stages], revertOnUpdate: true },
   );
+
+  useLayoutEffect(() => {
+    if (!pendingTourReturnRef.current || showAllFacilities || tourBypassed) return;
+
+    // React has restored the tour DOM before this effect. Read the gallery's
+    // layout position from the top of the document after pin refresh; its rect
+    // at a mid-page scroll can include pin offsets from upstream triggers.
+    const scheduledFrames: number[] = [];
+    const nextFrame = (callback: FrameRequestCallback): void => {
+      scheduledFrames.push(window.requestAnimationFrame(callback));
+    };
+    let topAttempts = 0;
+    const moveToGalleryStart = (): void => {
+      window.scrollTo({ left: 0, top: 0, behavior: 'instant' });
+      nextFrame(() => {
+        // CSS scroll-behavior is smooth globally. Do not measure until the
+        // explicit instant move has actually put the document at its origin.
+        if (Math.abs(window.scrollY) > 1) {
+          if (topAttempts++ < 5) moveToGalleryStart();
+          return;
+        }
+
+        ScrollTrigger.refresh();
+        nextFrame(() => {
+          if (Math.abs(window.scrollY) > 1) {
+            if (topAttempts++ < 5) moveToGalleryStart();
+            return;
+          }
+
+          const gallery = rootRef.current?.querySelector<HTMLElement>('[data-facilities-gallery]');
+          if (!gallery) return;
+          // With scrollY verified at zero, this is its layout position. The
+          // refreshed trigger start aligns the viewport exactly with pin start.
+          const trigger = galleryTweenRef.current?.scrollTrigger;
+          const top = trigger?.start ?? gallery.getBoundingClientRect().top;
+          window.scrollTo({ left: 0, top, behavior: 'instant' });
+          nextFrame(() => {
+            const currentGallery = rootRef.current?.querySelector<HTMLElement>('[data-facilities-gallery]');
+            if (!currentGallery) return;
+            const currentTrigger = galleryTweenRef.current?.scrollTrigger;
+            const pinStart = currentTrigger?.start;
+            if (pinStart !== undefined && Math.abs(window.scrollY - pinStart) > 1) {
+              window.scrollTo({ left: 0, top: pinStart, behavior: 'instant' });
+            }
+            currentTrigger?.animation?.progress(0);
+            ScrollTrigger.update();
+            const track = currentGallery.querySelector<HTMLElement>('[data-facilities-track]');
+            if (track) gsap.set(track, { x: 0 });
+            currentGallery.focus({ preventScroll: true });
+            pendingTourReturnRef.current = false;
+          });
+        });
+      });
+    };
+    moveToGalleryStart();
+
+    return () => {
+      scheduledFrames.forEach((frame) => window.cancelAnimationFrame(frame));
+    };
+  }, [showAllFacilities, tourBypassed]);
+
+  const openAllFacilities = (): void => {
+    // ScrollTrigger reparents a pinned element into its spacer. Revert that DOM
+    // mutation before React inserts the grid heading or changes gallery classes.
+    const tour = galleryTweenRef.current;
+    tour?.scrollTrigger?.kill(true);
+    tour?.kill();
+    galleryTweenRef.current = null;
+    setFramesReady(false);
+    setTourBypassed(true);
+    setShowAllFacilities(true);
+    window.requestAnimationFrame(() => {
+      rootRef.current?.querySelector('[data-facilities-gallery]')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'instant' : 'smooth', block: 'start' });
+      rootRef.current?.querySelector<HTMLElement>('#all-facilities-title')?.focus({ preventScroll: true });
+    });
+  };
+
+  const returnToTour = (): void => {
+    // Keep this safe if a future layout change allows a trigger to survive grid mode.
+    const tour = galleryTweenRef.current;
+    tour?.scrollTrigger?.kill(true);
+    tour?.kill();
+    galleryTweenRef.current = null;
+    pendingTourReturnRef.current = true;
+    setShowAllFacilities(false);
+    setTourBypassed(false);
+  };
 
   return (
     <section ref={rootRef} data-office-story className={styles.section} aria-labelledby="office-story-title">
       <div className={styles.intro}>
-        <h2 id="office-story-title">Our Facilities in Action</h2>
+        <h2 id="office-story-title" tabIndex={-1}>Our Facilities in Action</h2>
+        <p className={styles.introDescription}>Take a scroll-driven tour, or skip straight to every facility photo.</p>
+        <button className={styles.viewAllButton} type="button" onClick={openAllFacilities} aria-controls="all-facilities-grid" aria-expanded={showAllFacilities}>
+          View all facilities <span aria-hidden="true">→</span>
+        </button>
       </div>
 
       <div data-office-runway className={styles.runway}>
@@ -348,8 +453,9 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
         </div>
       </div>
 
-      <div className={styles.facilitiesGallery} data-facilities-gallery aria-label="AscendRev facilities photo gallery">
-        <div className={styles.galleryViewport}>
+      <div id="all-facilities-grid" className={`${styles.facilitiesGallery} ${showAllFacilities ? styles.allFacilitiesMode : ''}`} data-facilities-gallery role="region" aria-label="AscendRev facilities photo gallery" tabIndex={-1}>
+        {showAllFacilities && <h3 className={styles.galleryTitle} id="all-facilities-title" tabIndex={-1}>All AscendRev facilities</h3>}
+        <div className={styles.galleryViewport} data-facilities-viewport>
           <div className={styles.galleryTrack} data-facilities-track>
             {FACILITIES.map((facility, index) => (
               <figure className={styles.facilityCard} data-facility-card key={facility.label}>
@@ -361,13 +467,14 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
                     sizes="(max-width: 767px) 82vw, (max-width: 1023px) 48vw, 30vw"
                     className={styles.facilityPhoto}
                   />
-                  <span className={styles.facilityNumber}>0{index + 1}</span>
+                  <span className={styles.facilityNumber}>{String(index + 1).padStart(2, '0')}</span>
                 </div>
                 <figcaption>{facility.label}</figcaption>
               </figure>
             ))}
           </div>
         </div>
+        {showAllFacilities && <button className={styles.returnButton} type="button" onClick={returnToTour}>Return to facilities tour</button>}
       </div>
       <span className={styles.srOnly}>Frame-by-frame visual tour, with {stages.length} scenes.</span>
     </section>

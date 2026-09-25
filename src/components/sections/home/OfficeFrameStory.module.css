@@ -1,7 +1,7 @@
 .section {
   --scene-inset: clamp(1.25rem, 6.2vw, 7.5rem);
   position: relative;
-  overflow: clip;
+  overflow: visible;
   background: var(--surface-page);
   color: var(--text-primary);
 }
@@ -22,6 +22,45 @@
   letter-spacing: -0.045em;
   line-height: 0.97;
   text-wrap: balance;
+}
+
+.introDescription {
+  max-width: 44rem;
+  margin: 1.1rem 0 0;
+  color: var(--text-muted);
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  line-height: 1.6;
+}
+
+.viewAllButton,
+.returnButton {
+  display: inline-flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1.35rem;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid var(--navy-900);
+  border-radius: 0.4rem;
+  background: var(--navy-900);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.viewAllButton:hover,
+.returnButton:hover {
+  transform: translateY(-2px);
+  background: #123b63;
+}
+
+.viewAllButton:focus-visible,
+.returnButton:focus-visible {
+  outline: 3px solid var(--gold-300);
+  outline-offset: 3px;
 }
 
 .runway {
@@ -163,30 +202,39 @@
   --gallery-gutter: clamp(1.25rem, 6.2vw, 7.5rem);
   position: relative;
   width: 100%;
-  overflow: clip;
-  padding-block: clamp(3.5rem, 7vw, 7rem) clamp(4rem, 8vw, 8rem);
+  min-height: 100svh;
   background: #f3f6f8;
 }
 
 .galleryViewport {
+  display: flex;
   width: min(100% - 2 * var(--gallery-gutter), 1320px);
+  height: min(100svh, 54rem);
+  align-items: center;
   margin-inline: auto;
+  overflow: clip;
 }
 
 .galleryTrack {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(1.25rem, 2.2vw, 2rem);
+  display: flex;
+  width: max-content;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: clamp(1rem, 2.2vw, 2rem);
+  padding-inline-end: var(--gallery-gutter);
+  will-change: transform;
 }
 
 .facilityCard {
-  min-width: 0;
+  width: clamp(17rem, 37vw, 32rem);
+  flex: 0 0 auto;
   margin: 0;
 }
 
 .facilityImage {
   position: relative;
-  aspect-ratio: 4 / 3;
+  height: min(63svh, 38rem);
+  min-height: 14rem;
   overflow: hidden;
   border: 1px solid rgba(14, 36, 66, 0.12);
   border-radius: 0.9rem;
@@ -227,6 +275,53 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.35;
+}
+
+.galleryTitle {
+  width: min(100% - 2 * var(--gallery-gutter), 1320px);
+  margin: 0 auto;
+  padding-top: clamp(2rem, 4vw, 3.5rem);
+  color: var(--navy-900);
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 500;
+}
+
+.returnButton {
+  display: flex;
+  width: fit-content;
+  margin: 2.5rem auto 0;
+}
+
+.allFacilitiesMode {
+  padding-block: 0 clamp(3rem, 7vw, 6rem);
+}
+
+.allFacilitiesMode .galleryViewport {
+  display: block;
+  width: min(100% - 2 * var(--gallery-gutter), 1320px);
+  height: auto;
+  overflow: visible;
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.allFacilitiesMode .galleryTrack {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.25rem, 2.2vw, 2rem);
+  padding: 0;
+  transform: none !important;
+  will-change: auto;
+}
+
+.allFacilitiesMode .facilityCard {
+  width: auto;
+}
+
+.allFacilitiesMode .facilityImage {
+  height: auto;
+  aspect-ratio: 4 / 3;
 }
 
 .srOnly {
@@ -324,7 +419,7 @@
     padding-block: 3.5rem;
   }
 
-  .galleryTrack {
+  .allFacilitiesMode .galleryTrack {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem;
   }
@@ -390,7 +485,7 @@
   }
 
   .facilitiesGallery {
-    padding-block: 3rem 3.5rem;
+    --gallery-gutter: 1rem;
   }
 
   .galleryViewport {
@@ -398,12 +493,32 @@
   }
 
   .galleryTrack {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
+    gap: 1rem;
+  }
+
+  .facilityCard {
+    width: min(78vw, 27rem);
+  }
+
+  .facilityImage {
+    height: min(58svh, 30rem);
   }
 
   .facilityCard figcaption {
     font-size: 1rem;
+  }
+
+  .allFacilitiesMode .galleryTrack {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .allFacilitiesMode .facilityCard {
+    width: 100%;
+  }
+
+  .allFacilitiesMode .facilityImage {
+    height: auto;
   }
 }
 
@@ -439,9 +554,46 @@
     transition: none;
   }
 
+  .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
+    display: grid;
+    width: min(100% - 2 * var(--gallery-gutter), 1320px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-inline: auto;
+    padding: clamp(2rem, 5vw, 4rem) 0;
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .facilitiesGallery:not(.allFacilitiesMode) .galleryViewport {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .facilitiesGallery:not(.allFacilitiesMode) .facilityCard {
+    width: auto;
+  }
+
+  .facilitiesGallery:not(.allFacilitiesMode) .facilityImage {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
   .facilityCard {
     visibility: visible !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 1023px) {
+  .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 767px) {
+  .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -1,8 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
-import { PauseIcon, PlayIcon } from '@phosphor-icons/react/dist/ssr';
-import { hoverTransitionStyle, prefersReducedMotion } from '@/lib/motion';
+import { useEffect, useRef, useState, type JSX } from 'react';
+import { prefersReducedMotion } from '@/lib/motion';
 import { HERO_PARALLAX_MULTIPLIER } from '@/components/sections/shared/motionTokens';
 
 const POSTER_SRC = '/video/hero-poster.jpg';
@@ -19,7 +18,6 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
   const parallaxRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoMounted, setVideoMounted] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
   const [videoSrc, setVideoSrc] = useState(MOBILE_VIDEO_SRC);
 
   useEffect(() => {
@@ -75,16 +73,6 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
     };
   }, []);
 
-  const togglePlayback = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      void video.play().catch(() => undefined);
-    } else {
-      video.pause();
-    }
-  }, []);
-
   return (
     <figure
       ref={frameRef}
@@ -114,8 +102,6 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
               preload="metadata"
               poster={POSTER_SRC}
               src={videoSrc}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
             />
           )}
         </div>
@@ -132,21 +118,6 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
 
       <figcaption className="sr-only">Salcedo Street, Makati City · Night view from Ayala</figcaption>
 
-      {videoMounted && (
-        <button
-          type="button"
-          onClick={togglePlayback}
-          aria-label={isPlaying ? 'Pause hero video' : 'Play hero video'}
-          style={hoverTransitionStyle}
-          className="pointer-events-auto absolute bottom-4 right-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/45 bg-[#061329]/45 text-white outline-none backdrop-blur-md transition-colors hover:border-white/75 hover:bg-[#061329]/75 focus-visible:ring-2 focus-visible:ring-white sm:bottom-6 sm:right-7"
-        >
-          {isPlaying ? (
-            <PauseIcon size={18} weight="regular" aria-hidden="true" />
-          ) : (
-            <PlayIcon size={18} weight="regular" aria-hidden="true" />
-          )}
-        </button>
-      )}
     </figure>
   );
 }

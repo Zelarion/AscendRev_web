@@ -147,6 +147,7 @@ export default function Header(): JSX.Element {
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[#001c41]"
         >
           <picture className="block h-full w-full">
+            <source media="(min-width: 120rem)" srcSet="/images/ascendrev-header-background-desktop.webp" />
             <source media="(min-width: 44rem)" srcSet="/images/ascendrev-header-integrated-desktop.webp" />
             <source media="(min-width: 32rem)" srcSet="/images/ascendrev-header-tablet.webp" />
             <img
@@ -158,6 +159,17 @@ export default function Header(): JSX.Element {
             />
           </picture>
         </div>
+        {/* On large desktop screens, separate the wordmark from its background artwork
+            so the logo remains proportional instead of scaling with the full banner. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- transparent client-supplied logo lockup overlays the desktop art. */}
+        <img
+          src="/ascendrev-loader-logo-transparent.png"
+          alt=""
+          aria-hidden="true"
+          width={2172}
+          height={724}
+          className="pointer-events-none absolute left-[clamp(2rem,4vw,4.5rem)] top-1/2 z-10 hidden w-[min(22vw,410px)] max-w-[410px] -translate-y-1/2 min-[120rem]:block"
+        />
         <Link
           href="/"
           aria-label="AscendRev Outsourcing and Offshoring Solutions home"

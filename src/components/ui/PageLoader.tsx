@@ -115,10 +115,10 @@ export default function PageLoader(): JSX.Element | null {
         {/* eslint-disable-next-line @next/next/no-img-element -- Static asset
             keeps this small transition independent from image optimization. */}
         <img
-          src="/ascendrev-logo.png"
+          src="/ascendrev-loader-logo-transparent.png"
           alt=""
-          width={640}
-          height={263}
+          width={2172}
+          height={724}
           className="loader-logo"
         />
         <div className="loader-rail" aria-hidden="true">

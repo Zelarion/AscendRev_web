@@ -23,6 +23,10 @@
  * ---------------------------------------------------------------------------
  */
 
+@import '@fontsource-variable/newsreader/wght.css';
+@import '@fontsource-variable/ibm-plex-sans/wght.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
 @import 'tailwindcss';
 
 @theme {
@@ -69,9 +73,9 @@
   --color-border-strong: #7e8899;
 
   /* ---- Fonts (DESIGN.md §2) ----------------------------------------------
-   * The variable CSS custom properties (--font-newsreader etc.) are set on
-   * <html> by next/font in src/app/layout.tsx. Fallback stacks keep text
-   * visible and roughly on-metric if a font fails to load. */
+   * The local Fontsource packages register their face names below as CSS
+   * variables. Fallback stacks keep text visible and roughly on-metric if a
+   * font fails to load. */
   --font-display: var(--font-newsreader), ui-serif, Georgia, 'Times New Roman', serif;
   --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -181,6 +185,10 @@
 
 :root {
   color-scheme: light;
+
+  --font-newsreader: 'Newsreader Variable';
+  --font-plex-sans: 'IBM Plex Sans Variable';
+  --font-plex-mono: 'IBM Plex Mono';
 
   /* Responsive layout source of truth. Components should consume these
      variables instead of inventing independent viewport clamps. The values

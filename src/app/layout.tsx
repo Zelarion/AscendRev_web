@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from 'next/font/google';
 import SkipLink from '@/components/layout/SkipLink';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -7,32 +6,6 @@ import { SmoothScrollProvider } from '@/components/motion';
 import PageLoader from '@/components/ui/PageLoader';
 import { site } from '@/content/site';
 import './globals.css';
-
-/**
- * Self-hosted via next/font at build time (DESIGN.md §2), no render-blocking
- * request to Google and no third-party call from a PIPEDA-scoped page.
- * `display: 'swap'` so text is never invisible while the font loads.
- */
-const newsreader = Newsreader({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-newsreader',
-  display: 'swap',
-});
-
-const plexSans = IBM_Plex_Sans({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-plex-sans',
-  display: 'swap',
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-plex-mono',
-  display: 'swap',
-});
 
 /**
  * SPEC.md §8: canonical base `https://ascend-rev.ca`, WITH the hyphen. The
@@ -84,10 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en-CA"
-      className={`${newsreader.variable} ${plexSans.variable} ${plexMono.variable}`}
-    >
+    <html lang="en-CA">
       <body>
         <PageLoader />
         <SkipLink />

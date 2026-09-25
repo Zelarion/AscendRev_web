@@ -17,8 +17,8 @@ import { site } from '@/content/site';
  *  - the field list matches `src/lib/enquirySchema.ts` exactly;
  *  - "no analytics, no advertising, no third-party tracking" is literally true,
  *    verified by searching the source for any such script;
- *  - the two browser storage keys are the only ones written anywhere
- *    (`ascendrev-cookie-consent` and the theme key in `src/lib/theme.ts`);
+ *  - the active site UI does not set cookies or read from or write to
+ *    localStorage;
  *  - the IP statement matches `public/api/enquiry.php`, which stores a
  *    truncated SHA-256 hash and never the address itself.
  *
@@ -27,7 +27,7 @@ import { site } from '@/content/site';
  * written claim that is no longer true.
  */
 
-const LAST_UPDATED = 'September 23, 2026';
+const LAST_UPDATED = 'September 25, 2026';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -128,15 +128,9 @@ export default function PrivacyPage() {
               Cookies and browser storage
             </h2>
             <p className={bodyClass}>
-              We set no tracking cookies. Two small values are saved in your own browser, and
-              neither is ever sent to us or to anyone else:
-            </p>
-            <ul className={listClass}>
-              <li>&bull; Your answer to the cookie notice, so we stop asking.</li>
-              <li>&bull; Your light or dark appearance preference, so the site opens the way you left it.</li>
-            </ul>
-            <p className={bodyClass}>
-              Clearing your browser data removes both. Nothing breaks if you do.
+              The active website interface does not set cookies or read from or write to
+              localStorage. It does not save a consent choice or appearance preference in your
+              browser.
             </p>
           </section>
 

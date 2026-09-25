@@ -4,7 +4,6 @@ import SkipLink from '@/components/layout/SkipLink';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { SmoothScrollProvider } from '@/components/motion';
-import CookieConsent from '@/components/ui/CookieConsent';
 import PageLoader from '@/components/ui/PageLoader';
 import { site } from '@/content/site';
 import './globals.css';
@@ -99,7 +98,6 @@ export default function RootLayout({
           </main>
           <Footer />
         </SmoothScrollProvider>
-        <CookieConsent />
       </body>
     </html>
   );

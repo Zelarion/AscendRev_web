@@ -1,10 +1,20 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  DownloadSimple,
+  MagnifyingGlassMinus,
+  MagnifyingGlassPlus,
+  ShareNetwork,
+  X,
+} from '@phosphor-icons/react/dist/ssr';
 import { registerMotion } from '@/components/motion/registerMotion';
 import { prefersReducedMotion } from '@/lib/motion';
 import styles from './OfficeFrameStory.module.css';
@@ -91,6 +101,103 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
   const [framesReady, setFramesReady] = useState(false);
   const [showAllFacilities, setShowAllFacilities] = useState(false);
   const [tourBypassed, setTourBypassed] = useState(false);
+  const [activeFacilityIndex, setActiveFacilityIndex] = useState<number | null>(null);
+  const [previewZoom, setPreviewZoom] = useState(1);
+  const [shareStatus, setShareStatus] = useState('');
+  const closePreviewRef = useRef<HTMLButtonElement>(null);
+  const previewDialogRef = useRef<HTMLDivElement>(null);
+  const focusReturnRef = useRef<HTMLElement | null>(null);
+  const activeFacilityIndexRef = useRef<number | null>(null);
+  activeFacilityIndexRef.current = activeFacilityIndex;
+  const previewIsOpen = activeFacilityIndex !== null;
+
+  const openFacilityPreview = (index: number): void => {
+    const focusedElement = document.activeElement;
+    focusReturnRef.current = focusedElement instanceof HTMLElement ? focusedElement : null;
+    setPreviewZoom(1);
+    setShareStatus('');
+    setActiveFacilityIndex(index);
+  };
+
+  const moveFacilityPreview = (index: number): void => {
+    if (index < 0 || index >= FACILITIES.length) return;
+    setPreviewZoom(1);
+    setShareStatus('');
+    setActiveFacilityIndex(index);
+  };
+
+  const shareActiveFacility = async (): Promise<void> => {
+    if (activeFacilityIndex === null) return;
+    const facility = FACILITIES[activeFacilityIndex];
+    const url = new URL(facility.src, window.location.origin).toString();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: facility.label, text: `AscendRev facility: ${facility.label}`, url });
+        setShareStatus('');
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareStatus('Photo link copied.');
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      setShareStatus('Sharing is unavailable on this device.');
+    }
+  };
+
+  useEffect(() => {
+    if (!previewIsOpen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closePreviewRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setActiveFacilityIndex(null);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        const currentIndex = activeFacilityIndexRef.current;
+        if (currentIndex === null) return;
+        const offset = event.key === 'ArrowLeft' ? -1 : 1;
+        const nextIndex = currentIndex + offset;
+        if (nextIndex >= 0 && nextIndex < FACILITIES.length) {
+          setActiveFacilityIndex(nextIndex);
+          setPreviewZoom(1);
+          setShareStatus('');
+        }
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        const focusable = previewDialogRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        );
+        if (!focusable?.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      if (focusReturnRef.current?.isConnected) {
+        focusReturnRef.current.focus({ preventScroll: true });
+      }
+    };
+  }, [previewIsOpen]);
 
   useEffect(() => {
     if (prefersReducedMotion() || tourBypassed) return;
@@ -326,57 +433,21 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
   useLayoutEffect(() => {
     if (!pendingTourReturnRef.current || showAllFacilities || tourBypassed) return;
 
-    // React has restored the tour DOM before this effect. Read the gallery's
-    // layout position from the top of the document after pin refresh; its rect
-    // at a mid-page scroll can include pin offsets from upstream triggers.
+    // Let React restore the horizontal layout, then refresh against its settled
+    // geometry. Keep the current scroll owner in control: moving window.scrollY
+    // directly here desynchronizes Lenis' virtual position from the document.
     const scheduledFrames: number[] = [];
     const nextFrame = (callback: FrameRequestCallback): void => {
       scheduledFrames.push(window.requestAnimationFrame(callback));
     };
-    let topAttempts = 0;
-    const moveToGalleryStart = (): void => {
-      window.scrollTo({ left: 0, top: 0, behavior: 'instant' });
-      nextFrame(() => {
-        // CSS scroll-behavior is smooth globally. Do not measure until the
-        // explicit instant move has actually put the document at its origin.
-        if (Math.abs(window.scrollY) > 1) {
-          if (topAttempts++ < 5) moveToGalleryStart();
-          return;
-        }
-
-        ScrollTrigger.refresh();
-        nextFrame(() => {
-          if (Math.abs(window.scrollY) > 1) {
-            if (topAttempts++ < 5) moveToGalleryStart();
-            return;
-          }
-
-          const gallery = rootRef.current?.querySelector<HTMLElement>('[data-facilities-gallery]');
-          if (!gallery) return;
-          // With scrollY verified at zero, this is its layout position. The
-          // refreshed trigger start aligns the viewport exactly with pin start.
-          const trigger = galleryTweenRef.current?.scrollTrigger;
-          const top = trigger?.start ?? gallery.getBoundingClientRect().top;
-          window.scrollTo({ left: 0, top, behavior: 'instant' });
-          nextFrame(() => {
-            const currentGallery = rootRef.current?.querySelector<HTMLElement>('[data-facilities-gallery]');
-            if (!currentGallery) return;
-            const currentTrigger = galleryTweenRef.current?.scrollTrigger;
-            const pinStart = currentTrigger?.start;
-            if (pinStart !== undefined && Math.abs(window.scrollY - pinStart) > 1) {
-              window.scrollTo({ left: 0, top: pinStart, behavior: 'instant' });
-            }
-            currentTrigger?.animation?.progress(0);
-            ScrollTrigger.update();
-            const track = currentGallery.querySelector<HTMLElement>('[data-facilities-track]');
-            if (track) gsap.set(track, { x: 0 });
-            currentGallery.focus({ preventScroll: true });
-            pendingTourReturnRef.current = false;
-          });
-        });
-      });
-    };
-    moveToGalleryStart();
+    nextFrame(() => nextFrame(() => {
+      const gallery = rootRef.current?.querySelector<HTMLElement>('[data-facilities-gallery]');
+      if (!gallery) return;
+      ScrollTrigger.refresh();
+      ScrollTrigger.update();
+      gallery.focus({ preventScroll: true });
+      pendingTourReturnRef.current = false;
+    }));
 
     return () => {
       scheduledFrames.forEach((frame) => window.cancelAnimationFrame(frame));
@@ -394,8 +465,9 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
     setTourBypassed(true);
     setShowAllFacilities(true);
     window.requestAnimationFrame(() => {
-      rootRef.current?.querySelector('[data-facilities-gallery]')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'instant' : 'smooth', block: 'start' });
-      rootRef.current?.querySelector<HTMLElement>('#all-facilities-title')?.focus({ preventScroll: true });
+      ScrollTrigger.refresh();
+      const title = rootRef.current?.querySelector<HTMLElement>('#all-facilities-title');
+      title?.focus({ preventScroll: true });
     });
   };
 
@@ -415,9 +487,9 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
       <div className={styles.intro}>
         <h2 id="office-story-title" tabIndex={-1}>Our Facilities in Action</h2>
         <p className={styles.introDescription}>Take a scroll-driven tour, or skip straight to every facility photo.</p>
-        <button className={styles.viewAllButton} type="button" onClick={openAllFacilities} aria-controls="all-facilities-grid" aria-expanded={showAllFacilities}>
+        <a className={styles.viewAllButton} href="#all-facilities-grid" onClick={openAllFacilities} aria-controls="all-facilities-grid" aria-expanded={showAllFacilities}>
           View all facilities <span aria-hidden="true">→</span>
-        </button>
+        </a>
       </div>
 
       <div data-office-runway className={styles.runway}>
@@ -459,7 +531,13 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
           <div className={styles.galleryTrack} data-facilities-track>
             {FACILITIES.map((facility, index) => (
               <figure className={styles.facilityCard} data-facility-card key={facility.label}>
-                <div className={styles.facilityImage}>
+                <button
+                  className={styles.facilityImage}
+                  type="button"
+                  onClick={() => openFacilityPreview(index)}
+                  aria-label={`Preview ${facility.label} photo`}
+                  aria-haspopup="dialog"
+                >
                   <Image
                     src={facility.src}
                     alt={facility.alt}
@@ -467,8 +545,8 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
                     sizes="(max-width: 767px) 82vw, (max-width: 1023px) 48vw, 30vw"
                     className={styles.facilityPhoto}
                   />
-                  <span className={styles.facilityNumber}>{String(index + 1).padStart(2, '0')}</span>
-                </div>
+                  <span className={styles.facilityNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                </button>
                 <figcaption>{facility.label}</figcaption>
               </figure>
             ))}
@@ -476,6 +554,125 @@ export default function OfficeFrameStory({ stages }: OfficeFrameStoryProps): JSX
         </div>
         {showAllFacilities && <button className={styles.returnButton} type="button" onClick={returnToTour}>Return to facilities tour</button>}
       </div>
+
+      {activeFacilityIndex !== null && typeof document !== 'undefined' && createPortal((
+        <div
+          className={styles.lightboxOverlay}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setActiveFacilityIndex(null);
+          }}
+        >
+          <div
+            ref={previewDialogRef}
+            className={styles.lightboxDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="facility-preview-title"
+            tabIndex={-1}
+          >
+            {(() => {
+              const facility = FACILITIES[activeFacilityIndex];
+              const filename = facility.src.split('/').pop() || 'ascendrev-facility';
+              return (
+                <>
+                  <div className={styles.lightboxTopBar}>
+                    <h3 className={styles.lightboxTitle} id="facility-preview-title">
+                      {facility.label}
+                      <span>{String(activeFacilityIndex + 1).padStart(2, '0')} / {String(FACILITIES.length).padStart(2, '0')}</span>
+                    </h3>
+                    <div className={styles.lightboxTools}>
+                      <button
+                        className={styles.lightboxToolButton}
+                        type="button"
+                        onClick={() => setPreviewZoom((zoom) => Math.max(1, +(zoom - 0.25).toFixed(2)))}
+                        disabled={previewZoom <= 1}
+                        aria-label="Zoom out"
+                        title="Zoom out"
+                      >
+                        <MagnifyingGlassMinus size={21} aria-hidden="true" />
+                      </button>
+                      <button
+                        className={styles.lightboxToolButton}
+                        type="button"
+                        onClick={() => setPreviewZoom((zoom) => Math.min(3, +(zoom + 0.25).toFixed(2)))}
+                        disabled={previewZoom >= 3}
+                        aria-label="Zoom in"
+                        title="Zoom in"
+                      >
+                        <MagnifyingGlassPlus size={21} aria-hidden="true" />
+                      </button>
+                      <button
+                        className={styles.lightboxToolButton}
+                        type="button"
+                        onClick={() => void shareActiveFacility()}
+                        aria-label="Share photo"
+                        title="Share photo"
+                      >
+                        <ShareNetwork size={21} aria-hidden="true" />
+                      </button>
+                      <a
+                        className={styles.lightboxToolButton}
+                        href={facility.src}
+                        download={filename}
+                        aria-label="Download photo"
+                        title="Download photo"
+                      >
+                        <DownloadSimple size={21} aria-hidden="true" />
+                      </a>
+                      <button
+                        ref={closePreviewRef}
+                        className={styles.lightboxToolButton}
+                        type="button"
+                        onClick={() => setActiveFacilityIndex(null)}
+                        aria-label="Close photo preview"
+                        title="Close photo preview"
+                      >
+                        <X size={23} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.lightboxStage}>
+                    <button
+                      className={styles.lightboxNavButton}
+                      type="button"
+                      onClick={() => moveFacilityPreview(activeFacilityIndex - 1)}
+                      disabled={activeFacilityIndex === 0}
+                      aria-label="Previous facility photo"
+                      title="Previous photo"
+                    >
+                      <ArrowLeft size={26} aria-hidden="true" />
+                    </button>
+                    <div className={styles.lightboxMedia}>
+                      <Image
+                        key={facility.src}
+                        src={facility.src}
+                        alt={facility.alt}
+                        fill
+                        sizes="100vw"
+                        className={styles.lightboxPhoto}
+                        style={{ transform: `scale(${previewZoom})` }}
+                        priority
+                      />
+                    </div>
+                    <button
+                      className={styles.lightboxNavButton}
+                      type="button"
+                      onClick={() => moveFacilityPreview(activeFacilityIndex + 1)}
+                      disabled={activeFacilityIndex === FACILITIES.length - 1}
+                      aria-label="Next facility photo"
+                      title="Next photo"
+                    >
+                      <ArrowRight size={26} aria-hidden="true" />
+                    </button>
+                  </div>
+                  <p className={styles.lightboxStatus} aria-live="polite" aria-atomic="true">{shareStatus}</p>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      ), document.body)}
       <span className={styles.srOnly}>Frame-by-frame visual tour, with {stages.length} scenes.</span>
     </section>
   );

@@ -38,9 +38,9 @@ const STAGE_COLORS = [
 ] as const;
 
 /**
- * Scroll-linked brand sequence. It stays a readable vertical stack on phones
- * and very short displays; tablets, laptops and desktops get a
- * single pinned horizontal pass driven by normal vertical page scrolling.
+ * Scroll-linked brand sequence. Supported displays get a single pinned
+ * horizontal pass driven by vertical page scrolling; reduced-motion and very
+ * short displays retain a readable vertical stack.
  */
 export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Element {
   const sectionRef = useRef<HTMLElement>(null);
@@ -54,10 +54,11 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
 
       const responsiveMotion = gsap.matchMedia();
       responsiveMotion.add(
-        '(min-width: 42rem) and (min-height: 34rem) and (prefers-reduced-motion: no-preference)',
+        '(min-height: 20rem) and (prefers-reduced-motion: no-preference)',
         () => {
           registerMotion();
           const panels = gsap.utils.toArray<HTMLElement>('[data-approach-panel]', section);
+          const contents = gsap.utils.toArray<HTMLElement>('[data-approach-content]', section);
           if (panels.length < 2) return;
 
           gsap.set(section, { height: 'calc(100svh - var(--header-height))', minHeight: 0 });
@@ -74,7 +75,28 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
             minHeight: 0,
           });
 
+          // A short viewport needs the copy and image side by side so the
+          // pinned panel remains fully readable below the sticky header.
+          const compactViewport = gsap.matchMedia();
+          compactViewport.add('(max-height: 36rem)', () => {
+            gsap.set(contents, {
+              gridTemplateColumns: 'minmax(0, 0.9fr) minmax(0, 1.1fr)',
+              gap: 'clamp(0.5rem, 2vw, 1rem)',
+            });
+            gsap.set(panels, { paddingBlock: '0.75rem' });
+          });
+
           const horizontalDistance = () => Math.max(0, track.scrollWidth - section.clientWidth);
+          const scrollDistance = () => {
+            const distance = horizontalDistance();
+            // On narrow phones, the physical track can be shorter than one
+            // full viewport scroll per panel. Give each panel roughly one
+            // viewport of vertical travel so a page-sized gesture doesn't
+            // skip the whole sequence. Larger layouts keep their natural run.
+            return window.matchMedia('(max-width: 41.999rem)').matches
+              ? Math.max(distance, window.innerHeight * (panels.length - 1))
+              : distance;
+          };
           const headerOffset = () => {
             const value = getComputedStyle(document.documentElement).getPropertyValue('--header-height');
             return Number.parseFloat(value) || 84;
@@ -86,7 +108,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
             scrollTrigger: {
               trigger: section,
               start: () => `top top+=${headerOffset()}`,
-              end: () => `+=${horizontalDistance()}`,
+              end: () => `+=${scrollDistance()}`,
               pin: true,
               pinSpacing: true,
               scrub: true,
@@ -108,7 +130,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
                 scrollTrigger: {
                   trigger: section,
                   start: () => `top top+=${headerOffset()}`,
-                  end: () => `+=${horizontalDistance()}`,
+                  end: () => `+=${scrollDistance()}`,
                   scrub: true,
                 },
               }
@@ -116,7 +138,10 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
           }
 
           section.dataset.scrollStoryReady = 'true';
-          return () => delete section.dataset.scrollStoryReady;
+          return () => {
+            compactViewport.revert();
+            delete section.dataset.scrollStoryReady;
+          };
         }
       );
 
@@ -140,7 +165,7 @@ export default function ApproachStory({ stages }: ApproachStoryProps): JSX.Eleme
               index === 1 ? 'bg-[var(--surface-band-raised)]' : 'bg-[var(--surface-page)]'
             }`}
           >
-            <div className="mx-auto grid w-full max-w-[1540px] items-center gap-3 sm:gap-5 min-[42rem]:grid-cols-[0.9fr_1.1fr] min-[42rem]:gap-4 lg:gap-12 xl:gap-20">
+            <div data-approach-content className="mx-auto grid w-full max-w-[1540px] items-center gap-3 sm:gap-5 min-[42rem]:grid-cols-[0.9fr_1.1fr] min-[42rem]:gap-4 lg:gap-12 xl:gap-20">
               <div data-approach-copy className="relative z-10 max-w-[690px]">
                 <p className="font-mono text-xs font-medium tracking-[0.2em] text-[var(--gold-text)]">
                   {String(index + 1).padStart(2, '0')} <span aria-hidden="true">/</span> 03

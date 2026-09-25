@@ -233,13 +233,25 @@
 
 .facilityImage {
   position: relative;
+  display: block;
+  width: 100%;
   height: min(63svh, 38rem);
   min-height: 14rem;
+  padding: 0;
   overflow: hidden;
   border: 1px solid rgba(14, 36, 66, 0.12);
   border-radius: 0.9rem;
   background: #dce3e9;
+  color: inherit;
+  font: inherit;
+  text-align: initial;
+  cursor: pointer;
   box-shadow: 0 1rem 2rem rgba(12, 32, 56, 0.12);
+}
+
+.facilityImage:focus-visible {
+  outline: 3px solid var(--gold-300);
+  outline-offset: 4px;
 }
 
 .facilityPhoto {
@@ -322,6 +334,175 @@
 .allFacilitiesMode .facilityImage {
   height: auto;
   aspect-ratio: 4 / 3;
+}
+
+.lightboxOverlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  background: rgba(6, 20, 43, 0.23);
+  backdrop-filter: blur(12px) saturate(112%);
+  -webkit-backdrop-filter: blur(12px) saturate(112%);
+  color: #f7f9fc;
+  overscroll-behavior: contain;
+}
+
+.lightboxDialog {
+  display: grid;
+  width: min(100%, 96rem);
+  height: min(100%, 64rem);
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.lightboxTopBar {
+  display: flex;
+  min-height: 3.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.45rem 0.65rem 0.45rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 0.85rem;
+  background: rgba(243, 247, 251, 0.88);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  box-shadow: 0 0.5rem 2rem rgba(4, 14, 31, 0.16);
+}
+
+.lightboxTitle {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: 0.8rem;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #102541;
+  font-size: clamp(0.92rem, 1.35vw, 1.08rem);
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lightboxTitle span {
+  flex: 0 0 auto;
+  color: #586b82;
+  font-family: var(--font-mono);
+  font-size: 0.76em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.lightboxTools {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.lightboxToolButton,
+.lightboxNavButton {
+  display: grid;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  place-items: center;
+  padding: 0.45rem;
+  border: 1px solid rgba(16, 37, 65, 0.16);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.6);
+  color: #102541;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease,
+    transform 160ms ease;
+}
+
+.lightboxToolButton:hover,
+.lightboxNavButton:hover {
+  border-color: rgba(159, 117, 20, 0.45);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.lightboxToolButton:focus-visible,
+.lightboxNavButton:focus-visible {
+  z-index: 1;
+  outline: 3px solid var(--gold-300);
+  outline-offset: -3px;
+}
+
+.lightboxStage {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(3.5rem, 8vw) minmax(0, 1fr) minmax(3.5rem, 8vw);
+  align-items: stretch;
+  overflow: hidden;
+  background: transparent;
+}
+
+.lightboxMedia {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+
+.lightboxPhoto {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 180ms ease-out;
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.lightboxNavButton {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  font-size: clamp(1.25rem, 2vw, 2rem);
+  text-shadow: 0 1px 8px rgba(5, 18, 38, 0.8);
+}
+
+.lightboxNavButton:hover {
+  background: linear-gradient(90deg, rgba(242, 247, 253, 0.18), transparent);
+}
+
+.lightboxNavButton:last-child:hover {
+  background: linear-gradient(270deg, rgba(242, 247, 253, 0.18), transparent);
+}
+
+.lightboxStatus {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom));
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 8px rgba(5, 18, 38, 0.9);
 }
 
 .srOnly {
@@ -520,6 +701,88 @@
   .allFacilitiesMode .facilityImage {
     height: auto;
   }
+
+  .lightboxOverlay {
+    padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right))
+      max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+  }
+
+  .lightboxDialog {
+    width: 100%;
+    height: 100%;
+    border-radius: 0.75rem;
+  }
+
+  .lightboxTopBar {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .lightboxTitle {
+    width: 100%;
+    justify-content: center;
+    overflow: visible;
+    font-size: 0.92rem;
+    gap: 0.5rem;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .lightboxTools {
+    max-width: 100%;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .lightboxToolButton {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0.3rem;
+  }
+
+  .lightboxStage {
+    grid-template-columns: minmax(2.5rem, 12vw) minmax(0, 1fr) minmax(2.5rem, 12vw);
+  }
+
+  .lightboxNavButton {
+    min-height: 3rem;
+    font-size: 1.4rem;
+  }
+
+  .lightboxStatus {
+    min-height: 2.5rem;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 370px) {
+  .lightboxTopBar {
+    gap: 0.3rem;
+    padding-inline: 0.45rem;
+  }
+
+  .lightboxTitle {
+    font-size: 0.82rem;
+    gap: 0.35rem;
+  }
+
+  .lightboxTools {
+    gap: 0.1rem;
+  }
+
+  .lightboxToolButton {
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0.25rem;
+  }
+
+  .lightboxStage {
+    grid-template-columns: minmax(2.5rem, 11vw) minmax(0, 1fr) minmax(2.5rem, 11vw);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -554,12 +817,16 @@
     transition: none;
   }
 
+  .lightboxPhoto {
+    transition: none;
+  }
+
   .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
-    display: grid;
-    width: min(100% - 2 * var(--gallery-gutter), 1320px);
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-inline: auto;
-    padding: clamp(2rem, 5vw, 4rem) 0;
+    display: flex;
+    width: max-content;
+    gap: clamp(1rem, 2.2vw, 2rem);
+    margin-inline: 0;
+    padding: clamp(2rem, 5vw, 4rem) var(--gallery-gutter);
     transform: none !important;
     will-change: auto;
   }
@@ -568,10 +835,17 @@
     display: block;
     width: 100%;
     height: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(14, 36, 66, 0.45) transparent;
   }
 
   .facilitiesGallery:not(.allFacilitiesMode) .facilityCard {
-    width: auto;
+    width: clamp(17rem, 37vw, 32rem);
+    scroll-snap-align: center;
   }
 
   .facilitiesGallery:not(.allFacilitiesMode) .facilityImage {
@@ -588,12 +862,18 @@
 
 @media (prefers-reduced-motion: reduce) and (max-width: 1023px) {
   .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) and (max-width: 767px) {
   .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
-    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding-inline: var(--gallery-gutter);
   }
+
+  .facilitiesGallery:not(.allFacilitiesMode) .facilityCard {
+    width: min(78vw, 27rem);
+  }
+
 }

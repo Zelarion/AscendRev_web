@@ -202,11 +202,11 @@ export default function InfrastructureBlock(): JSX.Element {
       className="relative bg-[var(--surface-band)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] text-[var(--ink)]"
     >
       <div className="mx-auto w-full max-w-[1540px]">
-        <header className="max-w-[920px]">
+        <header>
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
             THE ASCENDREV ADVANTAGE / 02
           </p>
-          <h2 className="mt-5 max-w-[16ch] font-display text-[clamp(3rem,5vw,5.8rem)] font-medium leading-[0.96] tracking-[-0.04em] text-[var(--navy-900)]">
+          <h2 className="mt-5 font-display text-[clamp(3rem,5vw,5.8rem)] font-medium leading-[0.96] tracking-[-0.04em] text-[var(--navy-900)] lg:whitespace-nowrap">
             State-of-the-Art Operations.
           </h2>
           <p className="mt-6 max-w-[64ch] text-[clamp(1rem,1.2vw,1.18rem)] leading-[1.75] text-[var(--ink-muted)]">
@@ -243,7 +243,7 @@ export default function InfrastructureBlock(): JSX.Element {
                       <span className="h-px w-10 bg-[var(--gold-text)]/55" />
                     </div>
 
-                    <h3 className="mt-5 max-w-[13ch] font-display text-[clamp(2.3rem,3.6vw,4.1rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)]">
+                    <h3 className="mt-5 font-display text-[clamp(2.3rem,3.6vw,4.1rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)] lg:whitespace-nowrap">
                       {moment.headline}
                     </h3>
 

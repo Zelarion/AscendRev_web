@@ -19,11 +19,11 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { label: 'Home', href: '/' },
-  { label: 'Solutions', href: '/solutions' },
+  { label: 'Solutions', href: '/solutions/' },
   { label: 'Our Revenue Impact', href: '/#revenue-impact' },
-  { label: 'The AscendRev Difference', href: '/advantage' },
-  { label: 'Our Corporate Values', href: '/values' },
-  { label: 'Contact', href: '/contact' },
+  { label: 'The AscendRev Difference', href: '/advantage/' },
+  { label: 'Our Corporate Values', href: '/values/' },
+  { label: 'Contact', href: '/contact/' },
 ];
 
 /**
@@ -33,5 +33,5 @@ export const navItems: NavItem[] = [
  */
 export const ctaItem: NavItem = {
   label: 'Request Solution Blueprint',
-  href: '/contact',
+  href: '/contact/',
 };

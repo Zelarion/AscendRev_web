@@ -8,7 +8,7 @@ interface PillarsSectionProps {
   content: PillarsContent;
 }
 
-const PILLAR_METRICS = ['', 'CAD$1B+', 'Enterprise-Grade Execution'] as const;
+const PILLAR_METRICS = ['', 'CAD1B+', 'Enterprise-Grade Execution'] as const;
 
 export default function PillarsSection({ content }: PillarsSectionProps): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);

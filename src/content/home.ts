@@ -195,7 +195,7 @@ export const home: HomeContent = {
     // delivery report rather than silently tightened, since SPEC.md §7 item 1
     // reads as wanting the named attribution used in the trust band below.
     subheadline:
-      "Backed by Founder's career track record of CAD$1B+ in generated sales revenue, we provide fully managed front- and back-office teams that scale your business. We absorb the infrastructure costs, talent shortages, and administrative burdens—so you can focus entirely on growth.",
+      "Backed by Founder's career track record of CAD1B+ in generated sales revenue, we provide fully managed front- and back-office teams that scale your business. We absorb the infrastructure costs, talent shortages, and administrative burdens—so you can focus entirely on growth.",
     tagline: ['Identify the gap.', 'Build the team.', 'Improve the outcome.'],
     primaryCta: { label: 'Build Your Dedicated Team', href: '/contact' },
     secondaryCta: {
@@ -223,7 +223,7 @@ export const home: HomeContent = {
     lead: 'AscendRev was registered in Canada on 11 September 2026. This is what stands behind it.',
     items: [
       {
-        text: 'Founded by Rio Vidal, who has generated over CAD$1B in B2B revenue across a career in Canada and Australia.',
+        text: 'Founded by Rio Vidal, who has generated over CAD1B in B2B revenue across a career in Canada and Australia.',
       },
       {
         text: 'Head office in Calgary, Alberta. Your account is supervised on Calgary hours, not on a time zone you have to work around.',

@@ -45,11 +45,11 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
       className="relative overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] py-[clamp(4rem,9vw,8rem)] text-[var(--text-primary)]"
     >
       <div className="mx-auto w-full max-w-[1540px]">
-        <header className="ml-auto max-w-[900px] text-right">
-          <h2 className="ml-auto max-w-[18ch] font-display text-[clamp(2.45rem,9vw,3.6rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)] md:text-[clamp(3.1rem,5.3vw,4.5rem)] lg:text-[clamp(3rem,5.8vw,6.2rem)] lg:leading-[0.96]">
+        <header className="max-w-[900px] text-left">
+          <h2 className="max-w-[18ch] font-display text-[clamp(2.45rem,9vw,3.6rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)] md:text-[clamp(3.1rem,5.3vw,4.5rem)] lg:text-[clamp(3rem,5.8vw,6.2rem)] lg:leading-[0.96]">
             {content.heading}
           </h2>
-          <p className="ml-auto mt-5 max-w-[66ch] text-[clamp(0.98rem,1.2vw,1.18rem)] leading-[1.7] text-[var(--text-muted)] md:mt-6 lg:mt-7 lg:leading-[1.75]">
+          <p className="mt-5 max-w-[66ch] text-[clamp(0.98rem,1.2vw,1.18rem)] leading-[1.7] text-[var(--text-muted)] md:mt-6 lg:mt-7 lg:leading-[1.75]">
             {content.intro}
           </p>
         </header>

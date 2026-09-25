@@ -34,11 +34,11 @@ const FACILITIES = [
   { label: 'Break / Coffee Area', src: '/images/new1.jpg', alt: 'Shared cafeteria and break area.' },
   { label: 'Boardroom', src: '/images/office3.jpg', alt: 'Boardroom meeting space with a conference table and seating.' },
   { label: 'Staff Parking', src: '/images/parking1.jpg', alt: 'Covered staff parking with vehicles.' },
-  { label: 'Guards on Duty', src: '/images/parking2.jpg', alt: 'A uniformed security guard monitoring the parking entrance.' },
+  { label: 'Guards on Duty', src: '/images/guards-on-duty-privacy.webp', alt: 'A uniformed security guard monitoring the parking entrance.' },
   { label: 'Elevator', src: '/images/elev.jpg', alt: 'Elevator in the AscendRev building.' },
   { label: 'Lobby', src: '/images/lobby1.jpg', alt: 'Reception and lobby seating area.' },
   { label: 'Stairs', src: '/images/staircase1.jpg', alt: 'Interior staircase connecting the building floors.' },
-  { label: 'Washroom Vanity', src: '/images/bathroom2.jpg', alt: 'Close view of the washroom vanity, sinks, and mirrors.' },
+  { label: 'Washroom Vanity', src: '/images/washroom-vanity-clean.webp', alt: 'Close view of the washroom vanity, sinks, and mirrors.' },
   { label: 'AscendRev Campus', src: '/images/outside.jpg', alt: 'Exterior of the AscendRev campus with its building sign.' },
 ] as const;
 

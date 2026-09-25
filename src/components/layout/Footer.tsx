@@ -28,7 +28,7 @@ export default function Footer(): JSX.Element {
         ASCENDREV
       </div>
 
-      <div className="relative z-10 h-[clamp(12rem,25vw,30rem)] w-full overflow-hidden bg-[#001c41]">
+      <div className="relative z-10 h-[clamp(12rem,18vw,20rem)] w-full overflow-hidden bg-[#001c41]">
         <div className="relative h-full w-full">
           {/* eslint-disable-next-line @next/next/no-img-element -- supplied white-gradient brand banner blends into the light footer. */}
           <img
@@ -48,7 +48,7 @@ export default function Footer(): JSX.Element {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1540px] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-9 sm:py-14 lg:py-20">
+      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-9 sm:py-14 lg:py-20">
         <div className="grid gap-8 border-b border-[var(--border)] pb-8 sm:gap-10 sm:pb-10 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] lg:gap-10 lg:pb-12 xl:gap-14">
           <div className="md:col-span-2 lg:col-span-1">
             <div>

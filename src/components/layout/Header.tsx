@@ -160,10 +160,16 @@ export default function Header(): JSX.Element {
         </div>
         <Link
           href="/"
-          aria-label="AscendRev home"
+          aria-label="AscendRev Outsourcing and Offshoring Solutions home"
           className="absolute inset-y-0 left-0 z-20 w-[47vw] max-w-[calc(100vw-5.5rem)] outline-none md:w-[38vw] md:max-w-none wide-nav:w-[32vw]"
         >
           <span className="sr-only">AscendRev home</span>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-[15.7vw] top-[57%] -translate-y-1/2 origin-left scale-x-[0.7] whitespace-nowrap bg-[#001c41] px-px font-sans text-[clamp(7px,1.85vw,12px)] font-semibold uppercase leading-none tracking-[0.2px] text-white md:hidden"
+          >
+            Outsourcing &amp; Offshoring Solutions
+          </span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-4 wide-nav:ml-[32vw] wide-nav:flex wide-nav:gap-5 max-[120rem]:wide-nav:gap-2">

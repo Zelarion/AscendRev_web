@@ -52,7 +52,7 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
               <h1
                 aria-label={content.headline}
                 data-home-hero-title
-                className="ar-home-hero-title max-w-[19ch] font-display text-[clamp(1.95rem,6.8vw,2.85rem)] font-medium leading-[0.96] tracking-[-0.035em] drop-shadow-[0_3px_28px_rgba(0,0,0,0.32)] sm:text-[clamp(2.55rem,5.6vw,3.65rem)] lg:text-[clamp(3rem,4.3vw,5rem)]"
+                className="ar-home-hero-title max-w-[19ch] font-display text-h1 drop-shadow-[0_3px_28px_rgba(0,0,0,0.32)]"
               >
                 {lines.map((line, index) => (
                   <span key={line} className="block overflow-hidden pb-[0.09em]">
@@ -67,7 +67,7 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
               </h1>
 
               <p
-                className="ar-home-hero-copy ar-fade-rise mt-4 max-w-[58ch] text-[0.9rem] leading-[1.55] text-white/85 drop-shadow-[0_2px_16px_rgba(0,0,0,0.38)] sm:mt-5 sm:text-[0.98rem] sm:leading-[1.65] lg:mt-6 lg:text-[clamp(0.95rem,1.05vw,1.08rem)] lg:leading-[1.65]"
+                className="ar-home-hero-copy ar-fade-rise mt-4 max-w-[58ch] text-body-lg text-white/85 drop-shadow-[0_2px_16px_rgba(0,0,0,0.38)] sm:mt-5 lg:mt-6"
                 style={{ animationDelay: `${HERO_SUPPORT_DELAY_MS}ms` }}
               >
                 {content.subheadline}

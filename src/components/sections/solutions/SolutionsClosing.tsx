@@ -26,7 +26,7 @@ export default function SolutionsClosing(): JSX.Element {
   const { heading, cta } = solutions.closing;
 
   return (
-    <Section size="large">
+    <Section size="large" className="lg:!py-16">
       <Container>
         <Reveal>
           <h2 className="max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap">{heading}</h2>

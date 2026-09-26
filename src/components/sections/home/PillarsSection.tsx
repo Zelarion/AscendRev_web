@@ -49,15 +49,15 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
               THE TURNKEY OUTSOURCE AND OFFSHORE ADVANTAGE
             </p>
 
-            <h2 className="mt-5 max-w-[12ch] font-display text-[clamp(2.5rem,8vw,3.5rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)] md:text-[clamp(2.7rem,4.6vw,3.7rem)] lg:text-[clamp(3rem,4.7vw,5.5rem)] lg:leading-[0.94]">
+            <h2 className="mt-5 max-w-[12ch] font-display text-h2 text-[var(--navy-900)]">
               {content.heading}
             </h2>
 
-            <p className="mt-5 max-w-[22ch] font-display text-[clamp(1.45rem,2.8vw,2.2rem)] font-medium leading-[1.08] tracking-[-0.025em] text-[var(--navy-900)]">
+            <p className="mt-5 max-w-[46ch] text-body-lg text-[var(--navy-900)]">
               {content.supportingCopy}
             </p>
 
-            <p className="mt-5 max-w-[46ch] text-[clamp(1rem,1.15vw,1.15rem)] leading-[1.7] text-[var(--text-muted)]">
+            <p className="mt-5 max-w-[46ch] text-body text-[var(--text-muted)]">
               {content.intro}
             </p>
 
@@ -122,15 +122,22 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
                     </span>
                   </div>
 
-                  <p className="mt-6 font-display text-[clamp(2.65rem,10vw,4.4rem)] font-medium leading-[0.94] tracking-[-0.045em] text-[var(--navy-900)] md:mt-8 md:text-[clamp(3rem,5vw,4.5rem)] lg:text-[clamp(3.2rem,6vw,7rem)] lg:leading-[0.9]">
+                  <p
+                    className={cn(
+                      'mt-6 md:mt-8',
+                      index === 1
+                        ? 'ar-type-stat font-display text-h2 text-[var(--navy-900)]'
+                        : 'text-body-lg text-[var(--navy-900)]'
+                    )}
+                  >
                     {PILLAR_METRICS[index]}
                   </p>
 
-                  <h3 className="mt-6 max-w-[18ch] font-display text-[clamp(2rem,3.2vw,3.7rem)] font-medium leading-[1] tracking-[-0.035em] text-[var(--navy-900)]">
+                  <h3 className="mt-6 max-w-[28ch] font-display text-h3 text-[var(--navy-900)]">
                     {item.heading}
                   </h3>
 
-                  <p className="mt-6 max-w-[58ch] text-[clamp(1rem,1.15vw,1.15rem)] leading-[1.75] text-[var(--text-muted)]">
+                  <p className="mt-6 max-w-[58ch] text-body text-[var(--text-muted)]">
                     {item.body}
                   </p>
                 </div>
@@ -138,7 +145,7 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
             );
           })}
 
-          <p className="mt-14 max-w-[640px] font-display text-[clamp(1.35rem,2vw,1.9rem)] font-medium leading-[1.35] tracking-[-0.015em] text-[var(--navy-900)] lg:mt-4">
+          <p className="mt-14 max-w-[640px] text-body-lg text-[var(--navy-900)] lg:mt-4">
             {content.closingLine}
           </p>
         </div>

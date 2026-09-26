@@ -147,7 +147,7 @@ export default function LeadershipBlock(): JSX.Element {
     <section
       id={leadership.id}
       data-tone="navy"
-      className="relative border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] text-[var(--ink)]"
+      className="relative border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] !pt-[clamp(2rem,4vw,3rem)] text-[var(--ink)]"
     >
       <div
         aria-hidden="true"
@@ -169,7 +169,7 @@ export default function LeadershipBlock(): JSX.Element {
               THE ASCENDREV ADVANTAGE / 01
             </p>
 
-            <h2 className="mt-5 max-w-[20ch] font-display text-[clamp(2.4rem,4vw,4.4rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)]">
+            <h2 className="mt-5 max-w-[32ch] font-display text-h2 text-[var(--navy-900)]">
               {leadership.heading}
             </h2>
 
@@ -189,7 +189,7 @@ export default function LeadershipBlock(): JSX.Element {
                 Previously with AcquireBPO / Acquire Intelligence, Custom Travel Solutions, and American Express Canada.
               </p>
 
-              <p className="mt-5 max-w-[46ch] text-[15px] leading-[1.7] text-[var(--ink-muted)]">
+              <p className="mt-5 max-w-[46ch] text-body text-[var(--ink-muted)]">
                 Decades of career experience translated to support People, Process, Performance and Results
               </p>
 
@@ -269,7 +269,7 @@ export default function LeadershipBlock(): JSX.Element {
                             {leadership.narrative.map((paragraph) => (
                               <p
                                 key={paragraph}
-                                className="max-w-[64ch] text-[clamp(1rem,1.2vw,1.16rem)] leading-[1.75] text-[var(--ink-muted)]"
+                                className="max-w-[64ch] text-body-lg text-[var(--ink-muted)]"
                               >
                                 {paragraph}
                               </p>
@@ -283,7 +283,7 @@ export default function LeadershipBlock(): JSX.Element {
                               <div key={stat.label} className="flex items-start gap-4">
                                 <StatIcon glyph={stat.icon} toneIndex={index} />
                                 <div>
-                                  <p className="font-display text-[clamp(1.1rem,1.4vw,1.3rem)] font-medium leading-[1.3] text-[var(--navy-900)]">
+                                  <p className="text-body-lg font-medium text-[var(--navy-900)]">
                                     {stat.label}
                                   </p>
                                   <p className="mt-2 text-sm leading-[1.6] text-[var(--ink-muted)]">{stat.description}</p>
@@ -294,10 +294,10 @@ export default function LeadershipBlock(): JSX.Element {
                         </div>
                       ) : step.kind === 'operating' ? (
                         <div className="mt-7 max-w-[840px]">
-                          <h3 className="max-w-[15ch] font-display text-[clamp(2.8rem,5vw,5.4rem)] font-medium leading-[0.96] tracking-[-0.045em] text-[var(--navy-900)]">
+                          <h3 className="max-w-[42ch] font-display text-h3 text-[var(--navy-900)]">
                             {step.title}
                           </h3>
-                          <blockquote className="mt-8 max-w-[62ch] border-l border-[var(--gold-text)]/70 pl-6 text-[clamp(1rem,1.25vw,1.18rem)] leading-[1.75] text-[var(--ink-muted)]">
+                          <blockquote className="mt-8 max-w-[62ch] border-l border-[var(--gold-text)]/70 pl-6 text-body-lg text-[var(--ink-muted)]">
                             {step.body}
                           </blockquote>
 
@@ -320,10 +320,10 @@ export default function LeadershipBlock(): JSX.Element {
                         </div>
                       ) : (
                         <div className="mt-7 max-w-[780px]">
-                          <h3 className="max-w-[16ch] font-display text-[clamp(2.8rem,5vw,5.5rem)] font-medium leading-[0.96] tracking-[-0.045em] text-[var(--navy-900)]">
+                          <h3 className="max-w-[42ch] font-display text-h3 text-[var(--navy-900)]">
                             {step.title}
                           </h3>
-                          <p className="mt-7 max-w-[62ch] text-[clamp(1rem,1.25vw,1.18rem)] leading-[1.75] text-[var(--ink-muted)]">
+                          <p className="mt-7 max-w-[62ch] text-body-lg text-[var(--ink-muted)]">
                             {step.body}
                           </p>
                         </div>

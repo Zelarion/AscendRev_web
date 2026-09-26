@@ -20,9 +20,12 @@ export const metadata: Metadata = {
 
 export default function ValuesPage() {
   return (
-    <Section size="large">
+    <Section
+      size="large"
+      className="!pt-[calc(var(--header-height)_+_1.5rem)] !pb-[clamp(2.5rem,5vw,4rem)]"
+    >
       <Container>
-        <h1 className="max-w-[20ch] text-h1 font-display font-medium tracking-[-0.025em] text-[var(--ink)]">
+        <h1 className="text-h1 font-display font-medium tracking-[-0.025em] text-[var(--ink)]">
           {values.heading}
         </h1>
 

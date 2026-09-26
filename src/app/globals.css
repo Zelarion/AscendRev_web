@@ -23,10 +23,6 @@
  * ---------------------------------------------------------------------------
  */
 
-@import '@fontsource-variable/newsreader/wght.css';
-@import '@fontsource-variable/ibm-plex-sans/wght.css';
-@import '@fontsource/ibm-plex-mono/latin-400.css';
-@import '@fontsource/ibm-plex-mono/latin-500.css';
 @import 'tailwindcss';
 
 @theme {
@@ -72,22 +68,21 @@
    * for input and control outlines only, never for dividers. */
   --color-border-strong: #7e8899;
 
-  /* ---- Fonts (DESIGN.md §2) ----------------------------------------------
-   * The local Fontsource packages register their face names below as CSS
-   * variables. Fallback stacks keep text visible and roughly on-metric if a
-   * font fails to load. */
-  --font-display: var(--font-newsreader), ui-serif, Georgia, 'Times New Roman', serif;
-  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* ---- Fonts -------------------------------------------------------------
+   * Keep display, reading, and label roles for existing components, but use
+   * one system family stack across the site. */
+  --font-display: 'Times New Roman', Times, serif;
+  --font-sans: 'Times New Roman', Times, serif;
+  --font-mono: 'Times New Roman', Times, serif;
 
   /* ---- Type scale (DESIGN.md §2) -----------------------------------------
    * Each `--text-<name>` pairs with `--text-<name>--line-height` and
    * `--text-<name>--letter-spacing` (and `--font-weight` where the scale
    * specifies one). Tailwind v4's compound font-size utility applies all of
    * them together via a single `text-<name>` class. Font *family* is not
-   * part of this compound (Tailwind has no such pairing for font-family), so
-   * pair `text-h1` with `font-display` explicitly at the call site; `text-h3`
-   * with `font-sans`, per DESIGN.md's pairing table. */
+   * part of this compound (Tailwind has no such pairing for font-family).
+   * Family roles remain separate for component compatibility, but resolve to
+   * the same Times New Roman stack above. */
   --text-display: clamp(2.75rem, 6vw, 4.75rem);
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.03em;
@@ -186,21 +181,19 @@
 :root {
   color-scheme: light;
 
-  --font-newsreader: 'Newsreader Variable';
-  --font-plex-sans: 'IBM Plex Sans Variable';
-  --font-plex-mono: 'IBM Plex Mono';
-
   /* Responsive layout source of truth. Components should consume these
      variables instead of inventing independent viewport clamps. The values
      step at the breakpoints above so tablet can use a middle composition. */
   --site-gutter: clamp(1.25rem, 5vw, 2rem);
   --section-space: clamp(4rem, 12vw, 5rem);
   --section-space-large: clamp(4.25rem, 12vw, 5.75rem);
-  --type-display: clamp(2.25rem, 10vw, 3.5rem);
-  --type-heading: clamp(2rem, 8vw, 3rem);
-  --type-subheading: clamp(1.65rem, 6.5vw, 2.35rem);
-  --type-body-lg: clamp(1.0625rem, 4.5vw, 1.125rem);
-  --type-body: clamp(0.9375rem, 4vw, 1rem);
+  --type-display: clamp(2rem, 8vw, 3rem);
+  --type-heading: clamp(2rem, 6.5vw, 3rem);
+  --type-subheading: clamp(1.5rem, 6.5vw, 2.5rem);
+  --type-card-heading: clamp(1.25rem, 4.5vw, 1.75rem);
+  --type-label: 0.75rem;
+  --type-body-lg: clamp(1rem, 4vw, 1.125rem);
+  --type-body: 1rem;
   --type-small: clamp(0.8125rem, 3.5vw, 0.875rem);
   --header-height: 4.5rem;
 
@@ -209,6 +202,7 @@
   --text-display: var(--type-display);
   --text-h1: var(--type-heading);
   --text-h2: var(--type-subheading);
+  --text-h3: var(--type-card-heading);
   --text-body-lg: var(--type-body-lg);
   --text-body: var(--type-body);
   --text-small: var(--type-small);
@@ -289,9 +283,11 @@
     --site-gutter: clamp(2rem, 5vw, 3.5rem);
     --section-space: clamp(5rem, 9vw, 7rem);
     --section-space-large: clamp(5.75rem, 9vw, 7.5rem);
-    --type-display: clamp(2.75rem, 5vw, 4rem);
-    --type-heading: clamp(2.5rem, 4.5vw, 3.5rem);
-    --type-subheading: clamp(2.1rem, 4.5vw, 2.75rem);
+    --type-display: clamp(2.5rem, 5vw, 3.5rem);
+    --type-heading: clamp(2.5rem, 4.2vw, 3.5rem);
+    --type-subheading: clamp(2rem, 3.3vw, 2.5rem);
+    --type-card-heading: clamp(1.375rem, 2.2vw, 1.75rem);
+    --type-label: 0.75rem;
     --type-body-lg: 1.125rem;
     --type-body: 1rem;
     --type-small: 0.875rem;
@@ -304,9 +300,11 @@
     --site-gutter: clamp(3rem, 6vw, 6rem);
     --section-space: clamp(6rem, 8vw, 8rem);
     --section-space-large: clamp(7rem, 8vw, 10rem);
-    --type-display: clamp(3.25rem, 4.4vw, 5rem);
-    --type-heading: clamp(2.75rem, 3.7vw, 4.25rem);
-    --type-subheading: clamp(2.5rem, 3.4vw, 3.5rem);
+    --type-display: clamp(2.75rem, 4vw, 3.75rem);
+    --type-heading: clamp(2.75rem, 3.3vw, 3.5rem);
+    --type-subheading: clamp(2.125rem, 2.3vw, 2.5rem);
+    --type-card-heading: clamp(1.5rem, 1.5vw, 1.75rem);
+    --type-label: 0.75rem;
     --header-height: 5.25rem;
   }
 }
@@ -419,6 +417,80 @@ h1,
 h2,
 h3 {
   text-wrap: balance;
+}
+
+/* One measured hierarchy across public pages. Every semantic heading uses the
+   same Times New Roman family, scale, weight, and spacing. These unlayered rules
+   intentionally normalize older one-off Tailwind sizes. */
+main h1,
+main h2,
+main h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.025em !important;
+  text-wrap: balance;
+}
+
+main h1 {
+  font-size: var(--type-heading) !important;
+  line-height: 1.06 !important;
+  letter-spacing: -0.035em !important;
+}
+
+main h2 {
+  font-size: var(--type-subheading) !important;
+  line-height: 1.1 !important;
+}
+
+main h3 {
+  font-size: var(--type-card-heading) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* Values titles remain semantic H2s while fitting the three-card desktop row
+   at the shared H3 size. */
+main h2.ar-type-value-title {
+  font-size: var(--type-card-heading) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* Paragraph copy uses the same sitewide Times New Roman family and consistent
+   body scale. Large numeric callouts opt into `.ar-type-stat`, whose cap stays
+   below the page-title scale. */
+main p:not(.ar-type-stat) {
+  font-family: var(--font-sans) !important;
+  font-size: var(--type-body) !important;
+  line-height: 1.65 !important;
+  letter-spacing: normal !important;
+}
+
+main p.text-body-lg:not(.ar-type-stat) {
+  font-size: var(--type-body-lg) !important;
+}
+
+main p[class~='text-label'] {
+  font-size: var(--type-label) !important;
+  line-height: 1.4 !important;
+}
+
+main p[class~='text-small'],
+main p[class~='text-sm'] {
+  font-size: var(--type-small) !important;
+  line-height: 1.55 !important;
+}
+
+main p[class~='text-xs'] {
+  font-size: var(--type-label) !important;
+  line-height: 1.4 !important;
+}
+
+main p.ar-type-stat {
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.25rem, 1.5vw, 1.75rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.035em !important;
 }
 
 p {

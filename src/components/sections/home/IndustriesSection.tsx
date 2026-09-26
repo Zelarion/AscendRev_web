@@ -46,17 +46,17 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
     >
       <div className="mx-auto w-full max-w-[1540px]">
         <header className="w-full text-left">
-          <h2 className="font-display text-[clamp(2.45rem,9vw,3.6rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)] md:text-[clamp(3.1rem,5.3vw,4.5rem)] lg:whitespace-nowrap lg:text-[clamp(3.1rem,4.5vw,5rem)] lg:leading-[0.96]">
+          <h2 className="font-display text-h2 text-[var(--navy-900)]">
             {content.heading}
           </h2>
-          <p className="mt-5 w-full text-[clamp(0.98rem,1.2vw,1.18rem)] leading-[1.7] text-[var(--text-muted)] md:mt-6 lg:mt-7 lg:leading-[1.75]">
+          <p className="mt-5 w-full text-body-lg text-[var(--text-muted)] md:mt-6 lg:mt-7">
             {content.intro}
           </p>
         </header>
 
         <div className="mx-auto mt-[clamp(3.5rem,6vw,5.5rem)] flex max-w-[900px] items-center justify-center gap-4 text-center">
           <span aria-hidden="true" className="h-px w-8 bg-[var(--gold-text)] sm:w-12" />
-          <p className="font-display text-[clamp(1.25rem,2vw,1.75rem)] font-medium leading-tight tracking-[-0.02em] text-[var(--navy-900)]">
+          <p className="text-body-lg text-[var(--navy-900)]">
             {content.subheading}
           </p>
           <span aria-hidden="true" className="h-px w-8 bg-[var(--gold-text)] sm:w-12" />
@@ -79,8 +79,8 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
                   <Icon aria-hidden="true" size={28} weight="regular" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[clamp(1.05rem,1.2vw,1.25rem)] font-semibold leading-snug tracking-[-0.015em] text-[var(--text-primary)]">{item.question}</p>
-                  <p className="mt-2 text-[clamp(0.96rem,1.05vw,1.08rem)] leading-relaxed text-[var(--text-muted)]">{item.answer}</p>
+                  <h3 className="font-display text-h3 text-[var(--text-primary)]">{item.question}</h3>
+                  <p className="mt-2 text-body text-[var(--text-muted)]">{item.answer}</p>
                 </div>
               </li>
             );

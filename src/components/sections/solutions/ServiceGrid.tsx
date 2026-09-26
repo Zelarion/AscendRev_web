@@ -20,7 +20,7 @@ export default function ServiceGrid(): JSX.Element {
   const { heading, intro, items } = solutions.services;
 
   return (
-    <Section>
+    <Section className="!pt-6 lg:!pb-16">
       <Container>
         {/* The one word-by-word reveal on this page. It resolves under the
             reader's own scroll, which is the cause-and-effect DESIGN.md §4

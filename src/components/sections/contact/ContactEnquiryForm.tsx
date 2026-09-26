@@ -210,13 +210,13 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
         <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
           RFP &amp; DISCOVERY HUB
         </p>
-        <h2 className="mt-3 max-w-[16ch] font-display text-[clamp(2.2rem,3.5vw,3.5rem)] font-medium leading-[1] tracking-[-0.035em] text-[var(--navy-900)]">
+        <h2 className="mt-3 font-display text-h2 text-[var(--navy-900)]">
           {content.heading}
         </h2>
-        <p className="mt-4 max-w-[56ch] text-[14px] leading-6 text-[var(--ink-muted)]">
+        <p className="mt-3 text-body text-[var(--ink-muted)]">
           {content.intro}
         </p>
-        <p className="mt-2 text-[12px] leading-5 text-[var(--ink-muted)]">
+        <p className="mt-2 text-small text-[var(--ink-muted)]">
           {content.requiredNote}
         </p>
       </div>

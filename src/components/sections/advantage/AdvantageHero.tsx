@@ -17,11 +17,11 @@ export default function AdvantageHero(): JSX.Element {
   return (
     <Section
       tone="light"
-      className="flex min-h-[440px] items-end pt-[clamp(5rem,8vw,7rem)] pb-[clamp(3.5rem,5vw,4.5rem)]"
+      className="!pt-[calc(var(--header-height)+2.5rem)] !pb-[clamp(2rem,4vw,3rem)] lg:!pt-[calc(var(--header-height)+3rem)]"
     >
       <Container>
         <h1 className="font-display text-h1 text-[var(--navy-900)] lg:whitespace-nowrap">{headline}</h1>
-        <p className="mt-4 max-w-[58ch] text-body-lg text-[var(--steel-400)]">{subheadline}</p>
+        <p className="mt-4 max-w-[58ch] text-body-lg text-[var(--steel-400)] lg:max-w-none">{subheadline}</p>
       </Container>
     </Section>
   );

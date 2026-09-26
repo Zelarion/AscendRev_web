@@ -206,10 +206,10 @@ export default function InfrastructureBlock(): JSX.Element {
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
             THE ASCENDREV ADVANTAGE / 02
           </p>
-          <h2 className="mt-5 font-display text-[clamp(3rem,5vw,5.8rem)] font-medium leading-[0.96] tracking-[-0.04em] text-[var(--navy-900)] lg:whitespace-nowrap">
+          <h2 className="mt-5 font-display text-h2 text-[var(--navy-900)]">
             State-of-the-Art Operations.
           </h2>
-          <p className="mt-6 max-w-[64ch] text-[clamp(1rem,1.2vw,1.18rem)] leading-[1.75] text-[var(--ink-muted)]">
+          <p className="mt-6 max-w-[64ch] text-body-lg text-[var(--ink-muted)]">
             Premium Philippine operations are built around reliability, security, talent, and continuity.
           </p>
 
@@ -243,13 +243,13 @@ export default function InfrastructureBlock(): JSX.Element {
                       <span className="h-px w-10 bg-[var(--gold-text)]/55" />
                     </div>
 
-                    <h3 className="mt-5 font-display text-[clamp(2.3rem,3.6vw,4.1rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--navy-900)] lg:whitespace-nowrap">
+                    <h3 className="mt-5 font-display text-h3 text-[var(--navy-900)]">
                       {moment.headline}
                     </h3>
 
                     <p
                       className={cn(
-                        'mt-6 max-w-[54ch] text-[clamp(1rem,1.15vw,1.16rem)] leading-[1.75] transition-colors duration-500',
+                        'mt-6 max-w-[54ch] text-body-lg transition-colors duration-500',
                         active ? 'text-[var(--ink)]' : 'text-[var(--ink-muted)]'
                       )}
                     >
@@ -312,7 +312,7 @@ export default function InfrastructureBlock(): JSX.Element {
 
         <div className="mx-auto mt-[clamp(3rem,5vw,4rem)] max-w-[760px] text-center">
           <span aria-hidden="true" className="mx-auto block h-px w-16 bg-[var(--gold-text)]" />
-          <p className="mt-6 font-display text-[clamp(1.8rem,2.8vw,3rem)] font-medium tracking-[-0.025em] text-[var(--navy-900)]">
+          <p className="mt-6 text-body-lg text-[var(--navy-900)]">
             Built for reliability. Designed for performance.
           </p>
           <p className="mx-auto mt-5 max-w-[68ch] text-xs leading-[1.7] text-[var(--ink-muted)]">{note}</p>

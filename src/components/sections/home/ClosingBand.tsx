@@ -18,14 +18,14 @@ export default function ClosingBand({ content }: ClosingBandProps): JSX.Element 
           <p className="mb-4 text-[10px] font-semibold tracking-[0.2em] text-[var(--gold-text)] sm:text-[11px]">
             LET&apos;S TALK
           </p>
-          <h2 className="max-w-[18ch] font-display text-[clamp(2.35rem,4vw,4.65rem)] font-medium leading-[0.98] tracking-[-0.035em] text-[var(--navy-900)]">
+          <h2 className="max-w-[26ch] font-display text-h2 text-[var(--navy-900)]">
             {content.heading}
           </h2>
         </RevealOnScroll>
 
         <RevealOnScroll delayMs={100} className="lg:max-w-[470px] lg:justify-self-end">
           {content.body.trim() ? (
-            <p className="max-w-[42ch] text-[clamp(0.95rem,1.15vw,1.12rem)] leading-[1.6] text-[var(--text-muted)]">
+            <p className="max-w-[42ch] text-body-lg text-[var(--text-muted)]">
               {content.body}
             </p>
           ) : null}

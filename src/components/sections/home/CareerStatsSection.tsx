@@ -24,7 +24,7 @@ export default function CareerStatsSection() {
           </p>
           <h2
             id="career-stats-heading"
-            className="mt-3 font-display text-[clamp(2rem,4vw,3.5rem)] leading-[1.08] text-[var(--navy-800)]"
+            className="mt-3 font-display text-h2 text-[var(--navy-800)]"
           >
             {advantage.leadership.recordHeading}
           </h2>
@@ -32,10 +32,10 @@ export default function CareerStatsSection() {
 
         <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2 xl:grid-cols-4">
           <article className="bg-[var(--surface)] p-6 sm:p-8">
-            <p className="font-display text-[clamp(2.15rem,6vw,3rem)] leading-none text-[var(--navy-800)]">
+            <p className="ar-type-stat font-display text-h2 text-[var(--navy-800)]">
               <CountUp value={1} prefix="Over CAD" suffix="B" />
             </p>
-            <h3 className="mt-4 text-sm font-semibold text-[var(--text-primary)] sm:mt-5">
+            <h3 className="mt-4 font-display text-h3 text-[var(--text-primary)] sm:mt-5">
               Revenue generated throughout his career
             </h3>
           </article>
@@ -76,10 +76,10 @@ function MetricCard({
 
   return (
     <article className="bg-[var(--surface)] p-6 sm:p-8">
-      <p className="font-display text-[clamp(2.15rem,6vw,3rem)] leading-none text-[var(--navy-800)]">
+      <p className="ar-type-stat font-display text-h2 text-[var(--navy-800)]">
         {number}
       </p>
-      <h3 className="mt-4 text-sm font-semibold text-[var(--text-primary)] sm:mt-5">
+      <h3 className="mt-4 font-display text-h3 text-[var(--text-primary)] sm:mt-5">
         {label}
       </h3>
       <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">

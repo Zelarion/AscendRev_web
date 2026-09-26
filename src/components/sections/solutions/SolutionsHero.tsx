@@ -14,12 +14,12 @@ export default function SolutionsHero(): JSX.Element {
   const { headline, subheadline } = solutions.hero;
 
   return (
-    <Section className="!pt-[calc(var(--header-height)+1rem)] flex min-h-[400px] items-center sm:min-h-[440px] lg:min-h-[520px] lg:!pt-[var(--section-space)]">
+    <Section className="!pt-[calc(var(--header-height)+1rem)] !pb-6 flex min-h-[400px] items-center sm:min-h-[440px] lg:min-h-0 lg:!pt-[var(--section-space)]">
       <Container>
-        <div className="grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:gap-16">
+        <div className="grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)] lg:gap-10">
           <div>
-            <h1 className="max-w-[22ch] font-display text-h1 text-[var(--ink)]">{headline}</h1>
-            <p className="mt-4 max-w-[58ch] text-body-lg leading-relaxed text-[var(--ink-muted)]">
+            <h1 className="max-w-none font-display text-h1 text-[var(--ink)]">{headline}</h1>
+            <p className="mt-4 max-w-[58ch] text-body leading-relaxed text-[var(--ink-muted)] lg:max-w-none">
               {subheadline}
             </p>
           </div>

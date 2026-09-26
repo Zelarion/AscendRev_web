@@ -85,7 +85,7 @@ export const solutions: SolutionsContent = {
     // Client revision, 2026-09-24: descriptions removed, icon + label only.
     // Order, glyphs and labels are the client's own, verbatim.
     items: [
-      { id: 'lead-generation-data', glyph: '◈', label: 'Lead Generation & Data' },
+      { id: 'lead-generation-data', glyph: '◈', label: 'Lead Generation and Data Entry' },
       { id: 'outbound-sales', glyph: '↗', label: 'Outbound Sales & Cold Acquisition' },
       { id: 'inbound-conversion', glyph: '◉', label: 'Inbound Lead Conversion' },
       { id: 'appointment-setting', glyph: '◫', label: 'High-Yield Appointment Setting' },

@@ -61,13 +61,10 @@ function config(string $key, string $default = ''): string
  * (SPEC.md §6). These defaults are the addresses the client confirmed in
  * writing; the deploy environment should still set them explicitly.
  */
-$RECIPIENTS = array_values(array_filter(array_map(
+$RECIPIENTS = array_map(
     'trim',
     explode(',', config('ASCENDREV_ENQUIRY_TO', 'rio.vidal@ascend-rev.ca,ralph.tomines@ascend-rev.ca'))
-)));
-
-/** Envelope sender. Must be ON the sending domain or SPF will fail. */
-$MAIL_FROM = config('ASCENDREV_ENQUIRY_FROM', 'website@ascend-rev.ca');
+);
 
 /**
  * Where submissions and rate-limit state live. Defaults outside the document
@@ -80,24 +77,22 @@ $STORAGE_DIR = config(
 );
 
 /**
- * Optional SMTP transport.
+ * Google Workspace SMTP transport.
  *
- * On cPanel, `mail()` hands off to the host's local MTA and is the right
- * answer: no credentials to store, no second service to depend on. But a
- * machine with no local MTA — a Windows laptop running a demo, for instance —
- * cannot deliver that way at all.
- *
- * So SMTP is used only when a host is configured, and `mail()` remains the
- * default. Production behaviour is unchanged by the presence of this code.
+ * cPanel must submit through the configured Google Workspace account; do not
+ * fall back to the host MTA when authenticated SMTP is unavailable.
  *
  * The password is read from the environment or the out-of-root config file and
  * is never written to a log, never returned in a response, and never placed in
  * a header.
  */
-$SMTP_HOST   = config('ASCENDREV_SMTP_HOST', '');
+$SMTP_HOST   = config('ASCENDREV_SMTP_HOST', 'smtp.gmail.com');
 $SMTP_PORT   = (int) (config('ASCENDREV_SMTP_PORT', '587') ?: 587);
 $SMTP_USER   = config('ASCENDREV_SMTP_USER', '');
 $SMTP_PASS   = config('ASCENDREV_SMTP_PASS', '');
+
+/** Envelope sender. Defaults to the authenticated Google Workspace identity. */
+$MAIL_FROM = config('ASCENDREV_ENQUIRY_FROM', $SMTP_USER);
 
 /** Hosts allowed to submit. Origin/Referer must match one of these. */
 $ALLOWED_HOSTS = array_values(array_filter(array_map(
@@ -295,7 +290,7 @@ if (is_readable($rateFile)) {
 }
 
 if (count($hits) >= $RATE_LIMIT_MAX) {
-    logLine($STORAGE_DIR, 'rate_limited ip_hash=' . substr(hash('sha256', $clientIp), 0, 12));
+    logLine($STORAGE_DIR, 'rate_limited');
     header('Retry-After: ' . RATE_LIMIT_WINDOW_SECONDS);
     respond(429, ['ok' => false, 'error' => 'rate_limited']);
 }
@@ -323,7 +318,7 @@ foreach (array_keys($_POST) as $key) {
  * ------------------------------------------------------------------------ */
 
 if (trim((string) ($_POST['referralSource'] ?? '')) !== '') {
-    logLine($STORAGE_DIR, 'honeypot_tripped ip_hash=' . substr(hash('sha256', $clientIp), 0, 12));
+    logLine($STORAGE_DIR, 'honeypot_tripped');
     respond(200, ['ok' => true]);
 }
 
@@ -422,7 +417,7 @@ if (mb_strlen($comments) > 200) {
 }
 
 if ($errors !== []) {
-    logLine($STORAGE_DIR, 'validation_failed fields=' . implode(',', $errors));
+    logLine($STORAGE_DIR, 'validation_failed field_count=' . count($errors));
     respond(422, [
         'ok' => false,
         'error' => 'validation_failed',
@@ -434,12 +429,11 @@ if ($errors !== []) {
 }
 
 /* ---------------------------------------------------------------------------
- * Duplicate suppression.
+ * Idempotent submission claim.
  *
- * A double-clicked button, a retried request on a flaky connection, or a
- * refresh must not produce two leads and two emails. The key is derived from
- * the submission itself rather than from a client-supplied id, because a
- * client that retries generates a fresh id and would defeat the check.
+ * The per-key lock serialises duplicate requests for the full persist/send
+ * sequence. The OS releases it if PHP exits unexpectedly, so a later retry
+ * can resume from the durable CSV row and per-recipient delivery checkpoints.
  * ------------------------------------------------------------------------ */
 
 /**
@@ -467,154 +461,329 @@ $submissionKey = $useClientKey
         $comments,
     ]));
 
-$dedupeFile = $STORAGE_DIR . '/dedupe-' . $submissionKey . '.txt';
-
-/**
- * The claim is made with an exclusive create rather than "check, then write".
- * Two requests arriving at the same instant — a double-click, or a client that
- * retries before the first response lands — would both pass a check-then-write
- * and both send an email. `fopen` in 'x' mode can only succeed for one of
- * them, so the side effects below run in the winner alone.
- */
-$claim = @fopen($dedupeFile, 'x');
-
-if ($claim === false) {
-    $seenAt = (int) @file_get_contents($dedupeFile);
-
-    if ($seenAt > 0 && ($now - $seenAt) < DEDUPE_WINDOW_SECONDS) {
-        // Reported as success. The visitor's intent was satisfied the first
-        // time, and telling them it failed would invite a third attempt.
-        logLine($STORAGE_DIR, 'duplicate_suppressed key=' . substr($submissionKey, 0, 12));
-        respond(200, ['ok' => true, 'duplicate' => true]);
-    }
-
-    // The marker is older than the window, so this is a genuine new intent
-    // that happens to hash the same. Take the marker over and continue.
-    @file_put_contents($dedupeFile, (string) $now, LOCK_EX);
-} else {
-    fwrite($claim, (string) $now);
-    fclose($claim);
-}
-
 /* ---------------------------------------------------------------------------
- * Persist first, then send.
+ * Durable row and delivery state.
  *
- * The CSV is written before the mail attempt on purpose (SPEC.md §6): if the
- * host's mail service is down, the lead still exists on disk. A lead that
- * only ever lived in an SMTP conversation is a lead that can be lost silently.
+ * The CSV row is atomically replaced under a shared writer lock. Its
+ * submission_key makes retries idempotent; the state file stores only hashes
+ * and SMTP-250 checkpoints, never submission fields or recipient addresses.
  * ------------------------------------------------------------------------ */
 
-/** Current column order. A contract revision can still change this again. */
 const CSV_HEADER = [
     'submitted_at_utc', 'individual_name', 'business_email', 'entity_name',
-    'best_number_to_call', 'comments', 'ip_hash',
+    'best_number_to_call', 'comments', 'ip_hash', 'submission_key',
 ];
 
-$submittedAt = gmdate('c');
+/** Releases the per-submission lock before any response path exits. */
+function releaseSubmissionLock($handle): void
+{
+    if (is_resource($handle)) {
+        @flock($handle, LOCK_UN);
+        fclose($handle);
+    }
+}
+
+$submissionLockPath = $STORAGE_DIR . '/submission-' . $submissionKey . '.lock';
+$submissionLock = @fopen($submissionLockPath, 'c');
+if ($submissionLock === false || !flock($submissionLock, LOCK_EX)) {
+    releaseSubmissionLock($submissionLock);
+    logLine($STORAGE_DIR, 'submission_lock_failed');
+    respond(503, ['ok' => false, 'error' => 'submission_busy']);
+}
+
 $csvPath = $STORAGE_DIR . '/enquiries.csv';
+$deliveryStatePath = $STORAGE_DIR . '/delivery-' . $submissionKey . '.json';
 
-$row = [
-    $submittedAt,
-    $individualName,
-    $businessEmail,
-    $entityName,
-    $bestNumberToCall,
-    $comments,
-    substr(hash('sha256', $clientIp), 0, 16),
-];
+/** Writes bytes to a same-directory temporary file, then atomically replaces the target. */
+function atomicWriteFile(string $path, string $contents): bool
+{
+    $temporaryPath = $path . '.' . bin2hex(random_bytes(8)) . '.tmp';
+    $handle = @fopen($temporaryPath, 'xb');
+    if ($handle === false) {
+        return false;
+    }
+    @chmod($temporaryPath, 0600);
 
-/**
- * True when a file does not yet exist, is empty, or its first row already
- * matches the header this version writes. False only when there is a real
- * schema mismatch to rotate away from. A file that cannot be read is treated
- * as matching, so a permissions problem surfaces later as the existing
- * csv_write_failed path rather than as a spurious rotation.
- */
+    $offset = 0;
+    $length = strlen($contents);
+    $ok = true;
+    while ($offset < $length) {
+        $written = @fwrite($handle, substr($contents, $offset));
+        if ($written === false || $written === 0) {
+            $ok = false;
+            break;
+        }
+        $offset += $written;
+    }
+    if ($ok) {
+        $ok = @fflush($handle);
+        if ($ok && function_exists('fsync')) {
+            $ok = @fsync($handle);
+        }
+    }
+    fclose($handle);
+
+    if (!$ok || !@rename($temporaryPath, $path)) {
+        @unlink($temporaryPath);
+        return false;
+    }
+    return true;
+}
+
+/** True when the file has the schema this handler writes. */
 function csvHeaderMatches(string $path, array $expectedHeader): bool
 {
-    if (!file_exists($path) || filesize($path) === 0) {
+    if (!file_exists($path) || @filesize($path) === 0) {
         return true;
     }
     $handle = @fopen($path, 'r');
     if ($handle === false) {
-        return true;
+        return false;
     }
     $firstLine = fgetcsv($handle);
     fclose($handle);
     return is_array($firstLine) && $firstLine === $expectedHeader;
 }
 
-/**
- * Renames an old-schema enquiries.csv out of the way. Never deleted or
- * truncated: it holds leads, and the whole reason this file exists is that a
- * lead must survive things going wrong, including the field set changing
- * between one revision round and the next.
- *
- * Named after the stale file's own last-modified time, not "now", so the
- * archive name reflects when that schema was actually retired. Colons are
- * excluded from the stamp because they are illegal in a Windows filename.
- */
+/** Preserves an old-schema CSV instead of silently mixing rows with different columns. */
 function rotateStaleCsv(string $path, string $storageDir): bool
 {
     $modifiedAt = @filemtime($path);
     $stamp = gmdate('Y-m-d\THis\Z', $modifiedAt !== false ? $modifiedAt : time());
-
     $archivePath = $storageDir . '/enquiries-' . $stamp . '.csv';
     $suffix = 2;
     while (file_exists($archivePath)) {
         $archivePath = $storageDir . '/enquiries-' . $stamp . '-' . $suffix . '.csv';
         $suffix++;
     }
-
     return @rename($path, $archivePath);
 }
 
+/** Flushes a CSV file, syncing file contents when the PHP runtime supports it. */
+function syncFile($handle): bool
+{
+    return @fflush($handle) && (!function_exists('fsync') || @fsync($handle));
+}
+
 /**
- * The mutex is a dedicated file rather than enquiries.csv itself, so that
- * rotating the CSV (a rename) never has to happen while a handle to that
- * exact path is open and locked. Windows refuses to rename a file that has
- * an open handle unless the opener requested share-delete, and relying on
- * that across PHP and OS versions is fragile; a separate lock file avoids
- * the question while still serialising every writer through one exclusive
- * lock, so two concurrent submissions cannot both decide to rotate.
+ * Ensures one row exists for this submission key and returns the persisted row.
+ * Caller holds enquiries.csv.lock. Rewriting through a temporary file means a
+ * process death cannot leave a partially appended lead that a retry duplicates.
  */
+function persistCsvRow(string $path, string $storageDir, array $header, array $newRow, string $submissionKey): array
+{
+    if (!csvHeaderMatches($path, $header) && !rotateStaleCsv($path, $storageDir)) {
+        return ['ok' => false, 'row' => null];
+    }
+
+    $rows = [];
+    if (file_exists($path) && @filesize($path) > 0) {
+        $input = @fopen($path, 'r');
+        if ($input === false || fgetcsv($input) !== $header) {
+            if ($input !== false) {
+                fclose($input);
+            }
+            return ['ok' => false, 'row' => null];
+        }
+        while (($existingRow = fgetcsv($input)) !== false) {
+            if (count($existingRow) !== count($header)) {
+                fclose($input);
+                return ['ok' => false, 'row' => null];
+            }
+            if (($existingRow[7] ?? null) === $submissionKey) {
+                fclose($input);
+                return ['ok' => true, 'row' => $existingRow];
+            }
+            $rows[] = $existingRow;
+        }
+        fclose($input);
+    }
+
+    $temporaryPath = $path . '.' . bin2hex(random_bytes(8)) . '.tmp';
+    $output = @fopen($temporaryPath, 'xb');
+    if ($output === false) {
+        return ['ok' => false, 'row' => null];
+    }
+    @chmod($temporaryPath, 0600);
+    $ok = fputcsv($output, $header) !== false;
+    foreach ($rows as $existingRow) {
+        if (!$ok || fputcsv($output, $existingRow) === false) {
+            $ok = false;
+            break;
+        }
+    }
+    if ($ok && fputcsv($output, $newRow) === false) {
+        $ok = false;
+    }
+    if ($ok) {
+        $ok = syncFile($output);
+    }
+    fclose($output);
+
+    if (!$ok || !@rename($temporaryPath, $path)) {
+        @unlink($temporaryPath);
+        return ['ok' => false, 'row' => null];
+    }
+    return ['ok' => true, 'row' => $newRow];
+}
+
+/** Stable hash of the fields whose exact contents will be sent to recipients. */
+function enquiryPayloadHash(array $values): string
+{
+    return hash('sha256', implode("\x1f", $values));
+}
+
 $csvLockPath = $STORAGE_DIR . '/enquiries.csv.lock';
-$lockHandle = @fopen($csvLockPath, 'c');
-
+$csvLock = @fopen($csvLockPath, 'c');
 $csvWritten = false;
+$persistedRow = null;
 
-if ($lockHandle !== false && flock($lockHandle, LOCK_EX)) {
-    if (!csvHeaderMatches($csvPath, CSV_HEADER)) {
-        if (!rotateStaleCsv($csvPath, $STORAGE_DIR)) {
-            // Rotation failing (e.g. a permissions problem) must not lose the
-            // lead. Fall through and append below: a new-schema row under a
-            // stale header is still a recoverable lead, which is the same
-            // trade-off the pre-existing csv_write_failed path makes.
-            logLine($STORAGE_DIR, 'csv_rotate_failed path=' . basename($csvPath));
-        }
-    }
-
-    $csvIsNew = !file_exists($csvPath);
-    $handle = @fopen($csvPath, 'a');
-    if ($handle !== false) {
-        if ($csvIsNew) {
-            fputcsv($handle, CSV_HEADER);
-        }
-        fputcsv($handle, $row);
-        fflush($handle);
-        fclose($handle);
-        $csvWritten = true;
-    }
-
-    flock($lockHandle, LOCK_UN);
+if ($csvLock !== false && flock($csvLock, LOCK_EX)) {
+    $submittedAt = gmdate('c');
+    $row = [
+        $submittedAt,
+        $individualName,
+        $businessEmail,
+        $entityName,
+        $bestNumberToCall,
+        $comments,
+        substr(hash('sha256', $clientIp), 0, 16),
+        $submissionKey,
+    ];
+    $csvResult = persistCsvRow($csvPath, $STORAGE_DIR, CSV_HEADER, $row, $submissionKey);
+    $csvWritten = $csvResult['ok'];
+    $persistedRow = $csvResult['row'];
+    flock($csvLock, LOCK_UN);
+}
+if ($csvLock !== false) {
+    fclose($csvLock);
 }
 
-if ($lockHandle !== false) {
-    fclose($lockHandle);
+if (!$csvWritten || !is_array($persistedRow)) {
+    logLine($STORAGE_DIR, 'csv_write_failed');
+    releaseSubmissionLock($submissionLock);
+    respond(500, ['ok' => false, 'error' => 'not_recorded']);
 }
 
-if (!$csvWritten) {
-    logLine($STORAGE_DIR, 'csv_write_failed path=' . basename($csvPath));
+$persistedValues = [
+    (string) $persistedRow[1],
+    (string) $persistedRow[2],
+    (string) $persistedRow[3],
+    (string) $persistedRow[4],
+    (string) $persistedRow[5],
+];
+$payloadHash = enquiryPayloadHash($persistedValues);
+if (!hash_equals($payloadHash, enquiryPayloadHash([
+    $individualName,
+    $businessEmail,
+    $entityName,
+    $bestNumberToCall,
+    $comments,
+]))) {
+    logLine($STORAGE_DIR, 'submission_payload_mismatch');
+    releaseSubmissionLock($submissionLock);
+    respond(409, ['ok' => false, 'error' => 'idempotency_key_conflict', 'recorded' => true]);
+}
+
+// Continue retries from the original row so pending recipients never receive edited content.
+$submittedAt = (string) $persistedRow[0];
+$individualName = $persistedValues[0];
+$businessEmail = $persistedValues[1];
+$entityName = $persistedValues[2];
+$bestNumberToCall = $persistedValues[3];
+$comments = $persistedValues[4];
+
+if (file_exists($deliveryStatePath)) {
+    $deliveryState = json_decode((string) @file_get_contents($deliveryStatePath), true);
+    if (!is_array($deliveryState)) {
+        logLine($STORAGE_DIR, 'delivery_state_invalid');
+        releaseSubmissionLock($submissionLock);
+        respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
+    }
+} else {
+    $deliveryState = null;
+}
+
+$validatedRecipients = array_map('headerSafe', $RECIPIENTS);
+$recipientsValid = count($validatedRecipients) >= 2
+    && count($validatedRecipients) === count($RECIPIENTS)
+    && count(array_unique(array_map('strtolower', $validatedRecipients))) === count($validatedRecipients)
+    && !in_array('', $validatedRecipients, true);
+foreach ($validatedRecipients as $recipient) {
+    if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+        $recipientsValid = false;
+        break;
+    }
+}
+
+if (!$recipientsValid) {
+    logLine($STORAGE_DIR, 'recipient_config_invalid count=' . count($RECIPIENTS) . ' csv=ok');
+    releaseSubmissionLock($submissionLock);
+    respond(500, ['ok' => false, 'error' => 'recipient_configuration_invalid', 'recorded' => true]);
+}
+
+$requiredRecipientIds = array_map(
+    static fn(string $recipient): string => hash('sha256', strtolower($recipient)),
+    $validatedRecipients
+);
+$sortedRequiredRecipientIds = $requiredRecipientIds;
+sort($sortedRequiredRecipientIds, SORT_STRING);
+
+if ($deliveryState === null) {
+    $deliveryState = [
+        'version' => 1,
+        'payload_hash' => $payloadHash,
+        'required' => $requiredRecipientIds,
+        'accepted' => [],
+    ];
+    $stateJson = json_encode($deliveryState, JSON_UNESCAPED_SLASHES);
+    if (!is_string($stateJson) || !atomicWriteFile($deliveryStatePath, $stateJson)) {
+        logLine($STORAGE_DIR, 'delivery_state_write_failed');
+        releaseSubmissionLock($submissionLock);
+        respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
+    }
+} else {
+    $storedRequired = $deliveryState['required'] ?? null;
+    $storedAccepted = $deliveryState['accepted'] ?? null;
+    if (
+        ($deliveryState['version'] ?? null) !== 1
+        || !is_string($deliveryState['payload_hash'] ?? null)
+        || !hash_equals($payloadHash, $deliveryState['payload_hash'])
+        || !is_array($storedRequired)
+        || count($storedRequired) !== count($requiredRecipientIds)
+        || !is_array($storedAccepted)
+    ) {
+        logLine($STORAGE_DIR, 'delivery_state_invalid');
+        releaseSubmissionLock($submissionLock);
+        respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
+    }
+    foreach ($storedRequired as $requiredId) {
+        if (!is_string($requiredId) || preg_match('/^[a-f0-9]{64}$/', $requiredId) !== 1) {
+            logLine($STORAGE_DIR, 'delivery_state_invalid');
+            releaseSubmissionLock($submissionLock);
+            respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
+        }
+    }
+    $storedRequired = array_values($storedRequired);
+    sort($storedRequired, SORT_STRING);
+    if ($storedRequired !== $sortedRequiredRecipientIds) {
+        logLine($STORAGE_DIR, 'recipient_set_changed');
+        releaseSubmissionLock($submissionLock);
+        respond(409, ['ok' => false, 'error' => 'recipient_configuration_changed', 'recorded' => true]);
+    }
+    foreach ($storedAccepted as $acceptedId) {
+        if (
+            !is_string($acceptedId)
+            || preg_match('/^[a-f0-9]{64}$/', $acceptedId) !== 1
+            || !in_array($acceptedId, $requiredRecipientIds, true)
+        ) {
+            logLine($STORAGE_DIR, 'delivery_state_invalid');
+            releaseSubmissionLock($submissionLock);
+            respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
+        }
+    }
+    $deliveryState['required'] = $requiredRecipientIds;
+    $deliveryState['accepted'] = array_values(array_unique($storedAccepted));
 }
 
 /* ---------------------------------------------------------------------------
@@ -835,11 +1004,21 @@ function smtpSend(
     string $user,
     string $pass,
     string $from,
-    string $to,
+    array $recipients,
     string $subject,
     string $body,
     string $headers
 ): bool {
+    if (
+        $host === '' ||
+        $user === '' ||
+        $pass === '' ||
+        $from === '' ||
+        $recipients === []
+    ) {
+        return false;
+    }
+
     $socket = @stream_socket_client(
         sprintf('tcp://%s:%d', $host, $port),
         $errno,
@@ -893,7 +1072,7 @@ function smtpSend(
         $write('EHLO ascend-rev.ca');
         $ok = $expect($read(), '250');
     }
-    if ($ok && $user !== '') {
+    if ($ok) {
         $write('AUTH LOGIN');
         $ok = $expect($read(), '334');
         if ($ok) {
@@ -909,8 +1088,11 @@ function smtpSend(
         $write('MAIL FROM:<' . $from . '>');
         $ok = $expect($read(), '250');
     }
-    if ($ok) {
-        $write('RCPT TO:<' . $to . '>');
+    foreach ($recipients as $recipient) {
+        if (!$ok) {
+            break;
+        }
+        $write('RCPT TO:<' . $recipient . '>');
         $ok = $expect($read(), '250');
     }
     if ($ok) {
@@ -918,25 +1100,19 @@ function smtpSend(
         $ok = $expect($read(), '354');
     }
     if ($ok) {
-        // Dot-stuffing: a line consisting of a single "." would otherwise end
-        // the message early.
         // Normalise to CRLF exactly once. The body may already be CRLF
         // (MIME) or LF (plain text); collapsing first makes both safe.
-        $normalised = str_replace("
-", "
-", $body);
-        $normalised = str_replace("
-", "
-", $normalised);
+        $normalised = preg_replace("/\r\n?|\n/", "\n", $body) ?? $body;
         // Dot-stuffing: a line of a single "." would end the message early.
         $payload = preg_replace('/^\./m', '..', $normalised) ?? $normalised;
+        $payload = str_replace("\n", "\r\n", $payload);
         $write(
             $headers . "\r\n"
-            . 'To: ' . $to . "\r\n"
+            . 'To: ' . implode(', ', $recipients) . "\r\n"
             . 'Subject: ' . $subject . "\r\n"
             . 'Date: ' . gmdate('r') . "\r\n"
             . "\r\n"
-            . str_replace("\n", "\r\n", $payload) . "\r\n."
+            . $payload . "\r\n."
         );
         $ok = $expect($read(), '250');
     }
@@ -947,44 +1123,75 @@ function smtpSend(
     return $ok;
 }
 
-$mailDelivered = false;
+$from = headerSafe($MAIL_FROM);
+$fromValid = (bool) filter_var($from, FILTER_VALIDATE_EMAIL);
+$checkpointFailed = false;
 
-foreach ($RECIPIENTS as $recipient) {
-    $to = headerSafe($recipient);
-    if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+// SMTP and local state cannot commit atomically: a crash after remote 250 but
+// before this checkpoint can make a retry send that recipient again.
+foreach ($validatedRecipients as $index => $recipient) {
+    $recipientId = $requiredRecipientIds[$index];
+    if (in_array($recipientId, $deliveryState['accepted'], true)) {
+        continue;
+    }
+    if (!$fromValid) {
         continue;
     }
 
-    if ($SMTP_HOST !== '') {
-        if (smtpSend($SMTP_HOST, $SMTP_PORT, $SMTP_USER, $SMTP_PASS, headerSafe($MAIL_FROM), $to, $subject, $mime, $headers)) {
-            $mailDelivered = true;
-        }
+    // Use one SMTP transaction per recipient so a rejected RCPT does not block another.
+    $recipientAccepted = smtpSend(
+        $SMTP_HOST,
+        $SMTP_PORT,
+        $SMTP_USER,
+        $SMTP_PASS,
+        $from,
+        [$recipient],
+        $subject,
+        $mime,
+        $headers
+    );
+    if (!$recipientAccepted) {
         continue;
     }
 
-    if (@mail($to, $subject, $mime, $headers, '-f' . headerSafe($MAIL_FROM))) {
-        $mailDelivered = true;
+    $deliveryState['accepted'][] = $recipientId;
+    $deliveryState['accepted'] = array_values(array_unique($deliveryState['accepted']));
+    $stateJson = json_encode($deliveryState, JSON_UNESCAPED_SLASHES);
+    if (!is_string($stateJson) || !atomicWriteFile($deliveryStatePath, $stateJson)) {
+        $checkpointFailed = true;
+        break;
     }
 }
 
+$acceptedRecipientCount = count(array_intersect($requiredRecipientIds, $deliveryState['accepted']));
+$mailDelivered = !$checkpointFailed && $acceptedRecipientCount === count($requiredRecipientIds);
+
 if (!$mailDelivered) {
-    logLine($STORAGE_DIR, 'mail_failed recipients=' . count($RECIPIENTS) . ' csv=' . ($csvWritten ? 'ok' : 'failed'));
+    logLine(
+        $STORAGE_DIR,
+        'mail_delivery_incomplete accepted=' . $acceptedRecipientCount
+            . ' required=' . count($requiredRecipientIds)
+            . ' checkpoint=' . ($checkpointFailed ? 'failed' : 'ok')
+    );
 }
 
 /* ---------------------------------------------------------------------------
  * Outcome.
  *
- * Success requires that the lead was captured SOMEWHERE. If neither the mail
- * nor the CSV succeeded, the submission is gone and the visitor must be told,
- * so they can reach out another way rather than waiting for a reply that is
- * never coming.
+ * The browser treats every 2xx as success. Do not return one until the durable
+ * row and each configured recipient's SMTP DATA 250 are checkpointed.
  * ------------------------------------------------------------------------ */
 
 $hits[] = $now;
 @file_put_contents($rateFile, json_encode($hits), LOCK_EX);
 
-if (!$mailDelivered && !$csvWritten) {
+releaseSubmissionLock($submissionLock);
+
+if (!$csvWritten) {
     respond(500, ['ok' => false, 'error' => 'not_recorded']);
 }
+if (!$mailDelivered) {
+    respond(503, ['ok' => false, 'error' => 'delivery_incomplete', 'recorded' => true]);
+}
 
-respond(200, ['ok' => true, 'mailed' => $mailDelivered, 'recorded' => $csvWritten]);
+respond(200, ['ok' => true, 'mailed' => true, 'recorded' => true]);

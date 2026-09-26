@@ -58,12 +58,13 @@ function config(string $key, string $default = ''): string
 
 /**
  * At least two recipients, so no lead depends on a single mailbox
- * (SPEC.md §6). These defaults are the addresses the client confirmed in
- * writing; the deploy environment should still set them explicitly.
+ * (SPEC.md §6). Recipients must be configured outside source. An empty
+ * fallback makes a missing cPanel config fail closed instead of routing a
+ * test or production enquiry to an unintended inbox.
  */
 $RECIPIENTS = array_map(
     'trim',
-    explode(',', config('ASCENDREV_ENQUIRY_TO', 'rio.vidal@ascend-rev.ca,ralph.tomines@ascend-rev.ca'))
+    explode(',', config('ASCENDREV_ENQUIRY_TO'))
 );
 
 /**

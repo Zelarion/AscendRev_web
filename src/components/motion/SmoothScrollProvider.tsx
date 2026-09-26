@@ -29,8 +29,9 @@ const LENIS_OPTIONS = {
    * fights the platform's own inertia and reads as lag on a phone. */
   syncTouch: false,
   /** In-page anchors (`/#revenue-impact` from the nav) land below the sticky
-   * header rather than underneath it. The header is h-20, which is 80px. */
-  anchors: { offset: 80 },
+   * header rather than underneath it. Lenis offsets the destination by the
+   * negated value, so -80px places the section 80px below the header. */
+  anchors: { offset: -80 },
 } as const;
 
 interface SmoothScrollProviderProps {

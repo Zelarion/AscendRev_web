@@ -29,7 +29,7 @@ export default function HiringStandard(): JSX.Element {
     <Section className="lg:!py-16">
       <Container>
         <h2
-          className="max-w-none font-display text-h2 text-[var(--ink)]"
+          className="ar-type-hiring-standard max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap"
         >
           {heading}
         </h2>

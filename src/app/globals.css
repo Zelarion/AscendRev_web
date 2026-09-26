@@ -442,6 +442,15 @@ main h2 {
   line-height: 1.1 !important;
 }
 
+@media (min-width: 64rem) {
+  main h2.ar-type-hiring-standard {
+    font-size: clamp(1.375rem, 1.25vw, 1.75rem) !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+    text-wrap: nowrap;
+  }
+}
+
 main h3 {
   font-size: var(--type-card-heading) !important;
   line-height: 1.2 !important;
@@ -491,6 +500,16 @@ main p.ar-type-stat {
   font-size: clamp(1.25rem, 1.5vw, 1.75rem) !important;
   line-height: 1 !important;
   letter-spacing: -0.035em !important;
+}
+
+main p.ar-type-career-stat {
+  font-size: 1.75rem !important;
+}
+
+@media (min-width: 64rem) {
+  main p.ar-type-career-stat {
+    font-size: 2.5rem !important;
+  }
 }
 
 p {

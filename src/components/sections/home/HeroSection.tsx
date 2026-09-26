@@ -21,6 +21,9 @@ function toSentences(headline: string): string[] {
 
 export default function HeroSection({ content }: HeroSectionProps): JSX.Element {
   const lines = toSentences(content.headline);
+  const credentialBreak = content.credentialLine.lastIndexOf(' | ');
+  const credentialFirstLine = content.credentialLine.slice(0, credentialBreak + 3);
+  const credentialSecondLine = content.credentialLine.slice(credentialBreak + 3);
   const headlineColors = [
     'text-[#72d3a1]',
     'text-[#a9cfff]',
@@ -122,8 +125,9 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
           <p className="mb-6 text-[11px] font-semibold tracking-[0.18em] text-[var(--text-muted)] sm:text-xs">
             {content.trustLead}
           </p>
-          <p className="max-w-[900px] text-[13px] font-medium leading-relaxed text-[var(--text-primary)] sm:text-sm lg:text-[15px]">
-            {content.credentialLine}
+          <p className="w-full max-w-none text-[13px] font-medium leading-relaxed text-[var(--text-primary)] sm:text-sm lg:text-[15px]">
+            <span>{credentialFirstLine}</span>
+            <span className="block">{credentialSecondLine}</span>
           </p>
         </div>
       </section>

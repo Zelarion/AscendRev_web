@@ -18,31 +18,47 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
     const chapters = chapterRefs.current.filter((chapter): chapter is HTMLElement => Boolean(chapter));
     if (!chapters.length) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+    let observer: IntersectionObserver | null = null;
+    const observeAtViewportSize = () => {
+      observer?.disconnect();
+      const verticalInset = Math.round(window.innerHeight * 0.4);
+      observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => {
+              const viewportCenter = window.innerHeight / 2;
+              const centerA = a.boundingClientRect.top + a.boundingClientRect.height / 2;
+              const centerB = b.boundingClientRect.top + b.boundingClientRect.height / 2;
+              return Math.abs(centerA - viewportCenter) - Math.abs(centerB - viewportCenter);
+            });
 
-        if (!visible.length) return;
+          if (!visible.length) return;
 
-        const index = Number((visible[0].target as HTMLElement).dataset.pillarIndex ?? 0);
-        setActiveIndex(index);
-      },
-      {
-        root: null,
-        rootMargin: '-34% 0px -46% 0px',
-        threshold: 0,
-      }
-    );
+          const index = Number((visible[0].target as HTMLElement).dataset.pillarIndex ?? 0);
+          setActiveIndex(index);
+        },
+        {
+          root: null,
+          rootMargin: `-${verticalInset}px 0px -${verticalInset}px 0px`,
+          threshold: 0,
+        }
+      );
 
-    chapters.forEach((chapter) => observer.observe(chapter));
-    return () => observer.disconnect();
+      chapters.forEach((chapter) => observer?.observe(chapter));
+    };
+
+    observeAtViewportSize();
+    window.addEventListener('resize', observeAtViewportSize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', observeAtViewportSize);
+      observer?.disconnect();
+    };
   }, []);
 
   return (
     <section className="bg-[var(--surface-band)] text-[var(--text-primary)]">
-      <div className="mx-auto grid w-full max-w-[1540px] gap-10 px-[clamp(1.25rem,5vw,5.5rem)] py-[clamp(3.75rem,7vw,8rem)] md:grid-cols-[0.82fr_1.18fr] md:items-start md:gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:gap-20 xl:gap-28">
+      <div className="mx-auto grid w-full max-w-[1540px] gap-10 px-[clamp(1.25rem,5vw,5.5rem)] pt-[clamp(3.75rem,7vw,8rem)] pb-10 md:pb-12 md:grid-cols-[0.82fr_1.18fr] md:items-start md:gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:gap-20 xl:gap-28">
         <aside className="md:sticky md:top-[7rem] md:self-start lg:top-[8.5rem]">
           <div className="max-w-[560px]">
             <p className="text-xs font-semibold leading-relaxed tracking-[0.16em] text-[var(--gold-text)] sm:text-[13px]">
@@ -68,7 +84,10 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
                   <button
                     key={item.heading}
                     type="button"
-                    onClick={() => chapterRefs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                    onClick={() => {
+                      setActiveIndex(index);
+                      chapterRefs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }}
                     className={cn(
                       'group relative flex w-full items-start gap-4 py-3 text-left outline-none transition-colors duration-500',
                       active ? 'text-[var(--gold-text)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
@@ -103,7 +122,7 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
                   chapterRefs.current[index] = node;
                 }}
                 data-pillar-index={index}
-              className="flex min-h-0 items-center border-b border-[var(--line)] py-10 first:border-t md:min-h-[58vh] md:py-12 lg:min-h-[88vh] lg:py-20"
+                className="flex min-h-0 items-center border-b border-[var(--line)] py-10 first:border-t md:py-12"
               >
                 <div
                   className={cn(

@@ -2,8 +2,6 @@ import type { JSX } from 'react';
 import Link from 'next/link';
 import {
   EnvelopeSimple,
-  FacebookLogo,
-  LinkedinLogo,
   MapPin,
   Phone,
   ShieldCheck,
@@ -124,36 +122,6 @@ export default function Footer(): JSX.Element {
               <Link href="/terms" className={`inline-flex min-h-11 items-center py-1 ${footerLinkClassName}`} style={hoverTransitionStyle}>
                 Terms of Service
               </Link>
-
-              {(site.linkedinUrl || site.facebookUrl) && (
-                <div className="mt-1 flex items-center gap-3 sm:mt-2">
-                  {site.linkedinUrl && (
-                    <a
-                      href={site.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--ink)] transition-[border-color,color,background-color] hover:border-[var(--border)] hover:bg-[var(--surface-band-raised)] hover:text-[var(--navy-900)] ${footerLinkClassName}`}
-                      style={hoverTransitionStyle}
-                      aria-label="LinkedIn"
-                    >
-                      <LinkedinLogo size={22} weight="regular" aria-hidden="true" />
-                    </a>
-                  )}
-
-                  {site.facebookUrl && (
-                    <a
-                      href={site.facebookUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--ink)] transition-[border-color,color,background-color] hover:border-[var(--border)] hover:bg-[var(--surface-band-raised)] hover:text-[var(--navy-900)] ${footerLinkClassName}`}
-                      style={hoverTransitionStyle}
-                      aria-label="Facebook"
-                    >
-                      <FacebookLogo size={22} weight="regular" aria-hidden="true" />
-                    </a>
-                  )}
-                </div>
-              )}
             </div>
           </nav>
         </div>

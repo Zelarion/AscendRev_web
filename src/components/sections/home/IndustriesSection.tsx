@@ -42,7 +42,7 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
   return (
     <section
       id={content.id}
-      className="relative overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] py-[clamp(4rem,9vw,8rem)] text-[var(--text-primary)]"
+      className="relative overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] pt-10 pb-[clamp(4rem,9vw,8rem)] md:pt-12 text-[var(--text-primary)]"
     >
       <div className="mx-auto w-full max-w-[1540px]">
         <header className="w-full text-left">

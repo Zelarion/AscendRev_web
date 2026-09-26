@@ -1,9 +1,9 @@
 'use client';
 
-import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
+import { type JSX, type MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ArrowRight, List, X } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { hoverTransitionStyle } from '@/lib/motion';
@@ -11,6 +11,7 @@ import { navItems, ctaItem } from '@/content/nav';
 
 const SCROLL_FLOAT_ENTER_PX = 220;
 const SCROLL_FLOAT_EXIT_PX = 90;
+const PENDING_ROUTE_ANCHOR_KEY = 'ascendrev:pending-route-anchor';
 
 function isActiveRoute(pathname: string, href: string): boolean {
   if (href.includes('#')) return false;
@@ -20,6 +21,7 @@ function isActiveRoute(pathname: string, href: string): boolean {
 
 export default function Header(): JSX.Element {
   const pathname = usePathname();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [storyNavHidden, setStoryNavHidden] = useState(false);
@@ -78,6 +80,43 @@ export default function Header(): JSX.Element {
     setMenuOpen(false);
     toggleRef.current?.focus();
   }, []);
+
+  const handleNavClick = useCallback((
+    event: ReactMouseEvent<HTMLAnchorElement>,
+    href: string,
+    closeMobileMenu = false
+  ) => {
+    if (closeMobileMenu) closeMenu();
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) return;
+
+    const destination = new URL(href, window.location.href);
+    if (
+      destination.origin !== window.location.origin ||
+      !destination.hash ||
+      destination.pathname === pathname
+    ) return;
+
+    // Cross-route hash navigation is handled by useScrollToTop after the new
+    // page mounts. Prevent Next's own hash scrolling so it cannot race Lenis.
+    event.preventDefault();
+    try {
+      window.sessionStorage.setItem(PENDING_ROUTE_ANCHOR_KEY, JSON.stringify({
+        pathname: destination.pathname,
+        hash: destination.hash,
+        createdAt: Date.now(),
+      }));
+    } catch {
+      // The destination URL still carries the hash as a fallback if storage is unavailable.
+    }
+    router.push(`${destination.pathname}${destination.search}${destination.hash}`, { scroll: false });
+  }, [closeMenu, pathname, router]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -191,6 +230,7 @@ export default function Header(): JSX.Element {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={(event) => handleNavClick(event, item.href)}
                 aria-current={active ? 'page' : undefined}
                 className="ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px] max-[120rem]:wide-nav:text-[13px]"
                 style={{ ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` }}
@@ -253,7 +293,7 @@ export default function Header(): JSX.Element {
       <div
         aria-hidden={!menuOpen}
         className={cn(
-          'fixed inset-0 z-[var(--z-nav-backdrop)] bg-black/40 backdrop-blur-[1px] transition-opacity duration-500 ease-out wide-nav:hidden',
+          'fixed inset-0 z-[var(--z-nav-backdrop)] bg-black/40 backdrop-blur-[1px] transition-opacity duration-500 ease-out motion-reduce:transition-none wide-nav:hidden',
           menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={closeMenu}
@@ -267,8 +307,8 @@ export default function Header(): JSX.Element {
         aria-hidden={!menuOpen}
         aria-label="Mobile navigation"
         className={cn(
-          'fixed inset-y-0 right-0 z-[var(--z-nav-sheet)] flex min-h-0 w-[calc(100%-0.75rem)] max-w-[620px] flex-col overflow-y-auto border-l border-[var(--border)] bg-[var(--nav-glass-scrolled)] px-5 pb-6 pt-5 shadow-[-18px_0_55px_rgba(0,0,0,0.32)] backdrop-blur-[24px] sm:w-[88vw] sm:px-7 sm:pb-7 sm:pt-6 md:w-[78vw] wide-nav:hidden',
-          'transition-[transform,opacity] duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+          'fixed inset-y-0 right-0 z-[var(--z-nav-sheet)] flex min-h-0 w-[min(88vw,26rem)] flex-col overflow-y-auto border-l border-[var(--border)] bg-[var(--nav-glass-scrolled)] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-[-18px_0_55px_rgba(0,0,0,0.32)] backdrop-blur-[24px] sm:px-7 wide-nav:hidden',
+          'transition-[transform,opacity] duration-[520ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
           menuOpen
             ? 'pointer-events-auto translate-x-0 opacity-100'
             : 'pointer-events-none translate-x-full opacity-100'
@@ -276,7 +316,7 @@ export default function Header(): JSX.Element {
       >
         <div
           className={cn(
-            'flex items-center justify-between border-b border-[var(--border)] pb-4 transition-[opacity,transform] duration-400 ease-out motion-reduce:transition-none',
+            'flex items-center justify-between border-b border-[var(--border)] pb-3 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none motion-reduce:delay-0',
             menuOpen ? 'translate-x-0 opacity-100 delay-150' : 'translate-x-3 opacity-0 delay-0'
           )}
         >
@@ -294,18 +334,18 @@ export default function Header(): JSX.Element {
           </button>
         </div>
 
-        <nav aria-label="Mobile primary" className="flex min-h-0 flex-1 flex-col justify-center gap-2 overflow-y-auto py-6">
+        <nav aria-label="Mobile primary" className="flex min-h-0 flex-1 flex-col justify-center gap-0 overflow-y-auto py-4">
           {navItems.map((item, index) => (
             <Link
               key={item.href}
               href={item.href}
               tabIndex={menuOpen ? 0 : -1}
-              onClick={closeMenu}
+              onClick={(event) => handleNavClick(event, item.href, true)}
               className={cn(
-                'inline-flex min-h-11 items-center border-b border-[var(--border)] py-2.5 font-display text-[clamp(1.5rem,4vw,2.25rem)] font-medium leading-[1.05] text-[var(--navy-900)] outline-none transition-[color,opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--accent)] motion-reduce:transition-none',
+                'inline-flex min-h-10 items-center border-b border-[var(--border)] py-2 font-display text-[clamp(1.125rem,3vw,1.375rem)] font-medium leading-tight text-[var(--navy-900)] outline-none transition-[color,opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--accent)] motion-reduce:transition-none motion-reduce:delay-0',
                 menuOpen ? 'translate-x-0 opacity-100' : 'translate-x-5 opacity-0'
               )}
-              style={{ transitionDelay: menuOpen ? `${210 + index * 70}ms` : '0ms' }}
+              style={{ transitionDelay: menuOpen ? `${130 + index * 45}ms` : `${(navItems.length - index - 1) * 28}ms` }}
             >
               {item.label}
             </Link>
@@ -317,10 +357,10 @@ export default function Header(): JSX.Element {
           tabIndex={menuOpen ? 0 : -1}
           onClick={closeMenu}
           className={cn(
-            'group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-5 text-center text-sm font-semibold text-[var(--gold-ink)] outline-none transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+            'group mt-4 inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-5 text-center text-sm font-semibold text-[var(--gold-ink)] outline-none transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none motion-reduce:delay-0',
             menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
           )}
-          style={{ transitionDelay: menuOpen ? `${250 + navItems.length * 70}ms` : '0ms' }}
+          style={{ transitionDelay: menuOpen ? `${150 + navItems.length * 45}ms` : '0ms' }}
         >
           <span>{ctaItem.label}</span>
           <ArrowRight size={19} weight="regular" aria-hidden="true" />

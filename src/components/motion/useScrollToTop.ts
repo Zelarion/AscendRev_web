@@ -7,13 +7,42 @@ import type Lenis from 'lenis';
 const HEADER_OFFSET = 80;
 const CROSS_ROUTE_ANCHOR_DELAY_MS = 140;
 const CROSS_ROUTE_ANCHOR_DURATION_SECONDS = 1.6;
+const PENDING_ROUTE_ANCHOR_KEY = 'ascendrev:pending-route-anchor';
+
+interface PendingRouteAnchor {
+  pathname: string;
+  hash: string;
+  createdAt: number;
+}
+
+function consumePendingRouteAnchor(pathname: string): string | null {
+  try {
+    const raw = window.sessionStorage.getItem(PENDING_ROUTE_ANCHOR_KEY);
+    if (!raw) return null;
+
+    window.sessionStorage.removeItem(PENDING_ROUTE_ANCHOR_KEY);
+    const pending = JSON.parse(raw) as Partial<PendingRouteAnchor>;
+    if (
+      pending.pathname !== pathname ||
+      typeof pending.hash !== 'string' ||
+      !pending.hash.startsWith('#') ||
+      typeof pending.createdAt !== 'number' ||
+      Date.now() - pending.createdAt > 15_000
+    ) return null;
+
+    return pending.hash;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Resets scroll to the top after a real route change.
  *
  * If that route change also carries a hash (for example navigating from
- * `/solutions` to `/#revenue-impact`), the new page first resets to the top and
- * then smoothly scrolls to the requested section once its DOM is mounted.
+ * `/solutions/` to `/#revenue-impact`), the new page first resets to the top and
+ * then smoothly scrolls to the requested section once its DOM is mounted. The
+ * pending hash is also stored by Header so the target survives router timing.
  * Hash-only navigation within the same page is left to Lenis' normal anchor
  * handling because the pathname does not change.
  */
@@ -27,10 +56,11 @@ export default function useScrollToTop(lenisRef: RefObject<Lenis | null>): void 
 
     let targetFrame = 0;
     let anchorTimer = 0;
+    const pendingHash = consumePendingRouteAnchor(pathname);
 
     const frame = window.requestAnimationFrame(() => {
       const lenis = lenisRef.current;
-      const hash = window.location.hash;
+      const hash = pendingHash ?? window.location.hash;
 
       if (lenis) {
         lenis.scrollTo(0, { immediate: true, force: true });

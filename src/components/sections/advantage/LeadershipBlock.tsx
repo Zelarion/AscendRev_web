@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
-import { Trophy } from '@phosphor-icons/react/dist/ssr';
+import { LinkedinLogo, Trophy } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { prefersReducedMotion } from '@/lib/motion';
 import { advantage } from '@/content/advantage';
+import { site } from '@/content/site';
 
 interface StoryStep {
   id: string;
@@ -185,6 +186,17 @@ export default function LeadershipBlock(): JSX.Element {
 
               <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>
               <p className="mt-1 text-sm text-[var(--ink-muted)]">Co-Founder and President</p>
+              {site.linkedinUrl && (
+                <a
+                  href={site.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--navy-900)] transition-colors hover:bg-[var(--surface-band-raised)]"
+                >
+                  <LinkedinLogo size={16} weight="regular" aria-hidden="true" />
+                  <span>LinkedIn profile</span>
+                </a>
+              )}
               <p className="mt-1 text-sm leading-[1.6] text-[var(--ink-muted)]">
                 Previously with AcquireBPO / Acquire Intelligence, Custom Travel Solutions, and American Express Canada.
               </p>

@@ -55,7 +55,7 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
               <h1
                 aria-label={content.headline}
                 data-home-hero-title
-                className="ar-home-hero-title max-w-[19ch] font-display text-h1 drop-shadow-[0_3px_28px_rgba(0,0,0,0.32)]"
+                className="ar-home-hero-title relative z-[1] max-w-[19ch] font-display text-h1 drop-shadow-[0_3px_28px_rgba(0,0,0,0.32)]"
               >
                 {lines.map((line, index) => (
                   <span key={line} className="block overflow-hidden pb-[0.09em]">

@@ -26,7 +26,7 @@ export default function HiringStandard(): JSX.Element {
   const { heading, capability } = solutions.hiring;
 
   return (
-    <Section className="lg:!py-16">
+    <Section className="!pt-8 !pb-2">
       <Container>
         <h2
           className="ar-type-hiring-standard max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap"

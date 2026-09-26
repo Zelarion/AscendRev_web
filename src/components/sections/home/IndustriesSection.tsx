@@ -42,7 +42,7 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
   return (
     <section
       id={content.id}
-      className="relative scroll-mt-[var(--header-height)] overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] pt-10 pb-[clamp(4rem,9vw,8rem)] md:pt-12 text-[var(--text-primary)]"
+      className="relative scroll-mt-[var(--header-height)] overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] pt-5 pb-[clamp(4rem,9vw,8rem)] text-[var(--text-primary)] md:pt-6"
     >
       <div className="mx-auto w-full max-w-[1540px]">
         <header className="w-full text-left">
@@ -54,7 +54,7 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
           </p>
         </header>
 
-        <div className="mx-auto mt-[clamp(3.5rem,6vw,5.5rem)] flex max-w-[900px] items-center justify-center gap-4 text-center">
+        <div className="mx-auto mt-[clamp(2rem,3vw,2.5rem)] flex max-w-[900px] items-center justify-center gap-4 text-center">
           <span aria-hidden="true" className="h-px w-8 bg-[var(--gold-text)] sm:w-12" />
           <p className="text-body-lg text-[var(--navy-900)]">
             {content.subheading}
@@ -66,7 +66,7 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
           as="ul"
           stagger
           delayMs={80}
-          className="mx-auto mt-8 grid max-w-[1240px] grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:mt-10 lg:grid-cols-3"
+          className="mt-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:mt-7 lg:grid-cols-3"
         >
           {content.items.map((item) => {
             const Icon = INDUSTRY_ICONS[item.icon];

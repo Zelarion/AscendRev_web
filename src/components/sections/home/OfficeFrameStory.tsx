@@ -30,7 +30,7 @@ const FACILITIES = [
   { label: 'Reception', src: '/images/lobby1.jpg', alt: 'Reception and lobby seating area.' },
   { label: 'Stairs', src: '/images/staircase1.jpg', alt: 'Interior staircase connecting the building floors.' },
   { label: 'Washroom Vanity', src: '/images/bathroom3-reflection-clean.webp', alt: 'Washroom vanity with sinks and mirrors; the mirror reflection is clear of people.' },
-  { label: 'AscendRev Campus', src: '/images/outside.jpg', alt: 'Exterior of the AscendRev campus with its building sign.' },
+  { label: 'AscendRev Campus', src: '/images/outside-sign-corrected.jpg', alt: 'Exterior of the AscendRev campus with its icon on the building sign.' },
 ] as const;
 
 /**

@@ -258,7 +258,7 @@ export const home: HomeContent = {
       },
       {
         icon: 'accountability',
-        heading: 'Dedicated Teams Built Around Your Business',
+        heading: 'Dedicated Teams Built Around Your Business.',
         body: "From generating new opportunities and following up with prospects to supporting customers and taking repetitive work off your team's plate, AscendRev provides dedicated teams that extend your capabilities and keep your business moving.",
       },
     ],

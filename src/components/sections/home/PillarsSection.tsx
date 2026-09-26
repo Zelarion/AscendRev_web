@@ -65,15 +65,15 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
               THE TURNKEY OUTSOURCE AND OFFSHORE ADVANTAGE
             </p>
 
-            <h2 className="mt-5 max-w-[12ch] font-display text-h2 text-[var(--navy-900)]">
+            <h2 className="mt-5 font-display text-h2 text-[var(--navy-900)]">
               {content.heading}
             </h2>
 
-            <p className="mt-5 max-w-[46ch] text-body-lg text-[var(--navy-900)]">
+            <p className="mt-5 text-body-lg text-[var(--navy-900)]">
               {content.supportingCopy}
             </p>
 
-            <p className="mt-5 max-w-[46ch] text-body text-[var(--text-muted)]">
+            <p className="mt-5 text-body text-[var(--text-muted)]">
               {content.intro}
             </p>
 
@@ -152,11 +152,11 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
                     {PILLAR_METRICS[index]}
                   </p>
 
-                  <h3 className="mt-6 max-w-[28ch] font-display text-h3 text-[var(--navy-900)]">
+                  <h3 className="mt-6 font-display text-h3 text-[var(--navy-900)]">
                     {item.heading}
                   </h3>
 
-                  <p className="mt-6 max-w-[58ch] text-body text-[var(--text-muted)]">
+                  <p className="mt-6 text-body text-[var(--text-muted)]">
                     {item.body}
                   </p>
                 </div>
@@ -164,7 +164,7 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
             );
           })}
 
-          <p className="mt-14 max-w-[640px] text-body-lg text-[var(--navy-900)] lg:mt-4">
+          <p className="mt-14 text-body-lg text-[var(--navy-900)] lg:mt-4">
             {content.closingLine}
           </p>
         </div>

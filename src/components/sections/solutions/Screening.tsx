@@ -19,7 +19,7 @@ export default function Screening(): JSX.Element {
   const { heading, items } = solutions.screening;
 
   return (
-    <Section className="lg:!py-16">
+    <Section className="!pt-2 !pb-12">
       <Container>
         <h2 className="max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap">{heading}</h2>
 

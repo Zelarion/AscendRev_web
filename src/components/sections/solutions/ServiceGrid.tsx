@@ -20,8 +20,8 @@ export default function ServiceGrid(): JSX.Element {
   const { heading, intro, items } = solutions.services;
 
   return (
-    <Section className="!pt-6 lg:!pb-16">
-      <Container>
+    <Section className="!pt-6 !pb-8">
+      <Container className="max-w-none wide-nav:px-10">
         {/* The one word-by-word reveal on this page. It resolves under the
             reader's own scroll, which is the cause-and-effect DESIGN.md §4
             asks motion to express; used on every heading it would just be a
@@ -33,11 +33,11 @@ export default function ServiceGrid(): JSX.Element {
             and dropping `text-h2`, which silently renders the heading at body
             size. The colour is inherited from Section's light tone anyway, so
             the fix is to not ask for it twice. */}
-        <WordReveal as="h2" className="max-w-none font-display text-h2 lg:whitespace-nowrap">
+        <WordReveal as="h2" className="max-w-none font-display text-h2 md:whitespace-nowrap">
           {heading}
         </WordReveal>
 
-        <p className="mt-4 max-w-[68ch] text-body-lg text-[var(--ink-muted)] sm:mt-6 lg:max-w-none">
+        <p className="mt-4 text-body-lg text-[var(--ink-muted)] sm:mt-6">
           {intro}
         </p>
 
@@ -53,7 +53,9 @@ export default function ServiceGrid(): JSX.Element {
                 glyph={item.glyph}
                 accent={GLYPH_ACCENT_CYCLE[index % GLYPH_ACCENT_CYCLE.length]}
               />
-              <h3 className="text-body font-medium text-[var(--ink)]">{item.label}</h3>
+              <h3 className="text-body font-medium text-[var(--ink)] min-[115rem]:whitespace-nowrap">
+                {item.label}
+              </h3>
             </article>
           ))}
         </Stagger>

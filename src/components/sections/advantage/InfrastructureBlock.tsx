@@ -209,7 +209,7 @@ export default function InfrastructureBlock(): JSX.Element {
           <h2 className="mt-5 font-display text-h2 text-[var(--navy-900)]">
             State-of-the-Art Operations.
           </h2>
-          <p className="mt-6 max-w-[64ch] text-body-lg text-[var(--ink-muted)]">
+          <p className="mt-6 text-body-lg text-[var(--ink-muted)]">
             Premium Philippine operations are built around reliability, security, talent, and continuity.
           </p>
 
@@ -243,13 +243,13 @@ export default function InfrastructureBlock(): JSX.Element {
                       <span className="h-px w-10 bg-[var(--gold-text)]/55" />
                     </div>
 
-                    <h3 className="mt-5 font-display text-h3 text-[var(--navy-900)]">
+                    <h3 className="mt-5 font-display text-h3 text-[var(--navy-900)] xl:whitespace-nowrap">
                       {moment.headline}
                     </h3>
 
                     <p
                       className={cn(
-                        'mt-6 max-w-[54ch] text-body-lg transition-colors duration-500',
+                        'mt-6 text-body-lg transition-colors duration-500',
                         active ? 'text-[var(--ink)]' : 'text-[var(--ink-muted)]'
                       )}
                     >
@@ -286,14 +286,14 @@ export default function InfrastructureBlock(): JSX.Element {
                   <FacilityImage
                     src={
                       moment.id === 'location'
-                        ? '/images/outside1.jpg'
+                        ? '/images/outside1-signs-removed.png'
                         : moment.id === 'workplace'
                           ? '/images/office2.jpg'
                           : '/images/hallway2.jpg'
                     }
                     alt={
                       moment.id === 'location'
-                        ? 'Street-level view of a modern commercial building exterior, with a covered entrance and roadside signage.'
+                        ? 'Street-level view of a modern commercial building exterior with a covered entrance.'
                         : moment.id === 'workplace'
                           ? 'Client supplied view of a furnished meeting room with a conference table and chairs.'
                           : 'Client supplied view of an office corridor with multiple doors and lockers.'

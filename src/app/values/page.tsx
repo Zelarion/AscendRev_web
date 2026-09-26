@@ -24,7 +24,7 @@ export default function ValuesPage() {
       size="large"
       className="!pt-[calc(var(--header-height)_+_1.5rem)] !pb-[clamp(2.5rem,5vw,4rem)]"
     >
-      <Container>
+      <Container className="max-w-none">
         <h1 className="text-h1 font-display font-medium tracking-[-0.025em] text-[var(--ink)]">
           {values.heading}
         </h1>

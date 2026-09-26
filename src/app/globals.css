@@ -444,7 +444,7 @@ main h2 {
 
 @media (min-width: 64rem) {
   main h2.ar-type-hiring-standard {
-    font-size: clamp(1.375rem, 1.25vw, 1.75rem) !important;
+    font-size: clamp(1.75rem, 2.2vw, 2rem) !important;
     line-height: 1.2 !important;
     white-space: nowrap;
     text-wrap: nowrap;

@@ -12,6 +12,7 @@ import { site } from '@/content/site';
 
 const footerLinkClassName =
   'outline-none transition-colors duration-200 hover:text-[var(--navy-900)]';
+const REVENUE_IMPACT_HREF = '/#revenue-impact';
 
 export default function Footer(): JSX.Element {
   return (
@@ -99,14 +100,25 @@ export default function Footer(): JSX.Element {
             </p>
             <div className="mt-4 flex flex-col gap-1 text-sm text-[var(--ink-muted)] sm:mt-5 sm:gap-2 sm:text-[15px]">
               {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`inline-flex min-h-11 items-center py-1 ${footerLinkClassName}`}
-                  style={hoverTransitionStyle}
-                >
-                  {item.label}
-                </Link>
+                item.href === REVENUE_IMPACT_HREF ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className={`inline-flex min-h-11 items-center py-1 ${footerLinkClassName}`}
+                    style={hoverTransitionStyle}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`inline-flex min-h-11 items-center py-1 ${footerLinkClassName}`}
+                    style={hoverTransitionStyle}
+                  >
+                    {item.label}
+                  </Link>
+                )
               ))}
             </div>
           </nav>

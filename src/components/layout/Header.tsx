@@ -1,9 +1,9 @@
 'use client';
 
-import { type JSX, type MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ArrowRight, List, X } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { hoverTransitionStyle } from '@/lib/motion';
@@ -11,7 +11,7 @@ import { navItems, ctaItem } from '@/content/nav';
 
 const SCROLL_FLOAT_ENTER_PX = 220;
 const SCROLL_FLOAT_EXIT_PX = 90;
-const PENDING_ROUTE_ANCHOR_KEY = 'ascendrev:pending-route-anchor';
+const REVENUE_IMPACT_HREF = '/#revenue-impact';
 
 function isActiveRoute(pathname: string, href: string): boolean {
   if (href.includes('#')) return false;
@@ -21,7 +21,6 @@ function isActiveRoute(pathname: string, href: string): boolean {
 
 export default function Header(): JSX.Element {
   const pathname = usePathname();
-  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [storyNavHidden, setStoryNavHidden] = useState(false);
@@ -80,43 +79,6 @@ export default function Header(): JSX.Element {
     setMenuOpen(false);
     toggleRef.current?.focus();
   }, []);
-
-  const handleNavClick = useCallback((
-    event: ReactMouseEvent<HTMLAnchorElement>,
-    href: string,
-    closeMobileMenu = false
-  ) => {
-    if (closeMobileMenu) closeMenu();
-    if (
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    ) return;
-
-    const destination = new URL(href, window.location.href);
-    if (
-      destination.origin !== window.location.origin ||
-      !destination.hash ||
-      destination.pathname === pathname
-    ) return;
-
-    // Cross-route hash navigation is handled by useScrollToTop after the new
-    // page mounts. Prevent Next's own hash scrolling so it cannot race Lenis.
-    event.preventDefault();
-    try {
-      window.sessionStorage.setItem(PENDING_ROUTE_ANCHOR_KEY, JSON.stringify({
-        pathname: destination.pathname,
-        hash: destination.hash,
-        createdAt: Date.now(),
-      }));
-    } catch {
-      // The destination URL still carries the hash as a fallback if storage is unavailable.
-    }
-    router.push(`${destination.pathname}${destination.search}${destination.hash}`, { scroll: false });
-  }, [closeMenu, pathname, router]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -226,14 +188,24 @@ export default function Header(): JSX.Element {
         <nav aria-label="Primary" className="hidden items-center gap-4 wide-nav:ml-[32vw] wide-nav:flex wide-nav:gap-5 max-[120rem]:wide-nav:gap-2">
           {navItems.map((item, index) => {
             const active = isActiveRoute(pathname, item.href);
-            return (
+            const className = "ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px] max-[120rem]:wide-nav:text-[13px]";
+            const style = { ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` };
+            return item.href === REVENUE_IMPACT_HREF ? (
+              <a
+                key={item.href}
+                href={item.href}
+                className={className}
+                style={style}
+              >
+                {item.label}
+              </a>
+            ) : (
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={(event) => handleNavClick(event, item.href)}
                 aria-current={active ? 'page' : undefined}
-                className="ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px] max-[120rem]:wide-nav:text-[13px]"
-                style={{ ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` }}
+                className={className}
+                style={style}
               >
                 {item.label}
               </Link>
@@ -335,21 +307,36 @@ export default function Header(): JSX.Element {
         </div>
 
         <nav aria-label="Mobile primary" className="flex min-h-0 flex-1 flex-col justify-center gap-0 overflow-y-auto py-4">
-          {navItems.map((item, index) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              tabIndex={menuOpen ? 0 : -1}
-              onClick={(event) => handleNavClick(event, item.href, true)}
-              className={cn(
-                'inline-flex min-h-10 items-center border-b border-[var(--border)] py-2 font-display text-[clamp(1.125rem,3vw,1.375rem)] font-medium leading-tight text-[var(--navy-900)] outline-none transition-[color,opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--accent)] motion-reduce:transition-none motion-reduce:delay-0',
-                menuOpen ? 'translate-x-0 opacity-100' : 'translate-x-5 opacity-0'
-              )}
-              style={{ transitionDelay: menuOpen ? `${130 + index * 45}ms` : `${(navItems.length - index - 1) * 28}ms` }}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item, index) => {
+            const className = cn(
+              'inline-flex min-h-10 items-center border-b border-[var(--border)] py-2 font-display text-[clamp(1.125rem,3vw,1.375rem)] font-medium leading-tight text-[var(--navy-900)] outline-none transition-[color,opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--accent)] motion-reduce:transition-none motion-reduce:delay-0',
+              menuOpen ? 'translate-x-0 opacity-100' : 'translate-x-5 opacity-0'
+            );
+            const style = { transitionDelay: menuOpen ? `${130 + index * 45}ms` : `${(navItems.length - index - 1) * 28}ms` };
+            return item.href === REVENUE_IMPACT_HREF ? (
+              <a
+                key={item.href}
+                href={item.href}
+                tabIndex={menuOpen ? 0 : -1}
+                onClick={closeMenu}
+                className={className}
+                style={style}
+              >
+                {item.label}
+              </a>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                tabIndex={menuOpen ? 0 : -1}
+                onClick={closeMenu}
+                className={className}
+                style={style}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <Link

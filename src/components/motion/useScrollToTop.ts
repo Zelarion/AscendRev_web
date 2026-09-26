@@ -4,101 +4,94 @@ import { useEffect, useRef, type RefObject } from 'react';
 import { usePathname } from 'next/navigation';
 import type Lenis from 'lenis';
 
-const HEADER_OFFSET = 80;
-const CROSS_ROUTE_ANCHOR_DELAY_MS = 140;
-const CROSS_ROUTE_ANCHOR_DURATION_SECONDS = 1.6;
-const PENDING_ROUTE_ANCHOR_KEY = 'ascendrev:pending-route-anchor';
-
-interface PendingRouteAnchor {
-  pathname: string;
-  hash: string;
-  createdAt: number;
-}
-
-function consumePendingRouteAnchor(pathname: string): string | null {
-  try {
-    const raw = window.sessionStorage.getItem(PENDING_ROUTE_ANCHOR_KEY);
-    if (!raw) return null;
-
-    window.sessionStorage.removeItem(PENDING_ROUTE_ANCHOR_KEY);
-    const pending = JSON.parse(raw) as Partial<PendingRouteAnchor>;
-    if (
-      pending.pathname !== pathname ||
-      typeof pending.hash !== 'string' ||
-      !pending.hash.startsWith('#') ||
-      typeof pending.createdAt !== 'number' ||
-      Date.now() - pending.createdAt > 15_000
-    ) return null;
-
-    return pending.hash;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * Resets scroll to the top after a real route change.
- *
- * If that route change also carries a hash (for example navigating from
- * `/solutions/` to `/#revenue-impact`), the new page first resets to the top and
- * then smoothly scrolls to the requested section once its DOM is mounted. The
- * pending hash is also stored by Header so the target survives router timing.
- * Hash-only navigation within the same page is left to Lenis' normal anchor
- * handling because the pathname does not change.
+ * Resets scroll to the top after a client-side route change. Full-document hash
+ * links use the browser's native fragment navigation instead, so route reset
+ * timing cannot discard their target.
  */
 export default function useScrollToTop(lenisRef: RefObject<Lenis | null>): void {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
 
   useEffect(() => {
+    const initialHash = window.location.hash;
+    if (!initialHash) return;
+
+    let cancelled = false;
+    let hashChanged = false;
+    let firstFrame = 0;
+    let secondFrame = 0;
+    const markHashChange = () => {
+      hashChanged = true;
+    };
+    window.addEventListener('hashchange', markHashChange);
+
+    const waitForLoad =
+      document.readyState === 'complete'
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            window.addEventListener('load', () => resolve(), { once: true });
+          });
+    const waitForFonts = 'fonts' in document ? document.fonts.ready : Promise.resolve();
+
+    void Promise.all([waitForLoad, waitForFonts]).then(() => {
+      if (cancelled) return;
+
+      // Native fragment navigation can run before hydration, fonts, and final
+      // section layout settle. Correct it once after that first document load.
+      // A later same-document hash click is left to the browser/Lenis anchor
+      // behavior and must not be pulled back to the initial target.
+      firstFrame = window.requestAnimationFrame(() => {
+        secondFrame = window.requestAnimationFrame(() => {
+          if (cancelled || hashChanged || window.location.hash !== initialHash) return;
+
+          let targetId: string;
+          try {
+            targetId = decodeURIComponent(initialHash.slice(1));
+          } catch {
+            return;
+          }
+
+          const target = document.getElementById(targetId);
+          if (!target) return;
+
+          const scrollMarginTop = Number.parseFloat(getComputedStyle(target).scrollMarginTop);
+          const margin = Number.isFinite(scrollMarginTop) ? scrollMarginTop : 0;
+          const destination = target.getBoundingClientRect().top + window.scrollY - margin;
+          const lenis = lenisRef.current;
+
+          if (lenis) {
+            lenis.scrollTo(destination, { immediate: true, force: true });
+          } else {
+            window.scrollTo({ top: destination, left: 0, behavior: 'auto' });
+          }
+        });
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      window.removeEventListener('hashchange', markHashChange);
+    };
+  }, [lenisRef]);
+
+  useEffect(() => {
     if (previousPathname.current === pathname) return;
     previousPathname.current = pathname;
 
-    let targetFrame = 0;
-    let anchorTimer = 0;
-    const pendingHash = consumePendingRouteAnchor(pathname);
-
     const frame = window.requestAnimationFrame(() => {
       const lenis = lenisRef.current;
-      const hash = pendingHash ?? window.location.hash;
-
       if (lenis) {
         lenis.scrollTo(0, { immediate: true, force: true });
       } else {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
       }
-
-      if (!hash) return;
-
-      // Give the new page a brief moment visibly parked at the very top before
-      // starting the cross-route anchor journey. The explicit Lenis duration is
-      // intentional: browser-native smooth scrolling can finish almost
-      // instantly on long pages, which makes this transition feel like a jump.
-      anchorTimer = window.setTimeout(() => {
-        targetFrame = window.requestAnimationFrame(() => {
-          const id = decodeURIComponent(hash.slice(1));
-          const target = document.getElementById(id);
-          if (!target) return;
-
-          if (lenisRef.current) {
-            lenisRef.current.scrollTo(target, {
-              offset: -HEADER_OFFSET,
-              duration: CROSS_ROUTE_ANCHOR_DURATION_SECONDS,
-              force: true,
-            });
-            return;
-          }
-
-          const top = target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
-          window.scrollTo({ top, left: 0, behavior: 'smooth' });
-        });
-      }, CROSS_ROUTE_ANCHOR_DELAY_MS);
     });
 
     return () => {
       window.cancelAnimationFrame(frame);
-      if (anchorTimer) window.clearTimeout(anchorTimer);
-      if (targetFrame) window.cancelAnimationFrame(targetFrame);
     };
   }, [pathname, lenisRef]);
 }

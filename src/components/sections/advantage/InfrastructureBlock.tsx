@@ -286,7 +286,7 @@ export default function InfrastructureBlock(): JSX.Element {
                   <FacilityImage
                     src={
                       moment.id === 'location'
-                        ? '/images/outside1-signs-removed.png'
+                        ? '/images/outside1-location-e91e155f.png'
                         : moment.id === 'workplace'
                           ? '/images/office2.jpg'
                           : '/images/hallway2.jpg'

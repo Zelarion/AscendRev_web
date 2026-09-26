@@ -79,7 +79,7 @@ export const solutions: SolutionsContent = {
 
   services: {
     // rewritten on our own judgment.
-    heading: 'Nine functions, staffed and supervised.',
+    heading: 'Extend Capability. Accelerate Growth',
     // Client revision, 2026-09-24: exact replacement text.
     intro:
       'Core aspects where we do well. Your partnership investment is backed by premium talents where ownership, discipline, performance consistency, and winning are the way of life.',

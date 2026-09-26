@@ -78,10 +78,9 @@ const addressParts: PostalAddress = {
 };
 
 const philippinesOfficeAddressParts: PostalAddress = {
-  street: 'Commerce Avenue corner Madrigal Avenue, Ayala Alabang',
-  city: 'Muntinlupa',
-  region: 'Metro Manila',
-  postalCode: '1780',
+  street: 'Alabang Town Centre',
+  city: 'Ayala Alabang',
+  region: 'Manila',
   country: 'Philippines',
 };
 
@@ -95,7 +94,7 @@ export const site: Site = {
   phone: '+1 (403) 903-2912',
   address: 'Calgary, AB, Canada',
   addressParts,
-  philippinesOfficeAddress: `${philippinesOfficeAddressParts.street}, ${philippinesOfficeAddressParts.city}, ${philippinesOfficeAddressParts.postalCode} ${philippinesOfficeAddressParts.region}, ${philippinesOfficeAddressParts.country}`,
+  philippinesOfficeAddress: `${philippinesOfficeAddressParts.street}, ${philippinesOfficeAddressParts.city}, ${philippinesOfficeAddressParts.region} ${philippinesOfficeAddressParts.country}`,
   philippinesOfficeAddressParts,
   contactEmail: 'rio.vidal@ascend-rev.ca',
   enquiryEmailSecondary: 'ralph.tomines@ascend-rev.ca',

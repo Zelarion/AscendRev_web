@@ -29,7 +29,7 @@ export default function SolutionsClosing(): JSX.Element {
     <Section size="large">
       <Container>
         <Reveal>
-          <h2 className="max-w-[22ch] font-display text-h2 text-[var(--ink)]">{heading}</h2>
+          <h2 className="max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap">{heading}</h2>
           <div className="mt-8">
             <Button
               href={cta.href}

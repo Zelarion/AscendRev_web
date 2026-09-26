@@ -28,7 +28,11 @@ export default function HiringStandard(): JSX.Element {
   return (
     <Section>
       <Container>
-        <h2 className="max-w-[20ch] font-display text-h2 text-[var(--ink)]">{heading}</h2>
+        <h2
+          className="max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap lg:text-[clamp(1.375rem,2vw,1.875rem)]"
+        >
+          {heading}
+        </h2>
 
         <div className="mt-9 sm:mt-12">
           <h3 className={COLUMN_LABEL}>{capability.heading}</h3>

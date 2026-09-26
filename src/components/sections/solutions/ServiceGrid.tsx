@@ -33,11 +33,13 @@ export default function ServiceGrid(): JSX.Element {
             and dropping `text-h2`, which silently renders the heading at body
             size. The colour is inherited from Section's light tone anyway, so
             the fix is to not ask for it twice. */}
-        <WordReveal as="h2" className="max-w-[24ch] font-display text-h2">
+        <WordReveal as="h2" className="max-w-none font-display text-h2 lg:whitespace-nowrap">
           {heading}
         </WordReveal>
 
-        <p className="mt-4 max-w-[68ch] text-body-lg text-[var(--ink-muted)] sm:mt-6">{intro}</p>
+        <p className="mt-4 max-w-[68ch] text-body-lg text-[var(--ink-muted)] sm:mt-6 lg:max-w-none">
+          {intro}
+        </p>
 
         <Stagger className="mt-9 grid gap-3 sm:mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-3 lg:gap-5">
           {items.map((item, index) => (

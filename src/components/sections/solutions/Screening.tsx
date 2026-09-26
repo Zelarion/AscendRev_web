@@ -21,7 +21,7 @@ export default function Screening(): JSX.Element {
   return (
     <Section>
       <Container>
-        <h2 className="max-w-[20ch] font-display text-h2 text-[var(--ink)]">{heading}</h2>
+        <h2 className="max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap">{heading}</h2>
 
         <Stagger className="mt-8 grid gap-3 sm:mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-3 lg:gap-5">
           {items.map((item, index) => (

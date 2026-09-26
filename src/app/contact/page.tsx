@@ -39,9 +39,13 @@ export default function ContactPage() {
         */}
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[var(--surface-page)]" />
 
-        <Container>
-          <div className="max-w-[920px]">
-            <h1 className="max-w-[18ch] font-display text-h1 text-[var(--navy-900)]">{hero.headline}</h1>
+        <Container className="lg:max-w-[1600px]">
+          <div className="max-w-[920px] lg:max-w-none">
+            <h1
+              className="max-w-[18ch] font-display text-h1 text-[var(--navy-900)] lg:max-w-none lg:whitespace-nowrap lg:text-[clamp(2rem,3.2vw,3.25rem)]"
+            >
+              {hero.headline}
+            </h1>
             <p className="mt-4 max-w-[62ch] text-body-lg leading-relaxed text-[var(--text-on-band-muted)]">
               {hero.subheadline}
             </p>

@@ -82,12 +82,13 @@ export default function RootLayout({
     <html lang="en-CA" suppressHydrationWarning>
       <head>
         <Script id="ascendrev-loader-bootstrap" strategy="beforeInteractive">
-          {`document.documentElement.dataset.ascendrevLoader = 'active'; window.setTimeout(() => { if (document.documentElement.dataset.ascendrevLoader === 'active') delete document.documentElement.dataset.ascendrevLoader; }, 15000);`}
+          {`(() => { const loaderRoot = document.documentElement; let visited = false; try { visited = sessionStorage.getItem('ascendrev-loader-visited') === '1'; } catch {} loaderRoot.dataset.ascendrevLoaderStartedAt = String(performance.now()); loaderRoot.dataset.ascendrevLoaderFast = visited ? 'true' : 'false'; loaderRoot.dataset.ascendrevLoader = 'active'; window.setTimeout(() => { if (loaderRoot.dataset.ascendrevLoader === 'active') { loaderRoot.dataset.ascendrevLoader = 'expired'; delete loaderRoot.dataset.ascendrevLoaderStartedAt; } }, 10000); })();`}
         </Script>
+        <noscript><style>{`.page-loader-boot { display: none !important; }`}</style></noscript>
       </head>
       <body>
-        <OrganizationJsonLd />
         <PageLoader />
+        <OrganizationJsonLd />
         <SkipLink />
         <Header />
         <SmoothScrollProvider>

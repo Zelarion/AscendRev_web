@@ -737,20 +737,33 @@ html.lenis body {
   overflow: hidden;
   background: #061d3c;
   pointer-events: auto;
-  animation: loader-enter 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .page-loader-boot {
-  display: none;
+  display: grid;
+  /* The first document paint must already be covered: no opacity ramp here. */
+  animation: loader-boot-timeout 10s linear forwards;
 }
 
-html[data-ascendrev-loader='active'] .page-loader-boot {
-  display: grid;
+.page-loader-entering {
+  /* Show immediately, then settle quickly. Asset readiness, rather than a
+     decorative delay, determines how long the cover remains in place. */
+  animation: loader-enter 40ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+html[data-ascendrev-loader='expired'] .page-loader-boot {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .page-loader-leaving {
   pointer-events: none;
-  animation: loader-exit 300ms cubic-bezier(0.4, 0, 1, 1) both;
+  animation: loader-exit 180ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+html[data-ascendrev-loader-fast='true'] .page-loader-leaving {
+  animation-duration: 70ms;
 }
 
 .loader-glow {
@@ -770,24 +783,6 @@ html[data-ascendrev-loader='active'] .page-loader-boot {
   flex-direction: column;
   align-items: center;
   gap: 1.35rem;
-}
-
-.loader-rail {
-  position: relative;
-  width: min(78%, 15rem);
-  height: 2px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(226, 237, 248, 0.2);
-}
-
-.loader-rail span {
-  position: absolute;
-  inset: 0 auto 0 -42%;
-  width: 42%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #00b8a9, #e5bd45 72%);
-  animation: loader-progress 1100ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 .loader-mark {
@@ -828,6 +823,12 @@ html[data-ascendrev-loader='active'] .page-loader-boot {
   to { opacity: 1; }
 }
 
+/* CSS also releases the server-rendered cover if hydration itself fails. */
+@keyframes loader-boot-timeout {
+  0%, 99.9% { visibility: visible; }
+  100% { visibility: hidden; opacity: 0; }
+}
+
 @keyframes loader-exit {
   from { opacity: 1; }
   to { opacity: 0; }
@@ -836,11 +837,6 @@ html[data-ascendrev-loader='active'] .page-loader-boot {
 @keyframes loader-breathe {
   from { transform: scale(0.96); opacity: 0.72; }
   to { transform: scale(1.02); opacity: 1; }
-}
-
-@keyframes loader-progress {
-  from { transform: translateX(0); }
-  to { transform: translateX(340%); }
 }
 
 @keyframes route-draw {
@@ -856,7 +852,6 @@ html[data-ascendrev-loader='active'] .page-loader-boot {
   .page-loader,
   .page-loader-leaving,
   .loader-glow,
-  .loader-rail span,
   .loader-route-line,
   .loader-route-node {
     animation: none;

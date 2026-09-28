@@ -1,4 +1,5 @@
 import ContactEnquiryForm from '@/components/sections/contact/ContactEnquiryForm';
+import EnquiryGuide from '@/components/sections/contact/EnquiryGuide';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
@@ -119,6 +120,7 @@ export default function ContactPage() {
           </RevealOnScroll>
         </div>
       </section>
+      <EnquiryGuide />
     </>
   );
 }

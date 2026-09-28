@@ -7,9 +7,17 @@
 }
 
 .intro {
+  display: grid;
   width: min(100% - 2 * var(--section-gutter), 1320px);
+  min-height: 6.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  justify-items: start;
+  justify-content: center;
+  gap: 0.2rem;
+  text-align: left;
   margin-inline: auto;
-  padding-block: clamp(1.75rem, 3.5vw, 3rem) 0.75rem;
+  padding-block: 1.25rem;
 }
 
 .intro h2 {
@@ -17,7 +25,7 @@
   margin: 0;
   color: var(--navy-900);
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 3.2vw, var(--text-h2));
+  font-size: clamp(1.55rem, 2.7vw, var(--text-h2));
   font-weight: var(--text-h2--font-weight, 500);
   letter-spacing: var(--text-h2--letter-spacing, normal);
   line-height: var(--text-h2--line-height, normal);
@@ -28,25 +36,34 @@
 .returnButton {
   display: inline-flex;
   min-height: 2.9rem;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   gap: 0.8rem;
-  margin-top: 0.9rem;
+  margin: 0;
   padding: 0.7rem 1.15rem;
-  border: 1px solid var(--navy-900);
-  border-radius: 0.4rem;
-  background: var(--navy-900);
-  color: white;
+  border: 1px solid var(--gold-300);
+  border-radius: 0.45rem;
+  background: linear-gradient(115deg, #f4d77d, #c6952c);
+  color: #102541;
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+  box-shadow: 0 0.65rem 1.4rem rgba(5, 20, 44, 0.15);
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.viewAllButton {
+  justify-self: start;
+  margin-top: 0.65rem;
+  margin-inline-start: 0;
 }
 
 .viewAllButton:hover,
 .returnButton:hover {
   transform: translateY(-2px);
-  background: #123b63;
+  box-shadow: 0 0.85rem 1.8rem rgba(5, 20, 44, 0.24);
 }
 
 .viewAllButton:focus-visible,
@@ -58,17 +75,53 @@
 .facilitiesGallery {
   --gallery-gutter: clamp(1.25rem, 6.2vw, 7.5rem);
   position: relative;
+  isolation: isolate;
   width: 100%;
-  min-height: min(72svh, 40rem);
-  background: #f3f6f8;
+  height: 100svh;
+  min-height: 36rem;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 76% 18%, rgba(30, 87, 139, 0.48), transparent 42%),
+    radial-gradient(ellipse at 15% 88%, rgba(23, 74, 119, 0.42), transparent 44%),
+    linear-gradient(122deg, #07162d 0%, #0a203e 54%, #07162e 100%);
+  color: #f7f9fc;
+}
+
+.facilitiesGallery::before,
+.facilitiesGallery::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+}
+
+.facilitiesGallery::before {
+  opacity: 0.3;
+  background-image:
+    linear-gradient(120deg, transparent 49.92%, rgba(232, 192, 92, 0.24) 50%, transparent 50.08%),
+    linear-gradient(60deg, transparent 49.94%, rgba(146, 182, 222, 0.13) 50%, transparent 50.06%);
+  background-size: 100% 100%, 100% 100%;
+  animation: galleryLightDrift 18s ease-in-out infinite alternate;
+}
+
+.facilitiesGallery::after {
+  opacity: 0.62;
+  background: linear-gradient(90deg, rgba(5, 16, 33, 0.18), transparent 18%, transparent 82%, rgba(5, 16, 33, 0.28));
+}
+
+@keyframes galleryLightDrift {
+  from { transform: translate3d(-1.2%, 0, 0); opacity: 0.24; }
+  to { transform: translate3d(1.2%, 0, 0); opacity: 0.42; }
 }
 
 .galleryViewport {
+  position: relative;
+  z-index: 1;
   display: flex;
-  width: min(100% - 2 * var(--gallery-gutter), 1320px);
-  height: min(70svh, 39rem);
-  align-items: center;
-  margin-inline: auto;
+  width: 100%;
+  height: 100svh;
+  align-items: stretch;
   overflow: clip;
 }
 
@@ -76,33 +129,56 @@
   display: flex;
   width: max-content;
   flex: 0 0 auto;
-  align-items: center;
-  gap: clamp(1rem, 2.2vw, 2rem);
-  padding-inline-end: var(--gallery-gutter);
+  align-items: stretch;
+  gap: 2vw;
+  padding-inline: 12vw;
   will-change: transform;
 }
 
 .facilityCard {
-  width: min(35rem, calc(100vw - var(--gallery-gutter) - var(--gallery-gutter)));
+  position: relative;
+  display: flex;
+  width: 76vw;
+  height: 100svh;
   flex: 0 0 auto;
+  flex-direction: column;
+  justify-content: center;
   margin: 0;
+  padding-block: 4svh 5.75rem;
+  opacity: 0.86;
+  transform: scale(1);
+  transition: opacity 220ms ease;
+}
+
+.activeFacility {
+  opacity: 1;
 }
 
 .facilityImage {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: clamp(20rem, 73svh, 50rem);
+  flex: 0 0 auto;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(14, 36, 66, 0.12);
-  border-radius: 0.9rem;
-  background: #dce3e9;
+  border: 1px solid rgba(231, 239, 248, 0.34);
+  border-radius: 1.05rem;
+  background: #17283f;
   color: inherit;
   font: inherit;
   text-align: initial;
   cursor: pointer;
-  box-shadow: 0 1rem 2rem rgba(12, 32, 56, 0.12);
+  box-shadow: 0 1.6rem 4rem rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(250, 213, 119, 0.1);
+}
+
+.facilityImage::after {
+  position: absolute;
+  z-index: 2;
+  inset: 36% 0 0;
+  background: linear-gradient(180deg, transparent 10%, rgba(4, 14, 29, 0.72) 100%);
+  content: '';
+  pointer-events: none;
 }
 
 .facilityImage:focus-visible {
@@ -111,8 +187,14 @@
 }
 
 .facilityPhoto {
+  z-index: 1;
   object-fit: cover;
-  transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: transform 850ms cubic-bezier(0.2, 0.7, 0.2, 1), filter 650ms ease;
+  filter: saturate(0.88) contrast(1.02);
+}
+
+.activeFacility .facilityPhoto {
+  filter: saturate(1.04) contrast(1.03);
 }
 
 .containedFacilityPhoto {
@@ -120,50 +202,114 @@
   object-fit: cover;
 }
 
+.portraitFacilityCard .facilityImage {
+  background-color: #08182d;
+}
+
+.facilityBackfill {
+  position: absolute;
+  z-index: 0;
+  inset: -1rem;
+  background-position: center;
+  background-size: cover;
+  filter: blur(1.25rem) brightness(0.44) saturate(0.8);
+  transform: scale(1.04);
+  pointer-events: none;
+}
+
+.portraitFacilityPhoto {
+  object-fit: contain;
+  object-position: left center;
+  transition: object-position 520ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 850ms cubic-bezier(0.2, 0.7, 0.2, 1), filter 650ms ease;
+}
+
+.activeFacility .portraitFacilityPhoto {
+  object-position: center center;
+}
+
 .facilityCard:hover .facilityPhoto {
   transform: scale(1.035);
 }
 
 .facilityCard:hover .containedFacilityPhoto {
-  transform: none;
+  transform: scale(1.025);
 }
 
 .facilityNumber {
   position: absolute;
-  top: 0.85rem;
-  left: 0.85rem;
+  z-index: 3;
+  top: 1.25rem;
+  left: 1.25rem;
   display: grid;
-  width: 2.5rem;
+  width: 2.8rem;
   aspect-ratio: 1;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.66);
   border-radius: 50%;
-  background: rgba(5, 25, 50, 0.88);
+  background: rgba(5, 25, 50, 0.76);
   color: white;
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.7rem;
   font-weight: 600;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .facilityCard figcaption {
-  margin-top: 0.6rem;
-  color: var(--navy-900);
-  font-size: 1rem;
-  font-weight: 600;
+  margin-top: 0.8rem;
+  color: #f7f9fc;
+  font-size: clamp(1.05rem, 1.35vw, 1.35rem);
+  font-weight: 650;
   letter-spacing: 0.01em;
   line-height: 1.35;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.42);
 }
 
-.galleryTitle {
-  width: min(100% - 2 * var(--gallery-gutter), 1320px);
-  margin: 0 auto;
-  padding-top: clamp(1.25rem, 2.5vw, 2.25rem);
-  color: var(--navy-900);
-  font-family: var(--font-display);
-  font-size: var(--text-h3);
-  font-weight: var(--text-h3--font-weight, 600);
-  letter-spacing: var(--text-h3--letter-spacing, normal);
-  line-height: var(--text-h3--line-height, normal);
+.galleryProgress {
+  position: absolute;
+  z-index: 3;
+  right: var(--gallery-gutter);
+  bottom: clamp(1.25rem, 3.2svh, 2.5rem);
+  left: var(--gallery-gutter);
+  display: grid;
+  grid-template-columns: auto minmax(5rem, 1fr) minmax(12rem, auto);
+  align-items: center;
+  gap: clamp(0.75rem, 1.7vw, 1.5rem);
+  color: rgba(246, 249, 253, 0.82);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.galleryProgressCount {
+  color: #f3cf70;
+  font-variant-numeric: tabular-nums;
+}
+
+.galleryProgressTrack {
+  display: block;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(239, 244, 250, 0.25);
+}
+
+.galleryProgressFill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #d9a933, #ffe69a);
+  box-shadow: 0 0 1rem rgba(236, 194, 83, 0.5);
+  transition: width 320ms ease-out;
+}
+
+.galleryProgressLabel {
+  overflow: hidden;
+  color: #fff;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .returnButton {
@@ -173,20 +319,31 @@
 }
 
 .allFacilitiesMode {
+  width: 100%;
+  max-width: 100vw;
+  height: auto;
+  min-height: 0;
   padding-block: 0 clamp(2rem, 5vw, 4rem);
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .allFacilitiesMode .galleryViewport {
   display: block;
-  width: min(100% - 2 * var(--gallery-gutter), 1320px);
+  width: min(1320px, 100%);
+  max-width: 100%;
   height: auto;
-  overflow: visible;
-  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  margin-inline: auto;
+  overflow-x: clip;
+  overflow-y: visible;
+  padding: clamp(1.5rem, 3vw, 2.5rem) var(--gallery-gutter) 0;
+  box-sizing: border-box;
 }
 
 .allFacilitiesMode .galleryTrack {
   display: grid;
   width: 100%;
+  min-width: 0;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(1.25rem, 2.2vw, 2rem);
   padding: 0;
@@ -196,12 +353,42 @@
 
 .allFacilitiesMode .facilityCard {
   width: min(100%, 35rem);
+  height: auto;
   justify-self: center;
+  padding: 0;
+  opacity: 1;
+  transform: none;
+  transition: none;
 }
 
 .allFacilitiesMode .facilityImage {
   height: auto;
   aspect-ratio: 4 / 3;
+}
+
+.allFacilitiesMode .portraitFacilityPhoto {
+  object-position: center center;
+}
+
+.allFacilitiesMode .facilityImage::after {
+  opacity: 0;
+}
+
+.allFacilitiesMode .galleryProgress {
+  display: none;
+}
+
+@media (min-width: 1440px) {
+  .allFacilitiesMode .facilityCard:last-child {
+    grid-column: 2;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1439px) {
+  .allFacilitiesMode .facilityCard:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
 }
 
 .lightboxOverlay {
@@ -379,7 +566,20 @@
   }
 
   .intro {
-    padding-block: 3.5rem 1.5rem;
+    min-height: 6rem;
+    padding-block: 1rem;
+  }
+
+  .facilitiesGallery {
+    --gallery-gutter: clamp(2rem, 5vw, 4rem);
+  }
+
+  .facilityCard {
+    width: 76vw;
+  }
+
+  .facilityImage {
+    height: clamp(20rem, 70svh, 46rem);
   }
 
   .allFacilitiesMode .galleryTrack {
@@ -390,32 +590,56 @@
 
 @media (max-width: 767px) {
   .intro {
-    padding-block: 1.75rem 0.75rem;
+    min-height: 0;
+    gap: 0.9rem;
+    padding-block: 1.5rem 1rem;
   }
 
-  .facilitiesGallery {
-    min-height: 68svh;
+  .intro h2 {
+    font-size: clamp(1.5rem, 7vw, 2rem);
   }
 
   .facilitiesGallery {
     --gallery-gutter: 1rem;
+    height: 90svh;
+    min-height: 34rem;
   }
 
   .galleryViewport {
-    width: min(100% - 2 * var(--gallery-gutter), 34rem);
-    height: min(66svh, 34rem);
+    width: 100%;
+    height: 90svh;
   }
 
   .galleryTrack {
-    gap: 1rem;
+    gap: 2vw;
+    padding-inline: 12vw;
   }
 
   .facilityCard {
-    width: min(78vw, 27rem);
+    width: 76vw;
+    height: 90svh;
+    padding-block: 4svh 6rem;
+  }
+
+  .facilityImage {
+    height: clamp(19rem, 65svh, 42rem);
   }
 
   .facilityCard figcaption {
-    font-size: 1rem;
+    font-size: 1.05rem;
+  }
+
+  .galleryProgress {
+    right: 1rem;
+    bottom: 1.15rem;
+    left: 1rem;
+    grid-template-columns: auto minmax(4rem, 1fr);
+    gap: 0.8rem;
+    font-size: 0.66rem;
+  }
+
+  .galleryProgressLabel {
+    display: none;
   }
 
   .allFacilitiesMode .galleryTrack {
@@ -514,7 +738,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .facilitiesGallery:not(.allFacilitiesMode) {
-    min-height: 0;
+    height: auto;
+    min-height: 100svh;
+    overflow: hidden;
+  }
+
+  .facilitiesGallery::before {
+    animation: none;
   }
 
   .facilityPhoto {
@@ -528,9 +758,10 @@
   .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
     display: flex;
     width: max-content;
-    gap: clamp(1rem, 2.2vw, 2rem);
+    align-items: stretch;
+    gap: 2vw;
     margin-inline: 0;
-    padding: clamp(2rem, 5vw, 4rem) var(--gallery-gutter);
+    padding: 3rem 9vw 5.5rem;
     transform: none !important;
     will-change: auto;
   }
@@ -538,7 +769,7 @@
   .facilitiesGallery:not(.allFacilitiesMode) .galleryViewport {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100svh;
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;
@@ -548,13 +779,14 @@
   }
 
   .facilitiesGallery:not(.allFacilitiesMode) .facilityCard {
-    width: min(35rem, calc(100vw - var(--gallery-gutter) - var(--gallery-gutter)));
+    width: 76vw;
+    height: 100svh;
+    padding: 4svh 0 0;
     scroll-snap-align: center;
   }
 
   .facilitiesGallery:not(.allFacilitiesMode) .facilityImage {
-    height: auto;
-    aspect-ratio: 4 / 3;
+    height: clamp(20rem, 73svh, 50rem);
   }
 
   .facilityCard {
@@ -566,18 +798,28 @@
 
 @media (prefers-reduced-motion: reduce) and (max-width: 1023px) {
   .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
-    gap: 1rem;
+    gap: 2vw;
   }
 }
 
 @media (prefers-reduced-motion: reduce) and (max-width: 767px) {
   .facilitiesGallery:not(.allFacilitiesMode) .galleryTrack {
-    gap: 1rem;
-    padding-inline: var(--gallery-gutter);
+    gap: 2vw;
+    padding: 3rem 12vw 5.5rem;
   }
 
   .facilitiesGallery:not(.allFacilitiesMode) .facilityCard {
-    width: min(78vw, 27rem);
+    width: 76vw;
+    height: 90svh;
+    padding-block: 4svh 0;
+  }
+
+  .facilitiesGallery:not(.allFacilitiesMode) .galleryViewport {
+    height: 90svh;
+  }
+
+  .facilitiesGallery:not(.allFacilitiesMode) .facilityImage {
+    height: clamp(19rem, 65svh, 42rem);
   }
 
 }

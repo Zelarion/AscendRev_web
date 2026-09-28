@@ -6,10 +6,16 @@ import LoaderMotionMark from '@/components/ui/LoaderMotionMark';
 
 type LoaderPhase = 'boot' | 'entering' | 'leaving';
 
-const MINIMUM_DISPLAY_MS = 350;
+const BOOT_MINIMUM_DISPLAY_MS = 120;
+const CACHED_BOOT_MINIMUM_DISPLAY_MS = 0;
+// Route assets must settle before the cover leaves; no extra fixed dwell is
+// added after they are ready.
+const ROUTE_MINIMUM_DISPLAY_MS = 0;
 const ASSET_WAIT_CAP_MS = 8_000;
+const TRANSITION_HARD_CAP_MS = 10_000;
 const ROUTE_COMMIT_CAP_MS = 6_000;
-const ROUTE_ASSET_CAP_MS = ASSET_WAIT_CAP_MS + MINIMUM_DISPLAY_MS + 650;
+const COLD_DOM_STABILITY_MS = 180;
+const WARM_DOM_STABILITY_MS = 40;
 
 function waitForImageElement(image: HTMLImageElement): Promise<void> {
   return new Promise((resolve) => {
@@ -27,6 +33,7 @@ function waitForImageElement(image: HTMLImageElement): Promise<void> {
 
     if (typeof image.decode === 'function') {
       image.decode().then(finish, () => {
+        // A decode rejection is terminal only once the fetch itself settled.
         if (image.complete) finish();
       });
     } else if (image.complete) {
@@ -52,11 +59,8 @@ function preloadUrl(url: string): Promise<void> {
       resolve();
     };
     const handleLoad = () => {
-      if (typeof image.decode === 'function') {
-        image.decode().then(finish, finish);
-      } else {
-        finish();
-      }
+      if (typeof image.decode === 'function') image.decode().then(finish, finish);
+      else finish();
     };
 
     image.addEventListener('load', handleLoad, { once: true });
@@ -84,11 +88,11 @@ function extractCssUrls(backgroundImage: string): string[] {
 }
 
 /**
- * Promote native lazy images before the loader leaves, then settle current and
- * newly inserted page imagery, CSS backgrounds, video posters, and document
- * fonts. A hard cap ensures a missing third-party asset cannot trap the visitor.
+ * Promote native lazy images before releasing the loader, then wait for current
+ * and newly inserted images, CSS backgrounds, video posters and document fonts.
+ * Warm routes use a shorter DOM quiet window, but never skip a pending asset.
  */
-async function waitForPageAssets(): Promise<void> {
+async function waitForPageAssets(stabilityMs: number): Promise<boolean> {
   const startedAt = performance.now();
   const deadlineAt = startedAt + ASSET_WAIT_CAP_MS;
   const pendingAssets = new Set<Promise<void>>();
@@ -126,7 +130,7 @@ async function waitForPageAssets(): Promise<void> {
       seenUrls.add(url.href);
       track(preloadUrl(url.href));
     } catch {
-      // Ignore malformed optional decoration; the normal page remains usable.
+      // Ignore a malformed optional decoration; the page remains usable.
     }
   };
 
@@ -196,33 +200,35 @@ async function waitForPageAssets(): Promise<void> {
 
   let timeoutId: number | undefined;
   let stabilityPollId: number | undefined;
-  const pageAssetsSettled = new Promise<void>((resolve) => {
+  const pageAssetsSettled = new Promise<boolean>((resolve) => {
     const checkForStability = () => {
-      if (pendingAssets.size === 0 && performance.now() - lastDomChangeAt >= 180) {
-        resolve();
+      if (pendingAssets.size === 0 && performance.now() - lastDomChangeAt >= stabilityMs) {
+        resolve(true);
         return;
       }
-      stabilityPollId = window.setTimeout(checkForStability, 50);
+      stabilityPollId = window.setTimeout(checkForStability, 25);
     };
     checkForStability();
   });
 
-  await Promise.race([
+  const assetsSettled = await Promise.race([
     pageAssetsSettled,
-    new Promise<void>((resolve) => {
+    new Promise<boolean>((resolve) => {
       const remaining = Math.max(0, deadlineAt - performance.now());
-      timeoutId = window.setTimeout(resolve, remaining);
+      timeoutId = window.setTimeout(() => resolve(false), remaining);
     }),
   ]);
 
   observer.disconnect();
   if (timeoutId !== undefined) window.clearTimeout(timeoutId);
   if (stabilityPollId !== undefined) window.clearTimeout(stabilityPollId);
+  return assetsSettled;
 }
 
 /**
- * First-load and route-transition cover. The boot overlay is server-rendered,
- * but an early head script activates it only when JavaScript is available.
+ * A server-rendered first-paint cover and route-transition cover. The early
+ * head bootstrap owns the initial ten-second lease, so failed hydration still
+ * releases the server-rendered overlay.
  */
 export default function PageLoader(): JSX.Element | null {
   const pathname = usePathname();
@@ -236,6 +242,7 @@ export default function PageLoader(): JSX.Element | null {
   const failsafeTimer = useRef<number | null>(null);
   const queryPollTimer = useRef<number | null>(null);
   const leaveTimer = useRef<number | null>(null);
+  const isBootTransition = useRef(true);
   const [phase, setPhase] = useState<LoaderPhase | null>('boot');
 
   const clearPendingTimers = useCallback(() => {
@@ -256,12 +263,27 @@ export default function PageLoader(): JSX.Element | null {
     queryPollTimer.current = null;
     targetPathname.current = null;
     targetUrl.current = null;
+
+    const timeUntilHardCap = TRANSITION_HARD_CAP_MS
+      - (performance.now() - transitionStartedAt.current);
+    if (timeUntilHardCap <= 300) {
+      delete document.documentElement.dataset.ascendrevLoader;
+      delete document.documentElement.dataset.ascendrevLoaderStartedAt;
+      delete document.documentElement.dataset.ascendrevLoaderFast;
+      setPhase(null);
+      return;
+    }
+
+    const warmTransition = document.documentElement.dataset.ascendrevLoaderFast === 'true';
+    const leaveDuration = warmTransition ? 70 : 180;
     setPhase((current) => (current ? 'leaving' : null));
     leaveTimer.current = window.setTimeout(() => {
       if (transitionId.current !== id) return;
       leaveTimer.current = null;
+      delete document.documentElement.dataset.ascendrevLoaderFast;
+      delete document.documentElement.dataset.ascendrevLoaderStartedAt;
       setPhase(null);
-    }, 300);
+    }, leaveDuration);
   }, []);
 
   const beginTransition = useCallback(() => {
@@ -270,6 +292,8 @@ export default function PageLoader(): JSX.Element | null {
     transitionStartedAt.current = performance.now();
     assetWaitStartedFor.current = null;
     finishedTransitionFor.current = null;
+    isBootTransition.current = false;
+    delete document.documentElement.dataset.ascendrevLoaderFast;
     const id = transitionId.current;
     setPhase('entering');
     return id;
@@ -280,26 +304,68 @@ export default function PageLoader(): JSX.Element | null {
     assetWaitStartedFor.current = id;
 
     if (failsafeTimer.current !== null) window.clearTimeout(failsafeTimer.current);
+    const remainingHardCap = Math.max(
+      0,
+      TRANSITION_HARD_CAP_MS - (performance.now() - transitionStartedAt.current)
+    );
     failsafeTimer.current = window.setTimeout(
       () => finishTransition(id),
-      ROUTE_ASSET_CAP_MS
+      remainingHardCap
     );
 
-    void waitForPageAssets().finally(() => {
-      if (transitionId.current !== id || finishedTransitionFor.current === id) return;
-      const elapsed = performance.now() - transitionStartedAt.current;
-      const remaining = Math.max(0, MINIMUM_DISPLAY_MS - elapsed);
-      leaveTimer.current = window.setTimeout(
-        () => finishTransition(id),
-        remaining
-      );
-    });
+    let warmTransition = document.documentElement.dataset.ascendrevLoaderFast === 'true';
+    if (!isBootTransition.current) {
+      try {
+        warmTransition = sessionStorage.getItem('ascendrev-loader-visited') === '1';
+      } catch {
+        warmTransition = false;
+      }
+    }
+
+    void waitForPageAssets(warmTransition ? WARM_DOM_STABILITY_MS : COLD_DOM_STABILITY_MS)
+      .catch(() => false)
+      .then((assetsSettled) => {
+        if (transitionId.current !== id || finishedTransitionFor.current === id) return;
+        if (isBootTransition.current && assetsSettled) {
+          try {
+            sessionStorage.setItem('ascendrev-loader-visited', '1');
+          } catch {
+            // The loader still works when browser storage is unavailable.
+          }
+        }
+        if (!isBootTransition.current && assetsSettled) {
+          // This only shortens the fade after every scanned asset has settled.
+          // Uncached images, fonts and CSS art continue to hold the cover.
+          document.documentElement.dataset.ascendrevLoaderFast = 'true';
+        }
+      })
+      .finally(() => {
+        if (transitionId.current !== id || finishedTransitionFor.current === id) return;
+        const elapsed = performance.now() - transitionStartedAt.current;
+        const fastBoot = isBootTransition.current
+          && document.documentElement.dataset.ascendrevLoaderFast === 'true';
+        const minimumDisplay = isBootTransition.current
+          ? (fastBoot ? CACHED_BOOT_MINIMUM_DISPLAY_MS : BOOT_MINIMUM_DISPLAY_MS)
+          : ROUTE_MINIMUM_DISPLAY_MS;
+        const remaining = Math.max(0, minimumDisplay - elapsed);
+        leaveTimer.current = window.setTimeout(() => finishTransition(id), remaining);
+      });
   }, [finishTransition]);
 
   useEffect(() => {
+    const loaderRoot = document.documentElement;
+    if (loaderRoot.dataset.ascendrevLoader !== 'active') {
+      setPhase(null);
+      return;
+    }
+
     transitionId.current += 1;
+    isBootTransition.current = true;
     const id = transitionId.current;
-    transitionStartedAt.current = performance.now();
+    const bootStartedAt = Number(loaderRoot.dataset.ascendrevLoaderStartedAt);
+    transitionStartedAt.current = Number.isFinite(bootStartedAt)
+      ? bootStartedAt
+      : performance.now();
     waitForCurrentPage(id);
   }, [waitForCurrentPage]);
 
@@ -313,18 +379,15 @@ export default function PageLoader(): JSX.Element | null {
     if (previousPathname.current === pathname) return;
     previousPathname.current = pathname;
 
-    const id = targetPathname.current === null
-      ? beginTransition()
-      : transitionId.current;
+    const matchingIntent = targetPathname.current === pathname;
+    const id = matchingIntent ? transitionId.current : beginTransition();
     targetPathname.current = pathname;
     waitForCurrentPage(id);
   }, [beginTransition, pathname, waitForCurrentPage]);
 
   useEffect(() => {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
     const handleClick = (event: MouseEvent) => {
-      if (reduceMotion.matches || event.defaultPrevented || event.button !== 0) return;
+      if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (!(event.target instanceof Element)) return;
 
@@ -343,15 +406,21 @@ export default function PageLoader(): JSX.Element | null {
 
       if (destination.origin !== window.location.origin) return;
       const current = new URL(window.location.href);
+      // Same-page anchors (including Revenue Impact) scroll normally and do
+      // not start a second loading cover.
       if (destination.pathname === current.pathname && destination.search === current.search) return;
+
+      const destinationUrl = `${destination.pathname}${destination.search}`;
+      if (targetPathname.current === destination.pathname && targetUrl.current === destinationUrl) return;
 
       const id = beginTransition();
       targetPathname.current = destination.pathname;
-      targetUrl.current = `${destination.pathname}${destination.search}`;
+      targetUrl.current = destinationUrl;
+      failsafeTimer.current = window.setTimeout(
+        () => finishTransition(id),
+        ROUTE_COMMIT_CAP_MS
+      );
 
-      // Keep stalled router transitions bounded; once the route commits, the
-      // asset-specific bound allows its full eight-second load/decode window.
-      failsafeTimer.current = window.setTimeout(() => finishTransition(id), ROUTE_COMMIT_CAP_MS);
       if (destination.pathname === current.pathname) {
         queryPollTimer.current = window.setInterval(() => {
           const location = `${window.location.pathname}${window.location.search}`;
@@ -384,9 +453,6 @@ export default function PageLoader(): JSX.Element | null {
       <div className="loader-glow" aria-hidden="true" />
       <div className="loader-content">
         <LoaderMotionMark />
-        <div className="loader-rail" aria-hidden="true">
-          <span />
-        </div>
         <span className="sr-only">Loading page</span>
       </div>
     </div>

@@ -146,12 +146,13 @@ export default function LeadershipBlock(): JSX.Element {
       : (activeIndex / (steps.length - 1)) * 100;
 
   return (
+    // Keep this section unclipped: an overflow container here traps the sticky
+    // founder profile instead of letting it track the viewport beside the story.
     <section
       id={leadership.id}
       data-tone="navy"
-      className="relative isolate overflow-hidden border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] !pt-[clamp(2rem,4vw,3rem)] text-[var(--ink)]"
+      className="relative isolate border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] !pt-[clamp(2rem,4vw,3rem)] text-[var(--ink)]"
     >
-      <AtmosphereLayer variant="route-accent" className="opacity-30" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(223,184,79,0.045),transparent_28%)]"
@@ -167,49 +168,57 @@ export default function LeadershipBlock(): JSX.Element {
       */}
       <div className="relative z-[1] mx-auto grid w-full max-w-[1540px] gap-9 sm:gap-11 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-20 xl:gap-24">
         <aside className="lg:sticky lg:top-28 lg:self-start lg:h-fit lg:border-r lg:border-[var(--border)] lg:pr-8 xl:pr-10">
-          <div className="rounded-[10px] bg-[var(--surface-band-raised)] p-5 lg:bg-transparent lg:p-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
-              THE ASCENDREV ADVANTAGE / 01
-            </p>
-
-            <h2 className="mt-3 max-w-[32ch] font-display text-h2 text-[var(--navy-900)]">
-              {leadership.heading}
-            </h2>
-
-            <div className="mt-4 border-t border-[var(--border)] pt-4">
-              {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps this local portrait asset simple. */}
-              <img
-                src="/images/rio-vidal-portrait.jpg"
-                alt="Rio Vidal, Co-Founder and President of AscendRev"
-                width={781}
-                height={721}
-                className="mb-3 block h-auto w-full max-w-[clamp(16rem,40vw,20rem)] rounded-[8px] object-contain"
-              />
-
-              <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>
-              <p className="mt-1 text-sm text-[var(--ink-muted)]">Co-Founder and President</p>
-              <p className="mt-1 text-sm leading-[1.6] text-[var(--ink-muted)]">
-                Previously with American Express Bank of Canada, Acquire BPO/Acquire Intelligence and Custom Travel Solutions
-              </p>
-              {site.linkedinUrl && (
-                <a
-                  href={site.linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--navy-900)] transition-colors hover:bg-[var(--surface-band-raised)]"
-                >
-                  <LinkedinLogo size={16} weight="regular" aria-hidden="true" />
-                  <span>LinkedIn profile</span>
-                </a>
-              )}
-              <p className="mt-3 max-w-[46ch] text-sm leading-[1.6] text-[var(--ink-muted)]">
-                Decades of career experience translated to support People, Process, Performance and Results
+          <div className="relative isolate rounded-[10px] bg-[var(--surface-band-raised)] p-5 lg:bg-transparent lg:p-0">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-0 right-0 z-0 h-[38%] w-[72%] overflow-hidden rounded-br-[10px]"
+            >
+              <AtmosphereLayer variant="route-accent" className="opacity-25" />
+            </div>
+            <div className="relative z-[1]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
+                THE ASCENDREV ADVANTAGE / 01
               </p>
 
-              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--border)] pt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-muted)]">
-                <span>Canadian Leadership</span>
-                <span>Direct Accountability</span>
-                <span>Commercial Experience</span>
+              <h2 className="mt-3 max-w-[32ch] font-display text-h2 text-[var(--navy-900)]">
+                {leadership.heading}
+              </h2>
+
+              <div className="mt-4 border-t border-[var(--border)] pt-4">
+                {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps this local portrait asset simple. */}
+                <img
+                  src="/images/rio-vidal-portrait.jpg"
+                  alt="Rio Vidal, Co-Founder and President of AscendRev"
+                  width={781}
+                  height={721}
+                  className="mb-3 block h-auto w-full max-w-[clamp(16rem,40vw,20rem)] rounded-[8px] object-contain"
+                />
+
+                <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>
+                <p className="mt-1 text-sm text-[var(--ink-muted)]">Co-Founder and President</p>
+                <p className="mt-1 text-sm leading-[1.6] text-[var(--ink-muted)]">
+                  Previously with American Express Bank of Canada, Acquire BPO/Acquire Intelligence and Custom Travel Solutions
+                </p>
+                {site.linkedinUrl && (
+                  <a
+                    href={site.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--navy-900)] transition-colors hover:bg-[var(--surface-band-raised)]"
+                  >
+                    <LinkedinLogo size={16} weight="regular" aria-hidden="true" />
+                    <span>LinkedIn profile</span>
+                  </a>
+                )}
+                <p className="mt-3 max-w-[46ch] text-sm leading-[1.6] text-[var(--ink-muted)]">
+                  Decades of career experience translated to support People, Process, Performance and Results
+                </p>
+
+                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--border)] pt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+                  <span>Canadian Leadership</span>
+                  <span>Direct Accountability</span>
+                  <span>Commercial Experience</span>
+                </div>
               </div>
             </div>
           </div>

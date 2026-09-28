@@ -69,7 +69,7 @@ Earlier live-page research and source notes are recorded in `REDESIGN-RESEARCH-2
 - The Advantage story showed milestone 01, then advanced to milestone 02 while scrolling. Contact form fields and existing copy rendered; the live submit action was not triggered.
 - Click opened the Solutions menu; Tab entered its first submenu link; Escape closed the menu and returned focus to the trigger; clicking outside also closed it. Pointer behavior is confirmed from its handlers but was not simulated by the browser controller.
 - `npx eslint src`, `npm run typecheck`, `npm run build`, and `git diff --check` passed. The build exported all 13 static pages.
-- Failed-image timeout behavior is covered by the 8-second `Promise.race` code path but was not forced in the browser. The 15-second head-bootstrap failsafe prevents a hydration failure from trapping visitors on the splash screen.
+- Failed-image timeout behavior is covered by the 8-second `Promise.race` code path but was not forced in the browser. The head-bootstrap now fails open at 10 seconds, including when hydration does not complete; asset-scan errors are caught and also release the page.
 
 ## Implementation order and falsification
 
@@ -81,6 +81,60 @@ Earlier live-page research and source notes are recorded in `REDESIGN-RESEARCH-2
 6. Verify first-load asset gating, route transitions, loader failure timeout, contact form entry, Difference scroll story, and prefers-reduced-motion before the full build.
 7. Inspect the final Git diff and asset list. Stage only reviewed web changes; do not deploy the public site. Push the reviewed change to the site's `main` branch as previously authorized, then report exactly what still needs the user's preview deployment.
 
+## Additive section and storytelling follow-up
+
+**Scope:** Update the Home operating-model section shown by the user; restore the Advantage profile's sticky scroll-story behavior; add one new, clearly separated section to each of `/capabilities`, `/values`, and `/contact`; replace the preloader's linear progress treatment with a continuous branded network animation. Do not edit existing visible wording, existing section order, the contact form behavior, or routes.
+
+### Page-specific intent
+
+- **Home:** Keep the existing operating-model heading, three business-area names, and service labels. Recompose them as connected cards, with restrained motion and a compact band reusing existing brand CTA copy.
+- **Advantage:** Preserve the founder profile and three story milestones; make the profile stay pinned while the story column advances, then release naturally at the section end.
+- **Capabilities:** Add a visual synthesis of existing capability groups without changing current copy or CTA. Preserve the first three capability cards as-is; center the final two as a balanced second row, and tighten the spacing from the card number to its icon/title to match the user's compact left-side reference.
+- **Values:** Add a short editorial close that draws only from the three approved value statements; keep all current value copy verbatim.
+- **Contact:** Add a concise enquiry-preparation section aligned with the current form fields; do not change submission, validation, or success/error behavior.
+- **Preloader:** Remove the linear loading bar; keep the custom neural/network SVG animation looping. Hard fail open no later than 10 seconds after loader activation, including when a page image never responds or the client bundle does not hydrate.
+
+### Build order and falsification
+
+1. Generate and analyze a distinct design reference for each new section; reuse the already generated Home reference only for the operating-model redesign.
+2. Append sections to the existing route components, one route per file boundary; repair the Advantage sticky ancestor separately. Keep animation client-only, visible by default, and reduced-motion-safe.
+3. Compare extracted existing copy before/after, then test the Home connector and entry motion, Advantage pinned profile/progress/release, the new route sections at desktop and mobile widths, reduced motion, and Contact form functionality.
+4. Run lint, then typecheck and build sequentially, and `git diff --check`. Review route and asset diffs; stage only intentional tracked files and leave unrelated untracked media untouched.
+
+### Acceptance checklist
+
+- [x] Home shows the existing three operating areas as connected cards with intentional motion and an existing-copy CTA band.
+- [x] The Advantage profile stays pinned during the milestone story while scrolling.
+- [x] `/capabilities`, `/values`, and `/contact` each gain one relevant additive section; existing visible words and form behavior stay unchanged.
+- [x] Capability cards keep the first row unchanged, center the two-card second row, and bring the number closer to the icon/title row.
+- [x] The loader has no linear progress bar; its branded network motion loops, and a hard 10-second fail-open clears the cover if loading or hydration stalls. The scanner failure path is caught and fails open.
+- [x] Production build, TypeScript, source ESLint, and `git diff --check` pass. Responsive browser checks are recorded below; reduced-motion behavior remains unverified.
+
 ## Known limits
 
-Reference pages express their own identities; no attempt will be made to reproduce their exact visual assets. Shared-link cache refresh and live-host behavior are external checks and are not validated by local rendering. Responsive CSS was reviewed at source level, but the local browser pass used its 1904×900 viewport because this browser controller had no viewport-size override.
+Reference pages express their own identities; no attempt will be made to reproduce their exact visual assets. Shared-link cache refresh and live-host behavior are external checks and are not validated by local rendering. The viewport-specific browser pass recorded below supersedes the earlier source-only responsive review.
+
+## 2026-09-28 final facilities and asset-resolution follow-up
+
+### Completed in this pass
+
+- [x] The home facilities section has one `Facilities Overview` heading; `View all photos` sits immediately below it.
+- [x] The full photo grid has a centered maximum width, balanced three-card rows, and a centered final card at desktop and laptop widths. The scroll-story gallery remains available.
+- [x] Portrait campus photographs retain their full frame inside consistent cards; the photo itself is centered and legible instead of stretched or cropped. Advantage-page portrait evidence now uses the original aspect ratio and `object-contain` without a hazy duplicate backdrop.
+- [x] Capabilities keeps the five existing capability groups in the top section and uses a distinct, non-repeating enquiry-preparation section below.
+
+### Ultra-HD source-photo checklist
+
+- [ ] Request the original camera exports from Sir Rio (or the photographer) for every factual campus/office photo, ideally 3840px or larger on the long edge. The current supplied originals cannot honestly be described as Ultra HD, and interpolation or generative reconstruction would not restore verified fine detail.
+- [ ] Replace each current photo only after receiving the matching original: Home facilities (`ascendrev-campus.webp` 1672×941; `hallway1.jpg` 1206×1608; `ascendrev-training-room.jpg` 1206×664; `ascendrev-boardroom.png` 900×1125; `office4.jpg` 1672×941; `ascendrev-flexible-operations.jpg` 1448×1086; `ascendrev-secure-personal-storage.jpg` 1536×2048), Advantage facilities (`outside1-location-e91e155f.png` 941×1672; `office2.jpg` 900×1600; `hallway2.jpg` 1206×1608), and the other current editorial photos (`ascendrev-sales-dashboard-team.png` 1090×724; `ascendrev-screening-interview.png` 1066×721; `ascendrev-corporate-values-team.png` 1081×723; `rio-vidal-portrait.jpg` 781×721; `solutions-hero.webp` 960×540; `solutions-revenue-funnel.png` 726×754).
+- [x] Keep supplied factual photos at their genuine aspect ratios and preserve all details. Brand artwork/background files are separate illustrative assets and remain rendered at their source dimensions.
+
+The working folder now has enough free storage for the local development preview and sequential final checks.
+
+## 2026-09-28 responsive header and scroll verification
+
+- [x] Tested the shared header at CSS layout widths of 255, 360, 410, 767, 1013, 1354, 1908, and 2548px. The document width matched the available layout width at every sample; the mobile tagline appears once, and tablet/desktop artwork carries its integrated tagline without a separate overlay.
+- [x] Visually reviewed the header at 255px, 360px, 767px, 1354px, 1908px, and 2548px. The logo lockup remains within the header at narrow mobile, tablet, laptop, desktop, and large-monitor sizes.
+- [x] With the pointer outside the facility photo cards, advanced through frames 01–07 one frame per scroll. A downward scroll exited from 07; the next upward scroll re-entered at 07; another upward scroll moved to 06; a downward scroll returned to 07.
+- [x] At the values-page footer, the header hid after downward motion and reappeared after an upward scroll of about 88px.
+- [x] `npx eslint src`, `npm run typecheck`, `npm run build` (with the configured `NODE_PATH` needed by the external `.next` junction), and `git diff --check` passed. The broad `npm run lint` traversal could not read `.gstack` due to Windows access permissions, so lint was run directly over `src`.

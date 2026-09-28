@@ -20,7 +20,7 @@ function FacilityImage({
   src,
   alt,
   label,
-  aspect = 'aspect-[16/7]',
+  aspect = 'aspect-[3/4]',
   annotations,
   registerTiltTarget,
 }: {
@@ -32,11 +32,11 @@ function FacilityImage({
   registerTiltTarget?: (node: HTMLElement | null) => void;
 }): JSX.Element {
   return (
-    <div className="[perspective:720px]">
+    <div className="mx-auto w-full max-w-[34rem] [perspective:720px]">
       <figure
         ref={registerTiltTarget}
         className={cn(
-          'relative overflow-hidden rounded-[18px] border border-[var(--border)] bg-[var(--surface-band-raised)] transition-transform duration-150 ease-out [transform-style:preserve-3d] will-change-transform motion-reduce:transform-none motion-reduce:transition-none',
+          'relative overflow-hidden rounded-[18px] border border-[var(--border)] bg-[#e8edf2] shadow-[0_22px_54px_rgba(15,27,51,0.16)] transition-transform duration-150 ease-out [transform-style:preserve-3d] will-change-transform motion-reduce:transform-none motion-reduce:transition-none',
           aspect
         )}
       >
@@ -45,7 +45,7 @@ function FacilityImage({
           alt={alt}
           fill
           sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover"
+          className="object-contain"
         />
 
         {label ? (
@@ -298,7 +298,7 @@ export default function InfrastructureBlock(): JSX.Element {
                           ? 'Client supplied view of a furnished meeting room with a conference table and chairs.'
                           : 'Client supplied view of an office corridor with multiple doors and lockers.'
                     }
-                    aspect="aspect-[16/10]"
+                    aspect="aspect-[3/4]"
                     annotations={infrastructure ? moment.meta : undefined}
                     registerTiltTarget={(node) => {
                       tiltTargets.current[index] = node;

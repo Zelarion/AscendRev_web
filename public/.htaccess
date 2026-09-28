@@ -35,23 +35,36 @@ ErrorDocument 404 /404.html
 # Caching
 # ---------------------------------------------------------------------------
 # Next.js fingerprints filenames under /_next/static/, so those are safe to
-# cache permanently: a changed file gets a new name. HTML must NOT be cached
-# hard, or visitors keep seeing an old page after we publish an update.
+# cache permanently: a changed file gets a new name. HTML and ordinary files
+# in /images or /fonts remain refreshable so replacing a public URL propagates.
 <IfModule mod_expires.c>
   ExpiresActive On
-  ExpiresDefault                          "access plus 1 month"
+  ExpiresDefault                          "access plus 1 day"
   ExpiresByType text/html                 "access plus 0 seconds"
-  ExpiresByType image/svg+xml             "access plus 1 year"
-  ExpiresByType image/webp                "access plus 1 year"
-  ExpiresByType image/avif                "access plus 1 year"
-  ExpiresByType font/woff2                "access plus 1 year"
+  ExpiresByType text/css                  "access plus 1 day"
+  ExpiresByType application/javascript   "access plus 1 day"
+  ExpiresByType image/svg+xml             "access plus 1 week"
+  ExpiresByType image/webp                "access plus 1 week"
+  ExpiresByType image/avif                "access plus 1 week"
+  ExpiresByType image/png                 "access plus 1 week"
+  ExpiresByType image/jpeg                "access plus 1 week"
+  ExpiresByType font/woff2                "access plus 1 month"
+</IfModule>
+
+<IfModule mod_setenvif.c>
+  SetEnvIf Request_URI "^/_next/static/" ASCENDREV_FINGERPRINTED=1
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.(js|css|woff2|avif|webp|svg|png|jpg|jpeg|ico)$">
-    Header set Cache-Control "public, max-age=31536000, immutable"
+  # Only Next's content-hashed build output is immutable. Public URLs can be
+  # replaced in place, so cache them briefly and permit background revalidation.
+  <FilesMatch "\.(js|mjs|css|woff2?|avif|webp|svg|png|jpe?g|gif|ico|ttf|otf)$">
+    Header set Cache-Control "public, max-age=86400, stale-while-revalidate=604800" env=!ASCENDREV_FINGERPRINTED
   </FilesMatch>
-  <FilesMatch "\.html$">
+  <FilesMatch "\.(js|mjs|css|woff2?|avif|webp|svg|png|jpe?g|gif|ico|ttf|otf)$">
+    Header set Cache-Control "public, max-age=31536000, immutable" env=ASCENDREV_FINGERPRINTED
+  </FilesMatch>
+  <FilesMatch "\.html?$">
     Header set Cache-Control "public, max-age=0, must-revalidate"
   </FilesMatch>
 

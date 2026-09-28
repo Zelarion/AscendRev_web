@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, type JSX, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, type JSX, type MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -30,6 +30,7 @@ export default function Header(): JSX.Element {
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [currentHash, setCurrentHash] = useState('');
   const [storyNavHidden, setStoryNavHidden] = useState(false);
+  const [footerNavHidden, setFooterNavHidden] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const solutionsButtonRef = useRef<HTMLButtonElement>(null);
@@ -44,6 +45,16 @@ export default function Header(): JSX.Element {
   const lastScrollYRef = useRef(0);
   const firstScrollCheckRef = useRef(true);
   const storyNavHiddenRef = useRef(false);
+  const footerNavHiddenRef = useRef(false);
+
+  const handleHomeLinkClick = (event: ReactMouseEvent<HTMLAnchorElement>): void => {
+    if (pathname !== '/') return;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    setMenuOpen(false);
+    closeSolutionsMenu();
+    window.dispatchEvent(new Event('ascendrev:scroll-to-top'));
+  };
 
   useEffect(() => {
     setPortalReady(true);
@@ -52,11 +63,23 @@ export default function Header(): JSX.Element {
   useEffect(() => {
     const handleScroll = () => {
       const y = window.scrollY;
+      const movingDown = !firstScrollCheckRef.current && y > lastScrollYRef.current;
+      const movingUp = !firstScrollCheckRef.current && y < lastScrollYRef.current;
       const story = document.querySelector<HTMLElement>('[data-office-story]');
       const storyRect = story?.getBoundingClientRect();
       const inStory = Boolean(
         storyRect && storyRect.top < window.innerHeight && storyRect.bottom > 0
       );
+      const footer = document.querySelector<HTMLElement>('[data-site-footer]');
+      const footerRect = footer?.getBoundingClientRect();
+      const inFooter = Boolean(
+        footerRect && footerRect.top < window.innerHeight && footerRect.bottom > 0
+      );
+
+      let hideForFooter = footerNavHiddenRef.current;
+      if (!inFooter || menuOpen) hideForFooter = false;
+      else if (movingDown) hideForFooter = true;
+      else if (movingUp) hideForFooter = false;
 
       let hideForStory = storyNavHiddenRef.current;
       if (!inStory || menuOpen) {
@@ -67,12 +90,14 @@ export default function Header(): JSX.Element {
         else if (firstScrollCheckRef.current && storyRect.top <= 0) hideForStory = true;
       }
 
-      if (hideForStory && headerRef.current?.contains(document.activeElement)) {
+      if ((hideForStory || hideForFooter) && headerRef.current?.contains(document.activeElement)) {
         const focusedItem = document.activeElement;
         if (focusedItem instanceof HTMLElement) focusedItem.blur();
       }
       storyNavHiddenRef.current = hideForStory;
+      footerNavHiddenRef.current = hideForFooter;
       setStoryNavHidden(hideForStory);
+      setFooterNavHidden(hideForFooter);
       lastScrollYRef.current = y;
       firstScrollCheckRef.current = false;
 
@@ -149,6 +174,7 @@ export default function Header(): JSX.Element {
     return isActiveRoute(pathname, href);
   }, [currentHash, pathname]);
   const solutionsActive = solutionNavItems.some((item) => isSolutionItemActive(item.href));
+  const headerHidden = storyNavHidden || footerNavHidden;
 
   useEffect(() => {
     if (!solutionsOpen) return;
@@ -215,12 +241,12 @@ export default function Header(): JSX.Element {
     <header
       ref={headerRef}
       data-tone="navy"
-      data-office-nav-hidden={storyNavHidden ? 'true' : undefined}
-      aria-hidden={storyNavHidden || undefined}
-      inert={storyNavHidden}
+      data-office-nav-hidden={headerHidden ? 'true' : undefined}
+      aria-hidden={headerHidden || undefined}
+      inert={headerHidden}
       className={cn(
         'fixed inset-x-0 top-0 isolate z-[var(--z-nav)] w-full px-0 pt-0 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
-        storyNavHidden ? 'pointer-events-none -translate-y-[125%] opacity-0' : 'translate-y-0 opacity-100'
+        headerHidden ? 'pointer-events-none -translate-y-[125%] opacity-0' : 'translate-y-0 opacity-100'
       )}
     >
       <div
@@ -237,6 +263,7 @@ export default function Header(): JSX.Element {
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[#001c41]"
         >
           <picture className="block h-full w-full">
+            <source media="(max-width: 31.999rem)" srcSet="/images/ascendrev-header-desktop.webp" />
             <source media="(min-width: 120rem)" srcSet="/images/ascendrev-header-background-desktop.webp" />
             <source media="(min-width: 44rem)" srcSet="/images/ascendrev-header-integrated-desktop.webp" />
             <source media="(min-width: 32rem)" srcSet="/images/ascendrev-header-tablet.webp" />
@@ -245,7 +272,7 @@ export default function Header(): JSX.Element {
               alt=""
               width={2172}
               height={724}
-              className="h-full w-full object-cover object-[50%_47%]"
+              className="h-full w-full object-cover object-[50%_44%] min-[120rem]:object-[50%_47%]"
             />
           </picture>
         </div>
@@ -258,17 +285,18 @@ export default function Header(): JSX.Element {
           aria-hidden="true"
           width={2172}
           height={724}
-          className="pointer-events-none absolute left-[clamp(2rem,4vw,4.5rem)] top-1/2 z-10 hidden w-[min(22vw,410px)] max-w-[410px] -translate-y-1/2 min-[120rem]:block"
+          className="pointer-events-none absolute left-[clamp(2rem,4vw,4.5rem)] top-1/2 z-10 hidden h-[var(--header-height)] w-[min(20vw,380px)] max-w-[380px] -translate-y-1/2 object-cover object-[50%_30%] min-[120rem]:block"
         />
         <Link
           href="/"
+          onClick={handleHomeLinkClick}
           aria-label="AscendRev Outsourcing and Offshoring Solutions home"
           className="absolute inset-y-0 left-0 z-20 w-[47vw] max-w-[calc(100vw-5.5rem)] outline-none md:w-[38vw] md:max-w-none wide-nav:w-[30vw]"
         >
           <span className="sr-only">AscendRev home</span>
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-[15.7vw] top-[57%] -translate-y-1/2 w-[38vw] whitespace-nowrap bg-[#001c41] pr-2 font-sans text-[clamp(7px,1.85vw,12px)] font-semibold uppercase leading-none tracking-[0.2px] text-white min-[44rem]:hidden"
+            className="pointer-events-none absolute left-[11.2vw] top-[68%] -translate-y-1/2 whitespace-nowrap font-sans text-[clamp(6px,1.8vw,7px)] font-semibold uppercase leading-none tracking-[0.05em] text-white min-[32rem]:hidden"
           >
             Outsourcing &amp; Offshoring Solutions
           </span>
@@ -279,6 +307,7 @@ export default function Header(): JSX.Element {
             <Fragment key={item.href}>
               <Link
                 href={item.href}
+                onClick={item.href === '/' ? handleHomeLinkClick : undefined}
                 aria-current={isActiveRoute(pathname, item.href) ? 'page' : undefined}
                 className={desktopNavItemClass}
                 style={{ ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` }}
@@ -529,7 +558,10 @@ export default function Header(): JSX.Element {
                 key={item.href}
                 href={item.href}
                 tabIndex={menuOpen ? 0 : -1}
-                onClick={closeMenu}
+                onClick={(event) => {
+                  closeMenu();
+                  if (item.href === '/') handleHomeLinkClick(event);
+                }}
                 className={className}
                 style={style}
               >

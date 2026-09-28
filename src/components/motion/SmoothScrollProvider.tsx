@@ -82,8 +82,10 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
 
     // gsap.ticker reports seconds; Lenis.raf expects milliseconds.
     const tick = (time: number) => lenis.raf(time * 1000);
+    const notifySmoothScroll = () => window.dispatchEvent(new Event('ascendrev:lenis-scroll'));
 
     lenis.on('scroll', ScrollTrigger.update);
+    lenis.on('scroll', notifySmoothScroll);
     gsap.ticker.add(tick);
 
     // GSAP's lag smoothing skips ahead after a long frame to keep wall-clock
@@ -136,6 +138,7 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
       window.cancelAnimationFrame(refreshFrame);
       window.removeEventListener('load', handleLoad);
       lenis.off('scroll', ScrollTrigger.update);
+      lenis.off('scroll', notifySmoothScroll);
       gsap.ticker.remove(tick);
       lenis.destroy();
       lenisRef.current = null;

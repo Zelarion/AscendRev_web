@@ -14,6 +14,25 @@ export default function useScrollToTop(lenisRef: RefObject<Lenis | null>): void 
   const previousPathname = useRef(pathname);
 
   useEffect(() => {
+    const handleRequestedTop = (): void => {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const lenis = lenisRef.current;
+      if (lenis) {
+        lenis.scrollTo(0, {
+          duration: reducedMotion ? 0 : 0.9,
+          force: true,
+        });
+        return;
+      }
+
+      window.scrollTo({ top: 0, left: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+    };
+
+    window.addEventListener('ascendrev:scroll-to-top', handleRequestedTop);
+    return () => window.removeEventListener('ascendrev:scroll-to-top', handleRequestedTop);
+  }, [lenisRef]);
+
+  useEffect(() => {
     const initialHash = window.location.hash;
     if (!initialHash) return;
 

@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import Link from 'next/link';
+import BackToTop from '@/components/layout/BackToTop';
 import {
   EnvelopeSimple,
   MapPin,
@@ -11,15 +12,45 @@ import { navItems } from '@/content/nav';
 import { site } from '@/content/site';
 
 const footerLinkClassName =
-  'outline-none transition-colors duration-200 hover:text-[var(--navy-900)]';
+  'outline-none transition-colors duration-200 hover:text-[var(--navy-900)] focus-visible:text-[var(--navy-900)]';
 const REVENUE_IMPACT_HREF = '/#revenue-impact';
 
 export default function Footer(): JSX.Element {
   return (
     <footer
+      id="ascendrev-site-footer"
+      data-site-footer
       data-tone="navy"
-      className="relative isolate z-0 w-full overflow-hidden bg-white text-[var(--navy-900)] lg:sticky lg:bottom-0"
+      className="relative isolate z-0 flex min-h-[100vh] min-h-[100svh] w-full flex-col overflow-hidden bg-white text-[var(--navy-900)]"
     >
+      <style>{`
+        #ascendrev-site-footer {
+          view-timeline-name: --ascendrev-footer-view;
+          view-timeline-axis: block;
+        }
+
+        @keyframes ascendrev-footer-rise {
+          from { opacity: 0; transform: translateY(1.5rem); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @supports (animation-timeline: view()) {
+          #ascendrev-site-footer .footer-rise-content {
+            animation: ascendrev-footer-rise 1s linear both;
+            animation-timeline: --ascendrev-footer-view;
+            animation-range: entry 0% entry 90%;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          #ascendrev-site-footer .footer-rise-content {
+            animation: none !important;
+            opacity: 1;
+            transform: none;
+          }
+        }
+      `}</style>
+
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-[0.12rem] -z-10 select-none whitespace-nowrap text-center font-display text-[clamp(3.4rem,16vw,5.4rem)] font-medium leading-[0.78] tracking-[-0.06em] text-[var(--ink)]/[0.045] sm:bottom-[-0.12em] sm:text-[clamp(6.5rem,17vw,20rem)] sm:leading-[0.72]"
@@ -27,7 +58,7 @@ export default function Footer(): JSX.Element {
         ASCENDREV
       </div>
 
-      <div className="relative z-10 h-[clamp(12rem,18vw,20rem)] w-full overflow-hidden bg-[#001c41]">
+      <div className="footer-rise-content relative z-10 h-[clamp(12rem,18vw,20rem)] w-full overflow-hidden bg-[#001c41]">
         <div className="relative h-full w-full">
           {/* eslint-disable-next-line @next/next/no-img-element -- supplied white-gradient brand banner blends into the light footer. */}
           <img
@@ -47,7 +78,7 @@ export default function Footer(): JSX.Element {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-8 sm:py-10 lg:py-12">
+      <div className="footer-rise-content relative z-10 mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-center px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-8 sm:py-10 lg:py-12">
         <div className="grid gap-6 border-b border-[var(--border)] pb-7 sm:gap-8 sm:pb-8 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] lg:gap-8 lg:pb-9 xl:gap-10">
           <div className="md:col-span-2 lg:col-span-1">
             <div>
@@ -148,6 +179,8 @@ export default function Footer(): JSX.Element {
           <p>Calgary, Alberta · Canada</p>
         </div>
       </div>
+
+      <BackToTop />
     </footer>
   );
 }

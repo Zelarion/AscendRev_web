@@ -195,10 +195,9 @@ export const home: HomeContent = {
     tagline: ['People.', 'Process.', 'Performance.'],
     primaryCta: { label: 'Build Your Dedicated Team', href: '/contact' },
     trustLead: 'LED BY EXPERIENCED REVENUE LEADERSHIP',
-    // Keep the hero credential line to generic, substantiated experience;
-    // individual credentials remain separately gated pending confirmation.
+    // Preserve the credential wording currently published on the live site.
     credentialLine:
-      'Founder-led execution | Decades of frontline sales leadership | Dedicated teams',
+      "Harvard Certificate in Leadership Excellence - Harvard Business Impact Enterprise | Lean Six Sigma Certified | 100M Dollar Club Recognition | 2X President's Club Award",
   },
 
   trustBand: {
@@ -229,13 +228,13 @@ export const home: HomeContent = {
     items: [
       {
         icon: 'cost',
-        heading: 'Increase Operating Capacity',
+        heading: 'Up to 50% Lower Operating Costs',
         body: 'By outsourcing/offshoring, we help organizations increase capacity, improve customer coverage, strengthen sales execution and reduce the operational burden— without the cost and complexity of building every function in-house.',
       },
       {
         icon: 'record',
         heading: 'Proven Revenue Engine',
-        body: 'Built on real-world market experience, frontline sales leadership, and proven systems, AscendRev brings a disciplined, structured, and accountable approach to every engagement. Its approach draws on founder Rio Vidal’s career achievement of generating more than CAD $1B in sales revenue.',
+        body: 'Built on real-world market experience, frontline sales leadership, and proven systems, AscendRev brings a disciplined, structured, and accountable approach to every engagement—backed by more than CAD $1B in generated sales revenue.',
         image: {
           src: '/images/ascendrev-sales-dashboard-team.png',
           alt: 'A sales team reviewing performance metrics together around a conference table.',

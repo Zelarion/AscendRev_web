@@ -2,24 +2,164 @@
 
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import { usePathname } from 'next/navigation';
+import LoaderMotionMark from '@/components/ui/LoaderMotionMark';
 
-type LoaderPhase = 'entering' | 'leaving';
+type LoaderPhase = 'boot' | 'entering' | 'leaving';
+
+const MINIMUM_DISPLAY_MS = 350;
+const ASSET_WAIT_CAP_MS = 8_000;
+const ROUTE_COMMIT_CAP_MS = 6_000;
+const ROUTE_ASSET_CAP_MS = ASSET_WAIT_CAP_MS + MINIMUM_DISPLAY_MS + 650;
+
+function waitForImageElement(image: HTMLImageElement): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      image.removeEventListener('load', finish);
+      image.removeEventListener('error', finish);
+      resolve();
+    };
+
+    image.addEventListener('load', finish, { once: true });
+    image.addEventListener('error', finish, { once: true });
+
+    if (typeof image.decode === 'function') {
+      image.decode().then(finish, () => {
+        if (image.complete) finish();
+      });
+    } else if (image.complete) {
+      finish();
+    }
+
+    if (image.complete && typeof image.decode !== 'function') finish();
+  });
+}
+
+function preloadUrl(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const image = new Image();
+    image.fetchPriority = 'low';
+    image.decoding = 'async';
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      image.removeEventListener('load', handleLoad);
+      image.removeEventListener('error', finish);
+      resolve();
+    };
+    const handleLoad = () => {
+      if (typeof image.decode === 'function') {
+        image.decode().then(finish, finish);
+      } else {
+        finish();
+      }
+    };
+
+    image.addEventListener('load', handleLoad, { once: true });
+    image.addEventListener('error', finish, { once: true });
+    image.src = url;
+
+    if (image.complete) {
+      if (image.naturalWidth > 0) handleLoad();
+      else finish();
+    }
+  });
+}
+
+function extractCssUrls(backgroundImage: string): string[] {
+  const urls: string[] = [];
+  const expression = /url\(\s*(['"]?)(.*?)\1\s*\)/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = expression.exec(backgroundImage)) !== null) {
+    const value = match[2].trim();
+    if (value) urls.push(value);
+  }
+
+  return urls;
+}
 
 /**
- * A short branded route transition. The transparent logo sits directly over
- * the navy glow (no opaque logo tile), with an indeterminate progress rail.
- * App Router exposes the completed pathname rather than a pending-navigation
- * event, so this is deliberately a brief transition and never delays routing.
+ * Promote native lazy images before the loader leaves, then settle visible and
+ * deferred page imagery, CSS backgrounds, video posters, and document fonts.
+ * A hard cap ensures a missing third-party asset can never trap the visitor.
+ */
+async function waitForPageAssets(): Promise<void> {
+  const startedAt = performance.now();
+  const assets: Promise<unknown>[] = [];
+  const seenUrls = new Set<string>();
+
+  for (const image of Array.from(document.images)) {
+    if (!image.getAttribute('src') && !image.getAttribute('srcset')) continue;
+    const wasLazy = image.loading === 'lazy';
+    image.loading = 'eager';
+    if (wasLazy && image.fetchPriority === 'auto') image.fetchPriority = 'low';
+    assets.push(waitForImageElement(image));
+  }
+
+  const addUrl = (value: string) => {
+    try {
+      const url = new URL(value, document.baseURI);
+      if (url.protocol === 'data:' || url.protocol === 'blob:') return;
+      if (seenUrls.has(url.href)) return;
+      seenUrls.add(url.href);
+      assets.push(preloadUrl(url.href));
+    } catch {
+      // Ignore malformed optional decoration; the normal page remains usable.
+    }
+  };
+
+  for (const element of Array.from(document.querySelectorAll<HTMLElement>('*'))) {
+    const styles = [
+      window.getComputedStyle(element),
+      window.getComputedStyle(element, '::before'),
+      window.getComputedStyle(element, '::after'),
+    ];
+
+    for (const style of styles) {
+      for (const url of extractCssUrls(style.backgroundImage)) addUrl(url);
+    }
+  }
+
+  for (const video of Array.from(document.querySelectorAll<HTMLVideoElement>('video[poster]'))) {
+    if (video.poster) addUrl(video.poster);
+  }
+
+  addUrl('/ascendrev-loader-logo-transparent.png');
+  assets.push(document.fonts.ready.catch(() => undefined));
+
+  let timeoutId: number | undefined;
+  await Promise.race([
+    Promise.allSettled(assets),
+    new Promise<void>((resolve) => {
+      const remaining = Math.max(0, ASSET_WAIT_CAP_MS - (performance.now() - startedAt));
+      timeoutId = window.setTimeout(resolve, remaining);
+    }),
+  ]);
+  if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+}
+
+/**
+ * First-load and route-transition cover. The boot overlay is server-rendered,
+ * but an early head script activates it only when JavaScript is available.
  */
 export default function PageLoader(): JSX.Element | null {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
   const targetPathname = useRef<string | null>(null);
   const targetUrl = useRef<string | null>(null);
+  const transitionId = useRef(0);
+  const transitionStartedAt = useRef(0);
+  const assetWaitStartedFor = useRef<number | null>(null);
+  const finishedTransitionFor = useRef<number | null>(null);
   const failsafeTimer = useRef<number | null>(null);
   const queryPollTimer = useRef<number | null>(null);
   const leaveTimer = useRef<number | null>(null);
-  const [phase, setPhase] = useState<LoaderPhase | null>(null);
+  const [phase, setPhase] = useState<LoaderPhase | null>('boot');
 
   const clearPendingTimers = useCallback(() => {
     if (failsafeTimer.current !== null) window.clearTimeout(failsafeTimer.current);
@@ -30,26 +170,78 @@ export default function PageLoader(): JSX.Element | null {
     leaveTimer.current = null;
   }, []);
 
-  const finishTransition = useCallback(() => {
+  const finishTransition = useCallback((id: number) => {
+    if (transitionId.current !== id) return;
+    finishedTransitionFor.current = id;
     if (failsafeTimer.current !== null) window.clearTimeout(failsafeTimer.current);
-    failsafeTimer.current = null;
     if (queryPollTimer.current !== null) window.clearInterval(queryPollTimer.current);
+    failsafeTimer.current = null;
     queryPollTimer.current = null;
-    if (leaveTimer.current !== null) window.clearTimeout(leaveTimer.current);
     targetPathname.current = null;
     targetUrl.current = null;
     setPhase((current) => (current ? 'leaving' : null));
     leaveTimer.current = window.setTimeout(() => {
+      if (transitionId.current !== id) return;
       leaveTimer.current = null;
       setPhase(null);
     }, 300);
   }, []);
 
+  const beginTransition = useCallback(() => {
+    clearPendingTimers();
+    transitionId.current += 1;
+    transitionStartedAt.current = performance.now();
+    assetWaitStartedFor.current = null;
+    finishedTransitionFor.current = null;
+    const id = transitionId.current;
+    setPhase('entering');
+    return id;
+  }, [clearPendingTimers]);
+
+  const waitForCurrentPage = useCallback((id: number) => {
+    if (assetWaitStartedFor.current === id) return;
+    assetWaitStartedFor.current = id;
+
+    if (failsafeTimer.current !== null) window.clearTimeout(failsafeTimer.current);
+    failsafeTimer.current = window.setTimeout(
+      () => finishTransition(id),
+      ROUTE_ASSET_CAP_MS
+    );
+
+    void waitForPageAssets().finally(() => {
+      if (transitionId.current !== id || finishedTransitionFor.current === id) return;
+      const elapsed = performance.now() - transitionStartedAt.current;
+      const remaining = Math.max(0, MINIMUM_DISPLAY_MS - elapsed);
+      leaveTimer.current = window.setTimeout(
+        () => finishTransition(id),
+        remaining
+      );
+    });
+  }, [finishTransition]);
+
+  useEffect(() => {
+    transitionId.current += 1;
+    const id = transitionId.current;
+    transitionStartedAt.current = performance.now();
+    waitForCurrentPage(id);
+  }, [waitForCurrentPage]);
+
+  useEffect(() => {
+    if (phase === 'leaving') {
+      delete document.documentElement.dataset.ascendrevLoader;
+    }
+  }, [phase]);
+
   useEffect(() => {
     if (previousPathname.current === pathname) return;
     previousPathname.current = pathname;
-    if (targetPathname.current !== null) finishTransition();
-  }, [finishTransition, pathname]);
+
+    const id = targetPathname.current === null
+      ? beginTransition()
+      : transitionId.current;
+    targetPathname.current = pathname;
+    waitForCurrentPage(id);
+  }, [beginTransition, pathname, waitForCurrentPage]);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -76,19 +268,21 @@ export default function PageLoader(): JSX.Element | null {
       const current = new URL(window.location.href);
       if (destination.pathname === current.pathname && destination.search === current.search) return;
 
-      clearPendingTimers();
+      const id = beginTransition();
       targetPathname.current = destination.pathname;
       targetUrl.current = `${destination.pathname}${destination.search}`;
-      setPhase('entering');
 
-      // App Router has no public navigation-pending event. A pathname commit
-      // completes normal route changes; query-only changes are detected from
-      // the URL. This upper bound protects against rejected or stalled routes.
-      failsafeTimer.current = window.setTimeout(finishTransition, 6000);
+      // Keep stalled router transitions bounded; once the route commits, the
+      // asset-specific bound allows its full eight-second load/decode window.
+      failsafeTimer.current = window.setTimeout(() => finishTransition(id), ROUTE_COMMIT_CAP_MS);
       if (destination.pathname === current.pathname) {
         queryPollTimer.current = window.setInterval(() => {
           const location = `${window.location.pathname}${window.location.search}`;
-          if (location === targetUrl.current) finishTransition();
+          if (location === targetUrl.current) {
+            if (queryPollTimer.current !== null) window.clearInterval(queryPollTimer.current);
+            queryPollTimer.current = null;
+            waitForCurrentPage(id);
+          }
         }, 80);
       }
     };
@@ -98,7 +292,7 @@ export default function PageLoader(): JSX.Element | null {
       document.removeEventListener('click', handleClick, true);
       clearPendingTimers();
     };
-  }, [clearPendingTimers, finishTransition]);
+  }, [beginTransition, clearPendingTimers, finishTransition, waitForCurrentPage]);
 
   if (!phase) return null;
 
@@ -108,124 +302,16 @@ export default function PageLoader(): JSX.Element | null {
       role="status"
       aria-live="polite"
       aria-label="Loading page"
-      aria-busy={phase === 'entering'}
+      aria-busy={phase !== 'leaving'}
     >
       <div className="loader-glow" aria-hidden="true" />
       <div className="loader-content">
-        {/* eslint-disable-next-line @next/next/no-img-element -- Static asset
-            keeps this small transition independent from image optimization. */}
-        <img
-          src="/ascendrev-loader-logo-transparent.png"
-          alt=""
-          width={2172}
-          height={724}
-          className="loader-logo"
-        />
+        <LoaderMotionMark />
         <div className="loader-rail" aria-hidden="true">
           <span />
         </div>
         <span className="sr-only">Loading page</span>
       </div>
-
-      <style jsx>{`
-        .page-loader {
-          position: fixed;
-          inset: 0;
-          z-index: 2000;
-          display: grid;
-          place-items: center;
-          overflow: hidden;
-          background: #061d3c;
-          pointer-events: none;
-          animation: loader-enter 160ms ease-out both;
-        }
-
-        .page-loader-leaving {
-          animation: loader-exit 300ms cubic-bezier(0.4, 0, 1, 1) both;
-        }
-
-        .loader-glow {
-          position: absolute;
-          width: min(74vw, 40rem);
-          aspect-ratio: 1;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(0, 111, 207, 0.28), rgba(0, 54, 111, 0.1) 43%, transparent 72%);
-          animation: loader-breathe 1.15s ease-in-out infinite alternate;
-        }
-
-        .loader-content {
-          position: relative;
-          z-index: 1;
-          display: flex;
-          width: min(72vw, 24rem);
-          flex-direction: column;
-          align-items: center;
-          gap: 2rem;
-        }
-
-        .loader-logo {
-          display: block;
-          width: clamp(12rem, 32vw, 20rem);
-          height: auto;
-          filter: drop-shadow(0 0 1.25rem rgba(0, 177, 235, 0.2));
-          animation: loader-logo-pulse 1.2s ease-in-out infinite alternate;
-        }
-
-        .loader-rail {
-          position: relative;
-          width: min(100%, 18rem);
-          height: 3px;
-          overflow: hidden;
-          border-radius: 999px;
-          background: rgba(226, 237, 248, 0.2);
-        }
-
-        .loader-rail span {
-          position: absolute;
-          inset: 0 auto 0 -42%;
-          width: 42%;
-          border-radius: inherit;
-          background: linear-gradient(90deg, #00b8a9, #e5bd45 72%);
-          animation: loader-progress 850ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
-        }
-
-        @keyframes loader-enter {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes loader-exit {
-          from { opacity: 1; }
-          to { opacity: 0; }
-        }
-
-        @keyframes loader-breathe {
-          from { transform: scale(0.94); opacity: 0.68; }
-          to { transform: scale(1.04); opacity: 1; }
-        }
-
-        @keyframes loader-logo-pulse {
-          from { opacity: 0.84; transform: scale(0.985); }
-          to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes loader-progress {
-          from { transform: translateX(0); }
-          to { transform: translateX(340%); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .page-loader,
-          .page-loader-leaving,
-          .loader-glow,
-          .loader-logo,
-          .loader-rail span {
-            animation: none;
-          }
-
-          .page-loader-leaving { opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 }

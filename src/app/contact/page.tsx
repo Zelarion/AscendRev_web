@@ -1,6 +1,8 @@
 import ContactEnquiryForm from '@/components/sections/contact/ContactEnquiryForm';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
+import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
+import RevealOnScroll from '@/components/sections/shared/RevealOnScroll';
 import { contact } from '@/content/contact';
 import { site } from '@/content/site';
 import { createSeoMetadata } from '@/lib/seoMetadata';
@@ -36,8 +38,9 @@ export default function ContactPage() {
           rather than a bare paragraph.
         */}
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[var(--surface-page)]" />
+        <AtmosphereLayer variant="route-accent" className="opacity-20" />
 
-        <Container className="lg:max-w-[1600px]">
+        <Container className="relative z-[1] lg:max-w-[1600px]">
           <div className="max-w-[920px] lg:max-w-none">
             <h1
               className="font-display text-h1 text-[var(--navy-900)] lg:whitespace-nowrap"
@@ -111,9 +114,9 @@ export default function ContactPage() {
             </div>
           </aside>
 
-          <div className="w-full lg:justify-self-end">
+          <RevealOnScroll delayMs={100} className="w-full lg:justify-self-end">
             <ContactEnquiryForm content={form} />
-          </div>
+          </RevealOnScroll>
         </div>
       </section>
     </>

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import '@fontsource-variable/newsreader/standard.css';
 import SkipLink from '@/components/layout/SkipLink';
 import Header from '@/components/layout/Header';
@@ -78,7 +79,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-CA">
+    <html lang="en-CA" suppressHydrationWarning>
+      <head>
+        <Script id="ascendrev-loader-bootstrap" strategy="beforeInteractive">
+          {`document.documentElement.dataset.ascendrevLoader = 'active'; window.setTimeout(() => { if (document.documentElement.dataset.ascendrevLoader === 'active') delete document.documentElement.dataset.ascendrevLoader; }, 15000);`}
+        </Script>
+      </head>
       <body>
         <OrganizationJsonLd />
         <PageLoader />

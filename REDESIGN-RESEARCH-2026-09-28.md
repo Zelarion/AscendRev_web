@@ -45,6 +45,8 @@ An earlier working copy used inline navigation from 84rem upward and a complete 
 
 ## Decisions and implementation plan
 
+> **Superseded for the follow-up visual enhancement:** The initial notes below predate Rio's later direction to use selected original atmospheric artwork and add a new section to an existing page. Follow `REDESIGN-ENHANCEMENT-2026-09-28.md` for the current scope, including the section/background limits and copy-preservation audit. The original research observations remain useful as reference analysis.
+
 1. **Typography:** use Newsreader for display headings and Rubik for body/UI text. That is two families; it keeps the existing editorial headline character while adopting the Native Teams reference’s readable, rounded sans. Self-host the Rubik variable font under its SIL Open Font License and add its attribution to the existing font license record. Avoid remote font requests and package changes.
 2. **Hero boundary:** preserve the current working-copy hero, including the previously approved tagline treatment. This refresh adds no further changes to `HeroSection.tsx` or `HeroMedia.tsx`; it changes the shared site type tokens so the new font system is consistent.
 3. **Section rhythm:** retain the current Gallery → Advantage → Revenue Impact → Career Proof → CTA sequence and existing copy. Use the gallery as the distinctive photographic feature; avoid inserting another stock-like or generated workplace scene.

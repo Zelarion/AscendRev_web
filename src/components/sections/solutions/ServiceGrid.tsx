@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import Image from 'next/image';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
+import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
 import { WordReveal } from '@/components/motion';
 import Stagger from '@/components/ui/Stagger';
 import { solutions } from '@/content/solutions';
@@ -21,8 +22,9 @@ export default function ServiceGrid(): JSX.Element {
   const { heading, intro, items, salesDashboardImage } = solutions.services;
 
   return (
-    <Section className="!pt-6 !pb-8">
-      <Container className="max-w-none wide-nav:px-10">
+    <Section className="relative isolate overflow-hidden !pt-6 !pb-8">
+      <AtmosphereLayer variant="light-network" />
+      <Container className="relative z-10 max-w-none wide-nav:px-10">
         {/* The one word-by-word reveal on this page. It resolves under the
             reader's own scroll, which is the cause-and-effect DESIGN.md §4
             asks motion to express; used on every heading it would just be a

@@ -10,6 +10,7 @@ import {
   Lightning,
   Target,
 } from '@phosphor-icons/react/dist/ssr';
+import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
 import RevealOnScroll from '@/components/sections/shared/RevealOnScroll';
 import type { IndustriesContent, IndustryIcon } from '@/content/home';
 
@@ -54,9 +55,10 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
   return (
     <section
       id={content.id}
-      className="relative scroll-mt-[var(--header-height)] overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] pt-5 pb-[clamp(4rem,9vw,8rem)] text-[var(--text-primary)] md:pt-6"
+      className="relative isolate scroll-mt-[var(--header-height)] overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] pt-5 pb-[clamp(4rem,9vw,8rem)] text-[var(--text-primary)] md:pt-6"
     >
-      <div className="mx-auto w-full max-w-[1540px]">
+      <AtmosphereLayer variant="light-network" />
+      <div className="relative z-10 mx-auto w-full max-w-[1540px]">
         <header className="w-full text-left">
           <h2 className="font-display text-h2 text-[var(--navy-900)]">
             {content.heading}

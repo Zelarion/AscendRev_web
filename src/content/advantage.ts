@@ -158,15 +158,14 @@ export const advantage: AdvantageContent = {
     // career record, not AscendRev company results.
     narrative: [
       'AscendRev was built on decades of frontline sales leadership, revenue generation and executive client engagement.',
-      'Rio brings decades of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated CAD1B+ in sales revenue, managed commercial opportunities and deal sizes from CAD $10K to CAD $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
+      'Rio brings decades of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated CAD1B+ in sales revenue, managed commercial opportunities and deal sizes from 10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
       "Growth requires more than strategy. It requires the capacity to execute. AscendRev provides dedicated professionals and purpose-built teams that extend your organization's sales, customer, and operational capabilities—allowing your internal leaders to focus on strategy, relationships, and growth.",
     ],
     // The client's own line, from the source brief, quoted as written.
     commitment:
       'Process workflow, scope of work and execution playbook is co-created and customized between AscendRev and our Partners.',
     recordHeading: 'Career record',
-    // The career fact, narrative, and commercial stat consistently use the
-    // requested CAD $10K–$35M deal-size range.
+    // Keep these career facts aligned with the current live-site wording.
     facts: [
       {
         label: 'B2B revenue generated',
@@ -212,7 +211,7 @@ export const advantage: AdvantageContent = {
       },
     ],
 
-    // Four stat cards, with the requested CAD $10K–$35M deal-size range.
+    // Four stat cards, with the current live-site deal-size label.
     commercialHeading: 'PROVEN COMMERCIAL EXPERIENCE',
     commercialStats: [
       {
@@ -232,7 +231,7 @@ export const advantage: AdvantageContent = {
       },
       {
         icon: '◆',
-        label: 'CAD $10K–$35M Deal Sizes',
+        label: '$10K–$35M CAD Deal Sizes',
         description: 'Experience with substantial commercial transactions.',
       },
     ],

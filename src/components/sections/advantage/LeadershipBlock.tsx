@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
 import { LinkedinLogo, Trophy } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { prefersReducedMotion } from '@/lib/motion';
+import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
 import { advantage } from '@/content/advantage';
 import { site } from '@/content/site';
 
@@ -148,8 +149,9 @@ export default function LeadershipBlock(): JSX.Element {
     <section
       id={leadership.id}
       data-tone="navy"
-      className="relative border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] !pt-[clamp(2rem,4vw,3rem)] text-[var(--ink)]"
+      className="relative isolate overflow-hidden border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] !pt-[clamp(2rem,4vw,3rem)] text-[var(--ink)]"
     >
+      <AtmosphereLayer variant="route-accent" className="opacity-30" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(223,184,79,0.045),transparent_28%)]"
@@ -163,7 +165,7 @@ export default function LeadershipBlock(): JSX.Element {
         panel background (build brief: "--surface-band-raised or a hairline
         border ... rather than a dark panel").
       */}
-      <div className="relative mx-auto grid w-full max-w-[1540px] gap-9 sm:gap-11 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-20 xl:gap-24">
+      <div className="relative z-[1] mx-auto grid w-full max-w-[1540px] gap-9 sm:gap-11 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-20 xl:gap-24">
         <aside className="lg:sticky lg:top-28 lg:self-start lg:h-fit lg:border-r lg:border-[var(--border)] lg:pr-8 xl:pr-10">
           <div className="rounded-[10px] bg-[var(--surface-band-raised)] p-5 lg:bg-transparent lg:p-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">

@@ -1,0 +1,117 @@
+.layer {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  isolation: isolate;
+}
+
+.artwork,
+.veil {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.artwork {
+  transform: none;
+}
+
+.veil {
+  pointer-events: none;
+}
+
+.light-network {
+  background-color: var(--surface-band);
+}
+
+.light-network .artwork {
+  background-image:
+    radial-gradient(ellipse at 68% 42%, color-mix(in srgb, var(--surface-page) 2%, transparent) 20%, color-mix(in srgb, var(--surface-band) 52%, transparent) 100%),
+    url('/images/ascendrev-network-atmosphere.webp');
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+  opacity: 0.64;
+  animation: atmosphere-drift 36s ease-in-out infinite alternate;
+}
+
+.light-network .veil {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--surface-page) 62%, transparent), color-mix(in srgb, var(--surface-page) 6%, transparent) 58%, color-mix(in srgb, var(--surface-page) 32%, transparent)),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-page) 12%, transparent), color-mix(in srgb, var(--surface-page) 48%, transparent));
+}
+
+.dark-momentum {
+  background-color: var(--navy-900);
+}
+
+.dark-momentum .artwork {
+  background-image:
+    linear-gradient(120deg, color-mix(in srgb, var(--navy-900) 20%, transparent), color-mix(in srgb, var(--navy-900) 12%, transparent) 54%, color-mix(in srgb, var(--navy-900) 38%, transparent)),
+    url('/images/ascendrev-outcomes-atmosphere.webp');
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+  opacity: 0.76;
+  animation: atmosphere-drift 42s ease-in-out infinite alternate-reverse;
+}
+
+.dark-momentum .veil {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--navy-900) 44%, transparent), color-mix(in srgb, var(--navy-900) 8%, transparent) 60%, color-mix(in srgb, var(--navy-900) 30%, transparent)),
+    linear-gradient(180deg, color-mix(in srgb, var(--navy-900) 4%, transparent), color-mix(in srgb, var(--navy-900) 34%, transparent));
+}
+
+.route-accent {
+  background: transparent;
+}
+
+.route-accent .artwork {
+  inset: auto 0 0 auto;
+  width: min(74vw, 54rem);
+  height: min(100%, 42rem);
+  background-image: url('/images/ascendrev-route-accent.png');
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.62;
+  animation: route-accent-drift 30s ease-in-out infinite alternate;
+}
+
+@keyframes atmosphere-drift {
+  from {
+    transform: translate3d(-0.45%, 0, 0) scale(1.025);
+  }
+
+  to {
+    transform: translate3d(0.45%, -0.25%, 0) scale(1.045);
+  }
+}
+
+@keyframes route-accent-drift {
+  from {
+    transform: translate3d(0, 0.3rem, 0);
+  }
+
+  to {
+    transform: translate3d(0.25rem, -0.3rem, 0);
+  }
+}
+
+@media (max-width: 48rem) {
+  .route-accent .artwork {
+    width: min(100vw, 40rem);
+    height: 80%;
+    opacity: 0.48;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artwork {
+    animation: none;
+    transform: none;
+  }
+}

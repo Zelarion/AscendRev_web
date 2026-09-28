@@ -8,6 +8,7 @@ import {
   FunnelSimple,
   Target,
 } from '@phosphor-icons/react/dist/ssr';
+import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
 import { capabilities } from '@/content/capabilities';
 import { createSeoMetadata } from '@/lib/seoMetadata';
 
@@ -29,8 +30,9 @@ const CAPABILITY_ICONS = [
 export default function CapabilitiesPage() {
   return (
     <section className="relative isolate overflow-hidden bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] pb-12 pt-[calc(var(--header-height)_+_2rem)] text-[var(--ink)] sm:pb-14 sm:pt-[calc(var(--header-height)_+_2.5rem)] lg:pb-16">
+      <AtmosphereLayer variant="light-network" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(ellipse_at_top,rgba(197,151,49,0.11),transparent_68%)]" />
-      <div className="mx-auto w-full max-w-[1200px]">
+      <div className="relative z-10 mx-auto w-full max-w-[1200px]">
         <header className="mx-auto mb-7 max-w-[760px] text-center sm:mb-9">
           <h1 className="mt-3 font-display text-h1 font-medium tracking-[-0.025em] text-[var(--navy-900)]">
             {capabilities.title}

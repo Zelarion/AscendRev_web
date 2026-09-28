@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { CountUp } from '@/components/motion';
+import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
 import { advantage } from '@/content/advantage';
 
 /**
@@ -15,9 +16,10 @@ export default function CareerStatsSection() {
   return (
     <section
       aria-labelledby="career-stats-heading"
-      className="border-y border-white/10 bg-[var(--navy-900)] px-[var(--site-gutter)] py-[clamp(3.5rem,8vw,6.5rem)] text-white"
+      className="relative isolate overflow-hidden border-y border-white/10 bg-[var(--navy-900)] px-[var(--site-gutter)] py-[clamp(3.5rem,8vw,6.5rem)] text-white"
     >
-      <div className="mx-auto max-w-[1280px]">
+      <AtmosphereLayer variant="dark-momentum" />
+      <div className="relative z-10 mx-auto max-w-[1280px]">
         <div className="max-w-2xl">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.18em] text-[var(--gold-300)]">
             Rio Vidal | Co-Founder and President

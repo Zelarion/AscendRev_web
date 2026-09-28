@@ -28,11 +28,16 @@ export default function Header(): JSX.Element {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
+  const [currentHash, setCurrentHash] = useState('');
   const [storyNavHidden, setStoryNavHidden] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const solutionsButtonRef = useRef<HTMLButtonElement>(null);
   const solutionsMenuRef = useRef<HTMLDivElement>(null);
+  const solutionsCloseTimerRef = useRef<number | null>(null);
+  const solutionsPointerInsideRef = useRef(false);
+  const solutionsOpenSourceRef = useRef<'hover' | 'focus' | 'keyboard' | 'click' | null>(null);
+  const suppressSolutionsFocusOpenRef = useRef(false);
   const headerRef = useRef<HTMLElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -88,21 +93,69 @@ export default function Header(): JSX.Element {
   }, []);
 
   const closeSolutionsMenu = useCallback((restoreFocus = false) => {
+    if (solutionsCloseTimerRef.current) {
+      window.clearTimeout(solutionsCloseTimerRef.current);
+      solutionsCloseTimerRef.current = null;
+    }
     setSolutionsOpen(false);
-    if (restoreFocus) solutionsButtonRef.current?.focus();
+    solutionsOpenSourceRef.current = null;
+    if (restoreFocus && document.activeElement !== solutionsButtonRef.current) {
+      suppressSolutionsFocusOpenRef.current = true;
+      solutionsButtonRef.current?.focus();
+      window.requestAnimationFrame(() => {
+        suppressSolutionsFocusOpenRef.current = false;
+      });
+    }
+  }, []);
+
+  const openSolutionsMenu = useCallback((source: 'hover' | 'focus' | 'keyboard' | 'click') => {
+    if (solutionsCloseTimerRef.current) {
+      window.clearTimeout(solutionsCloseTimerRef.current);
+      solutionsCloseTimerRef.current = null;
+    }
+    solutionsOpenSourceRef.current = source;
+    setSolutionsOpen(true);
+  }, []);
+
+  const scheduleSolutionsClose = useCallback(() => {
+    if (solutionsCloseTimerRef.current) window.clearTimeout(solutionsCloseTimerRef.current);
+    solutionsCloseTimerRef.current = window.setTimeout(() => {
+      solutionsCloseTimerRef.current = null;
+      const focusInside = Boolean(solutionsMenuRef.current?.contains(document.activeElement));
+      if (solutionsPointerInsideRef.current || focusInside) return;
+      setSolutionsOpen(false);
+      solutionsOpenSourceRef.current = null;
+    }, 140);
   }, []);
 
   useEffect(() => {
     setMenuOpen(false);
-    setSolutionsOpen(false);
-  }, [pathname]);
+    closeSolutionsMenu();
+    setCurrentHash(window.location.hash);
+  }, [pathname, closeSolutionsMenu]);
+
+  useEffect(() => {
+    const syncHash = () => setCurrentHash(window.location.hash);
+    window.addEventListener('hashchange', syncHash);
+    return () => window.removeEventListener('hashchange', syncHash);
+  }, []);
+
+  useEffect(() => () => {
+    if (solutionsCloseTimerRef.current) window.clearTimeout(solutionsCloseTimerRef.current);
+  }, []);
+
+  const isSolutionItemActive = useCallback((href: string) => {
+    if (href === REVENUE_IMPACT_HREF) return pathname === '/' && currentHash === '#revenue-impact';
+    return isActiveRoute(pathname, href);
+  }, [currentHash, pathname]);
+  const solutionsActive = solutionNavItems.some((item) => isSolutionItemActive(item.href));
 
   useEffect(() => {
     if (!solutionsOpen) return;
 
     const handlePointerDown = (event: PointerEvent) => {
       if (!solutionsMenuRef.current?.contains(event.target as Node)) {
-        setSolutionsOpen(false);
+        closeSolutionsMenu();
       }
     };
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -236,11 +289,30 @@ export default function Header(): JSX.Element {
                 <div
                   ref={solutionsMenuRef}
                   className="relative flex shrink-0 items-center"
+                  onPointerEnter={(event) => {
+                    if (event.pointerType !== 'touch') {
+                      solutionsPointerInsideRef.current = true;
+                      openSolutionsMenu('hover');
+                    }
+                  }}
+                  onPointerLeave={(event) => {
+                    if (event.pointerType !== 'touch') {
+                      solutionsPointerInsideRef.current = false;
+                      scheduleSolutionsClose();
+                    }
+                  }}
+                  onFocus={(event) => {
+                    const previousFocused = event.relatedTarget;
+                    if (previousFocused instanceof Node && event.currentTarget.contains(previousFocused)) return;
+                    if (suppressSolutionsFocusOpenRef.current) {
+                      suppressSolutionsFocusOpenRef.current = false;
+                      return;
+                    }
+                    openSolutionsMenu('focus');
+                  }}
                   onBlur={(event) => {
                     const nextFocused = event.relatedTarget;
-                    if (!(nextFocused instanceof Node) || !event.currentTarget.contains(nextFocused)) {
-                      setSolutionsOpen(false);
-                    }
+                    if (!(nextFocused instanceof Node) || !event.currentTarget.contains(nextFocused)) scheduleSolutionsClose();
                   }}
                 >
                   <button
@@ -248,43 +320,88 @@ export default function Header(): JSX.Element {
                     type="button"
                     aria-expanded={solutionsOpen}
                     aria-controls="desktop-solutions-links"
-                    onClick={() => setSolutionsOpen((open) => !open)}
-                    className={cn(desktopNavItemClass, solutionsOpen && 'text-[var(--gold-300)]')}
+                    aria-label={solutionsActive ? 'Solutions, current section' : 'Solutions'}
+                    onClick={() => {
+                      if (solutionsOpen && solutionsOpenSourceRef.current === 'click') closeSolutionsMenu();
+                      else openSolutionsMenu('click');
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+                      event.preventDefault();
+                      const targetDirection = event.key === 'ArrowUp' ? 'last' : 'first';
+                      openSolutionsMenu('keyboard');
+                      window.setTimeout(() => {
+                        window.requestAnimationFrame(() => {
+                          window.requestAnimationFrame(() => {
+                            const panel = document.getElementById('desktop-solutions-links');
+                            if (!panel || panel.getAttribute('aria-hidden') === 'true' || panel.hasAttribute('inert')) return;
+                            const links = panel.querySelectorAll<HTMLAnchorElement>('a[href]');
+                            const target = targetDirection === 'last' ? links[links.length - 1] : links[0];
+                            target?.focus();
+                          });
+                        });
+                      }, 0);
+                    }}
+                    data-active={solutionsActive || undefined}
+                    className={cn(
+                      desktopNavItemClass,
+                      (solutionsOpen || solutionsActive) && 'text-[var(--gold-300)] after:left-0 after:w-full',
+                      'focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-[var(--gold-300)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--navy-800)]'
+                    )}
                   >
                     <span>SOLUTIONS</span>
                     <CaretDown
                       size={14}
                       weight="bold"
                       aria-hidden="true"
-                      className={cn('transition-transform duration-200', solutionsOpen && 'rotate-180')}
+                      className={cn('transition-transform duration-200 motion-reduce:transition-none', solutionsOpen && 'rotate-180')}
                     />
                   </button>
                   <div
                     id="desktop-solutions-links"
-                    hidden={!solutionsOpen}
-                    className="absolute left-0 top-full z-[var(--z-dropdown)] mt-2 w-[min(21rem,84vw)] rounded-xl border border-[var(--border)] bg-white p-2 text-[var(--navy-900)] shadow-[0_18px_40px_rgba(0,0,0,0.2)]"
+                    aria-hidden={!solutionsOpen}
+                    inert={!solutionsOpen}
+                    className={cn(
+                      'absolute left-0 top-full z-[var(--z-dropdown)] w-[min(22rem,84vw)] pt-2 transition-[opacity,transform,visibility] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                      solutionsOpen
+                        ? 'visible translate-y-0 scale-100 opacity-100'
+                        : 'invisible translate-y-1 scale-[0.985] opacity-0'
+                    )}
                   >
-                    <nav aria-label="Solutions links" className="flex flex-col gap-1">
+                    <nav aria-label="Solutions links" className="flex flex-col gap-1 rounded-xl border border-[var(--border)] border-t-2 border-t-[var(--gold-400)] bg-white p-2 text-[var(--navy-900)] shadow-[0_16px_38px_rgba(15,27,51,0.2)]">
                       {solutionNavItems.map((solutionItem) => {
-                        const solutionClassName = 'flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium text-[var(--navy-900)] outline-none transition-colors hover:bg-[var(--surface-band-raised)] hover:text-[var(--accent)]';
+                        const active = isSolutionItemActive(solutionItem.href);
+                        const solutionClassName = cn(
+                          'group flex min-h-12 items-center justify-between gap-4 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-[background-color,color,transform] duration-150 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-[var(--steel-600)] focus-visible:ring-offset-2',
+                          active
+                            ? 'bg-[var(--navy-800)] text-white'
+                            : 'text-[var(--navy-900)] hover:bg-[var(--navy-800)] hover:text-white active:scale-[0.99]'
+                        );
+                        const activeArrowClassName = cn(
+                          'shrink-0 transition-transform duration-150 motion-reduce:transition-none group-hover:translate-x-0.5',
+                          active ? 'text-[var(--gold-300)]' : 'text-[var(--steel-600)] group-hover:text-[var(--gold-300)]'
+                        );
                         return solutionItem.href === REVENUE_IMPACT_HREF ? (
                           <a
                             key={solutionItem.href}
                             href={solutionItem.href}
+                            aria-current={active ? 'page' : undefined}
                             onClick={() => closeSolutionsMenu()}
                             className={solutionClassName}
                           >
                             {solutionItem.label}
+                            <ArrowRight size={16} weight="regular" aria-hidden="true" className={activeArrowClassName} />
                           </a>
                         ) : (
                           <Link
                             key={solutionItem.href}
                             href={solutionItem.href}
-                            aria-current={isActiveRoute(pathname, solutionItem.href) ? 'page' : undefined}
+                            aria-current={active ? 'page' : undefined}
                             onClick={() => closeSolutionsMenu()}
                             className={solutionClassName}
                           >
                             {solutionItem.label}
+                            <ArrowRight size={16} weight="regular" aria-hidden="true" className={activeArrowClassName} />
                           </Link>
                         );
                       })}

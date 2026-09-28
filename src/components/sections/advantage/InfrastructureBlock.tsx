@@ -45,7 +45,7 @@ function FacilityImage({
           alt={alt}
           fill
           sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-contain"
+          className="object-cover"
         />
 
         {label ? (
@@ -286,9 +286,9 @@ export default function InfrastructureBlock(): JSX.Element {
                   <FacilityImage
                     src={
                       moment.id === 'location'
-                        ? '/images/outside1-location-e91e155f.png'
+                        ? '/images/ascendrev-location-card.webp'
                         : moment.id === 'workplace'
-                          ? '/images/office2.jpg'
+                          ? '/images/ascendrev-workplace-card.webp'
                           : '/images/hallway2.jpg'
                     }
                     alt={

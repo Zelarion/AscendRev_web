@@ -19,14 +19,14 @@ import { registerMotion } from '@/components/motion/registerMotion';
 import { prefersReducedMotion } from '@/lib/motion';
 import styles from './OfficeFrameStory.module.css';
 
-const FACILITIES: ReadonlyArray<{ label: string; src: string; alt: string; portrait?: boolean }> = [
+const FACILITIES: ReadonlyArray<{ label: string; src: string; alt: string; mobileSrc?: string }> = [
   { label: 'AscendRev Campus', src: '/images/ascendrev-campus.webp', alt: 'Exterior of the AscendRev campus with its icon on the building sign.' },
-  { label: 'Hallway', src: '/images/hallway1.jpg', alt: 'Interior hallway at the AscendRev campus.', portrait: true },
+  { label: 'Hallway', src: '/images/hallway-gallery-wide.webp', mobileSrc: '/images/hallway1.jpg', alt: 'Interior hallway at the AscendRev campus.' },
   { label: 'Training Room', src: '/images/ascendrev-training-room.jpg', alt: 'An empty training room with rows of desks and chairs.' },
-  { label: 'Boardroom', src: '/images/ascendrev-boardroom.png', alt: 'A conference boardroom with a long table, black chairs, and a wall-mounted screen.', portrait: true },
+  { label: 'Boardroom', src: '/images/boardroom-gallery-wide.webp', mobileSrc: '/images/ascendrev-boardroom.png', alt: 'A conference boardroom with a long table, black chairs, and a wall-mounted screen.' },
   { label: 'Full-Scale Operations', src: '/images/office4.jpg', alt: 'Rows of workstations and cubicles on an operations floor.' },
   { label: 'Flexible Operations', src: '/images/ascendrev-flexible-operations.jpg', alt: 'An open operations floor with rows of workstations, blue partitions, and computer stations.' },
-  { label: 'Secure Personal Storage', src: '/images/ascendrev-secure-personal-storage.jpg', alt: 'A hallway with secure personal storage lockers outside the offices.', portrait: true },
+  { label: 'Secure Personal Storage', src: '/images/secure-storage-gallery-wide.webp', mobileSrc: '/images/ascendrev-secure-personal-storage.jpg', alt: 'A hallway with secure personal storage lockers outside the offices.' },
 ];
 
 /**
@@ -967,32 +967,30 @@ export default function OfficeFrameStory(): JSX.Element {
           <div className={styles.galleryTrack} data-facilities-track>
             {FACILITIES.map((facility, index) => (
               <figure
-                className={`${styles.facilityCard} ${tourIndex === index && !showAllFacilities ? styles.activeFacility : ''} ${facility.portrait ? styles.portraitFacilityCard : ''}`}
+                className={`${styles.facilityCard} ${tourIndex === index && !showAllFacilities ? styles.activeFacility : ''}`}
                 data-facility-card
                 key={facility.label}
                 aria-current={tourIndex === index && !showAllFacilities ? 'step' : undefined}
               >
                 <button
-                  className={`${styles.facilityImage} ${facility.portrait ? styles.portraitFacilityImage : ''}`}
+                  className={styles.facilityImage}
                   type="button"
                   onClick={() => openFacilityPreview(index)}
                   aria-label={`Preview ${facility.label} photo`}
                   aria-haspopup="dialog"
                 >
-                  {facility.portrait && (
-                    <span
-                      className={styles.facilityBackfill}
-                      style={{ backgroundImage: `url("${facility.src}")` }}
-                      aria-hidden="true"
+                  <picture className={styles.facilityPicture}>
+                    {!showAllFacilities && facility.mobileSrc && (
+                      <source media="(max-width: 767px)" srcSet={facility.mobileSrc} />
+                    )}
+                    <Image
+                      src={facility.src}
+                      alt={facility.alt}
+                      fill
+                      sizes="(max-width: 767px) 76vw, 76vw"
+                      className={styles.facilityPhoto}
                     />
-                  )}
-                  <Image
-                    src={facility.src}
-                    alt={facility.alt}
-                    fill
-                    sizes="76vw"
-                    className={`${styles.facilityPhoto} ${facility.label === 'Secure Personal Storage' ? styles.containedFacilityPhoto : ''} ${facility.portrait ? styles.portraitFacilityPhoto : ''}`}
-                  />
+                  </picture>
                   <span className={styles.facilityNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                 </button>
                 <figcaption>{facility.label}</figcaption>

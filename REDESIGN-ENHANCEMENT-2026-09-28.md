@@ -14,7 +14,7 @@
 - Create original assets for sections that benefit from atmospheric art, including transparent decorative artwork where useful. Treat supplied ECA/Native Teams screenshots as design references only; do not reuse their copy, logos, or artwork.
 - Use intentional, smooth motion with the already-installed GSAP and Lenis setup. Respect reduced-motion settings; no new dependencies or scroll hijacking.
 - Preserve the approved Difference scroll-story and contact-form feedback motion. Add a restrained contact-section scroll entrance without changing its content or submission behavior.
-- Extend the existing branded route loader into a first-load asset gate: load the current page's `<img>` elements (including the home gallery), CSS background images, image posters, and web fonts before revealing the page. Use a visible timeout/error fallback, browser caching, and reduced-motion behavior so an unavailable asset cannot trap the visitor.
+- Extend the existing branded route loader into a first-load asset gate: load the current page's `<img>` elements (including the home gallery), CSS background images, image posters, and web fonts before revealing the page. Keep observing DOM, image-source, stylesheet, class, and inline-style changes until assets settle and the page is stable; cap the wait so a failed asset cannot trap the visitor.
 - Build a custom AscendRev SVG motion mark that references the repository's transparent logo asset and animates a few path strokes/nodes. Keep the output inline/local, dependency-free, and compatible with the site's reduced-motion preference. Use the emilkowalski and LottieFiles motion guidance as craft references; read Nakkas' SVG workflow, but do not install a separate runtime when the SVG can be authored and verified directly.
 
 ## Reference observations
@@ -54,7 +54,7 @@ Earlier live-page research and source notes are recorded in `REDESIGN-RESEARCH-2
 - [x] A new section is visibly added to the existing home page; no new route is created.
 - [x] Background art is limited to selected anchor sections rather than added to every page/section; Values and legal pages keep their existing visual treatment.
 - [x] Generated assets are original, copy-safe, optimized, inspected, and present in the repository paths used by the app. Transparent accents retain alpha.
-- [x] The Difference scroll-story still advances between milestones on scroll; the contact submit component is unchanged, the contact page adds a restrained form reveal, and the global logo loader waits for page images/backgrounds/posters and fonts with an 8-second cap and reduced-motion-safe exit.
+- [x] The Difference scroll-story still advances between milestones on scroll; the contact submit component is unchanged, the contact page adds a restrained form reveal, and the global logo loader watches page images/backgrounds/posters/fonts and hydration-time DOM/style changes, with an 8-second cap and reduced-motion-safe exit.
 - [x] Existing GSAP/Lenis behavior is reused; new motion respects reduced-motion and does not hijack scrolling. The custom SVG uses no new runtime dependency.
 - [x] Browser cache behavior is confirmed from `public/.htaccess` and a live loader-logo response; static assets are cached for one year and HTML revalidates. No service worker is needed.
 - [x] Production build, typecheck, full `src` ESLint, and diff checks pass. (`npm run lint` itself cannot traverse a restricted `.gstack/` directory, so `npx eslint src` was run directly and passed.)
@@ -65,6 +65,7 @@ Earlier live-page research and source notes are recorded in `REDESIGN-RESEARCH-2
 ## Verification record
 
 - The production static export rendered the boot loader before the page heading. Chrome showed the branded loader on the first page load, then revealed Home after the image/font wait; internal navigation to Difference and Contact showed the route loader and then revealed each page.
+- The asset observer continues to collect new DOM images and picture sources, CSS backgrounds, video posters, and font readiness while the page settles; the wait resolves after assets settle and 180ms without relevant DOM changes, or at the 8-second cap.
 - The Advantage story showed milestone 01, then advanced to milestone 02 while scrolling. Contact form fields and existing copy rendered; the live submit action was not triggered.
 - Click opened the Solutions menu; Tab entered its first submenu link; Escape closed the menu and returned focus to the trigger; clicking outside also closed it. Pointer behavior is confirmed from its handlers but was not simulated by the browser controller.
 - `npx eslint src`, `npm run typecheck`, `npm run build`, and `git diff --check` passed. The build exported all 13 static pages.

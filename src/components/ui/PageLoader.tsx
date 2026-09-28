@@ -84,22 +84,39 @@ function extractCssUrls(backgroundImage: string): string[] {
 }
 
 /**
- * Promote native lazy images before the loader leaves, then settle visible and
- * deferred page imagery, CSS backgrounds, video posters, and document fonts.
- * A hard cap ensures a missing third-party asset can never trap the visitor.
+ * Promote native lazy images before the loader leaves, then settle current and
+ * newly inserted page imagery, CSS backgrounds, video posters, and document
+ * fonts. A hard cap ensures a missing third-party asset cannot trap the visitor.
  */
 async function waitForPageAssets(): Promise<void> {
   const startedAt = performance.now();
-  const assets: Promise<unknown>[] = [];
+  const deadlineAt = startedAt + ASSET_WAIT_CAP_MS;
+  const pendingAssets = new Set<Promise<void>>();
   const seenUrls = new Set<string>();
+  const imageSources = new WeakMap<HTMLImageElement, string>();
+  let lastDomChangeAt = startedAt;
 
-  for (const image of Array.from(document.images)) {
-    if (!image.getAttribute('src') && !image.getAttribute('srcset')) continue;
+  const track = (asset: Promise<unknown>) => {
+    const settledAsset = asset.then(() => undefined, () => undefined);
+    pendingAssets.add(settledAsset);
+    void settledAsset.then(() => pendingAssets.delete(settledAsset));
+  };
+
+  const trackFonts = () => {
+    track(document.fonts.ready);
+  };
+
+  const scanImage = (image: HTMLImageElement) => {
+    if (!image.getAttribute('src') && !image.getAttribute('srcset')) return;
+    const sourceKey = `${image.getAttribute('src') ?? ''}\u0000${image.getAttribute('srcset') ?? ''}\u0000${image.getAttribute('sizes') ?? ''}`;
+    if (imageSources.get(image) === sourceKey) return;
+    imageSources.set(image, sourceKey);
+
     const wasLazy = image.loading === 'lazy';
     image.loading = 'eager';
     if (wasLazy && image.fetchPriority === 'auto') image.fetchPriority = 'low';
-    assets.push(waitForImageElement(image));
-  }
+    track(waitForImageElement(image));
+  };
 
   const addUrl = (value: string) => {
     try {
@@ -107,13 +124,20 @@ async function waitForPageAssets(): Promise<void> {
       if (url.protocol === 'data:' || url.protocol === 'blob:') return;
       if (seenUrls.has(url.href)) return;
       seenUrls.add(url.href);
-      assets.push(preloadUrl(url.href));
+      track(preloadUrl(url.href));
     } catch {
       // Ignore malformed optional decoration; the normal page remains usable.
     }
   };
 
-  for (const element of Array.from(document.querySelectorAll<HTMLElement>('*'))) {
+  const scanElement = (element: Element) => {
+    if (element instanceof HTMLImageElement) scanImage(element);
+    if (element instanceof HTMLSourceElement) {
+      const image = element.parentElement?.querySelector('img');
+      if (image) scanImage(image);
+    }
+    if (element instanceof HTMLVideoElement && element.poster) addUrl(element.poster);
+
     const styles = [
       window.getComputedStyle(element),
       window.getComputedStyle(element, '::before'),
@@ -123,24 +147,77 @@ async function waitForPageAssets(): Promise<void> {
     for (const style of styles) {
       for (const url of extractCssUrls(style.backgroundImage)) addUrl(url);
     }
-  }
+  };
 
-  for (const video of Array.from(document.querySelectorAll<HTMLVideoElement>('video[poster]'))) {
-    if (video.poster) addUrl(video.poster);
-  }
+  const scanTree = (root: Element) => {
+    scanElement(root);
+    for (const element of Array.from(root.querySelectorAll('*'))) scanElement(element);
+  };
 
+  const observer = new MutationObserver((mutations) => {
+    lastDomChangeAt = performance.now();
+
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList') {
+        for (const node of Array.from(mutation.addedNodes)) {
+          if (!(node instanceof Element)) continue;
+          if (node instanceof HTMLStyleElement || (node instanceof HTMLLinkElement && node.rel === 'stylesheet')) {
+            scanTree(document.documentElement);
+            trackFonts();
+          } else {
+            scanTree(node);
+          }
+        }
+        continue;
+      }
+
+      if (!(mutation.target instanceof Element)) continue;
+      const target = mutation.target;
+      const stylesheetChanged = target instanceof HTMLStyleElement
+        || (target instanceof HTMLLinkElement && target.rel === 'stylesheet');
+      if (stylesheetChanged) {
+        scanTree(document.documentElement);
+        trackFonts();
+      } else {
+        scanTree(target);
+      }
+    }
+  });
+
+  observer.observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['class', 'style', 'src', 'srcset', 'sizes', 'media', 'loading', 'poster', 'href', 'rel'],
+  });
+  scanTree(document.documentElement);
   addUrl('/ascendrev-loader-logo-transparent.png');
-  assets.push(document.fonts.ready.catch(() => undefined));
+  trackFonts();
 
   let timeoutId: number | undefined;
+  let stabilityPollId: number | undefined;
+  const pageAssetsSettled = new Promise<void>((resolve) => {
+    const checkForStability = () => {
+      if (pendingAssets.size === 0 && performance.now() - lastDomChangeAt >= 180) {
+        resolve();
+        return;
+      }
+      stabilityPollId = window.setTimeout(checkForStability, 50);
+    };
+    checkForStability();
+  });
+
   await Promise.race([
-    Promise.allSettled(assets),
+    pageAssetsSettled,
     new Promise<void>((resolve) => {
-      const remaining = Math.max(0, ASSET_WAIT_CAP_MS - (performance.now() - startedAt));
+      const remaining = Math.max(0, deadlineAt - performance.now());
       timeoutId = window.setTimeout(resolve, remaining);
     }),
   ]);
+
+  observer.disconnect();
   if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  if (stabilityPollId !== undefined) window.clearTimeout(stabilityPollId);
 }
 
 /**

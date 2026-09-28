@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import {
   CareerStatsSection,
   ClosingBand,
@@ -9,14 +8,13 @@ import {
 import OfficeFrameStory from '@/components/sections/home/OfficeFrameStory';
 import SectionCraftStyles from '@/components/sections/shared/SectionCraftStyles';
 import { home } from '@/content/home';
+import { createSeoMetadata } from '@/lib/seoMetadata';
 
-export const metadata: Metadata = {
+export const metadata = createSeoMetadata({
   title: home.meta.title,
   description: home.meta.description,
-  alternates: {
-    canonical: '/',
-  },
-};
+  canonicalPath: '/',
+});
 
 export default function HomePage() {
   return (

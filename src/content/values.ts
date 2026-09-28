@@ -39,6 +39,10 @@ export interface ValuesContent {
    * page `<title>`. */
   canonicalPath: string;
   heading: string;
+  teamImage: {
+    src: string;
+    alt: string;
+  };
   values: readonly CorporateValue[];
 }
 
@@ -51,6 +55,11 @@ export const values: ValuesContent = {
   canonicalPath: '/values/',
 
   heading: 'Our Corporate Values',
+
+  teamImage: {
+    src: '/images/ascendrev-corporate-values-team.png',
+    alt: 'AscendRev colleagues collaborating around a conference table in a modern office.',
+  },
 
   values: [
     {

@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import Image from 'next/image';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import Stagger from '@/components/ui/Stagger';
@@ -16,14 +17,24 @@ import GlyphIcon, { GLYPH_ACCENT_CYCLE } from './GlyphIcon';
  * The blueprint CTA now sits beneath the solutions closing headline.
  */
 export default function Screening(): JSX.Element {
-  const { heading, items } = solutions.screening;
+  const { heading, items, interviewImage } = solutions.screening;
 
   return (
     <Section className="!pt-2 !pb-12">
       <Container>
         <h2 className="max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap">{heading}</h2>
 
-        <Stagger className="mt-8 grid gap-3 sm:mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-3 lg:gap-5">
+        <figure className="relative mx-auto mt-6 aspect-[4/3] w-full max-w-[560px] overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface-band)] sm:mt-8">
+          <Image
+            src={interviewImage.src}
+            alt={interviewImage.alt}
+            fill
+            sizes="(min-width: 560px) 560px, 100vw"
+            className="object-cover"
+          />
+        </figure>
+
+        <Stagger className="mt-6 grid gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:grid-cols-3 lg:gap-5">
           {items.map((item, index) => (
             <div
               key={item.id}

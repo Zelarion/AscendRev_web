@@ -40,3 +40,4 @@ ascendrev-enquiries/
 
 # Demo/runtime config for the enquiry handler. Holds an SMTP password.
 ascendrev-enquiry.config.php
+*.prelaunch-backup

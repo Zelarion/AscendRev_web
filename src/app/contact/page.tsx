@@ -1,17 +1,15 @@
-import type { Metadata } from 'next';
 import ContactEnquiryForm from '@/components/sections/contact/ContactEnquiryForm';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import { contact } from '@/content/contact';
 import { site } from '@/content/site';
+import { createSeoMetadata } from '@/lib/seoMetadata';
 
-export const metadata: Metadata = {
+export const metadata = createSeoMetadata({
   title: contact.meta.title,
   description: contact.meta.description,
-  alternates: {
-    canonical: '/contact/',
-  },
-};
+  canonicalPath: '/contact/',
+});
 
 export default function ContactPage() {
   const { hero, whatToExpect, form, directContact } = contact;

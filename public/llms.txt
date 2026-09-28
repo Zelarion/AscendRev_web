@@ -1,0 +1,17 @@
+# AscendRev
+
+> AscendRev is a Canadian-based provider of dedicated sales, customer experience, and business operations teams for North American businesses, with delivery from the Philippines.
+
+## Pages
+
+- [Home](https://ascend-rev.ca/): Company overview and approach.
+- [Problem-Solution Framework](https://ascend-rev.ca/solutions/): Team screening, service functions, and delivery approach.
+- [Capabilities](https://ascend-rev.ca/capabilities/): Sales, customer experience, and business operations support areas.
+- [Revenue Impact](https://ascend-rev.ca/#revenue-impact): Revenue gaps, industry coverage, and the dedicated team capacity AscendRev provides to pursue growth.
+- [Our Difference](https://ascend-rev.ca/advantage/): Rio Vidal's career experience and the operating model behind AscendRev.
+- [Our Values](https://ascend-rev.ca/values/): Accountability, discipline, and partnership.
+- [Contact](https://ascend-rev.ca/contact/): Enquiries and contact options.
+- [Privacy Policy](https://ascend-rev.ca/privacy/): How website enquiry information is handled.
+- [Terms of Use](https://ascend-rev.ca/terms/): Terms for visitors using this website.
+
+Format note: `llms.txt` is an open proposal; publishing this file does not guarantee AI search visibility, inclusion, or ranking.

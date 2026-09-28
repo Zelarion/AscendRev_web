@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import '@fontsource-variable/newsreader/standard.css';
 import SkipLink from '@/components/layout/SkipLink';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import OrganizationJsonLd from '@/components/seo/OrganizationJsonLd';
 import { SmoothScrollProvider } from '@/components/motion';
 import PageLoader from '@/components/ui/PageLoader';
 import { site } from '@/content/site';
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
     template: `%s | ${site.name}`,
   },
   description:
-    'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
+    'AscendRev builds dedicated sales, customer experience, and business operations teams for North American companies, delivered from the Philippines.',
   applicationName: site.name,
   authors: [{ name: site.legalName }],
   icons: {
@@ -36,15 +38,34 @@ export const metadata: Metadata = {
     url: site.url,
     title: `${site.name} | ${site.tagline}`,
     description:
-      'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
-    images: ['/og-image.jpg'],
+      'AscendRev builds dedicated sales, customer experience, and business operations teams for North American companies, delivered from the Philippines.',
+    images: [
+      {
+        url: '/ascendrev-og-preview.jpg',
+        width: 1200,
+        height: 630,
+        type: 'image/jpeg',
+        alt: 'AscendRev logo and rising-growth icon above the tagline Dedicated Team. Targeted Solutions. Accelerated Revenue.',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${site.name} | ${site.tagline}`,
     description:
-      'AscendRev places dedicated front-office and back-office teams, sales, support, help desk, with North American businesses, executed from the Philippines.',
-    images: ['/og-image.jpg'],
+      'AscendRev builds dedicated sales, customer experience, and business operations teams for North American companies, delivered from the Philippines.',
+    images: ['/ascendrev-og-preview.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
   },
   alternates: {
     canonical: '/',
@@ -59,6 +80,7 @@ export default function RootLayout({
   return (
     <html lang="en-CA">
       <body>
+        <OrganizationJsonLd />
         <PageLoader />
         <SkipLink />
         <Header />

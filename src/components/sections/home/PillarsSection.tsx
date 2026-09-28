@@ -1,6 +1,7 @@
 'use client';
 
 import { type JSX, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { cn } from '@/lib/cn';
 import type { PillarsContent } from '@/content/home';
 
@@ -8,7 +9,7 @@ interface PillarsSectionProps {
   content: PillarsContent;
 }
 
-const PILLAR_METRICS = ['', 'CAD1B+', 'Enterprise-Grade Execution'] as const;
+const PILLAR_METRICS = ['', 'CAD $1B+', 'Enterprise-Grade Execution'] as const;
 
 export default function PillarsSection({ content }: PillarsSectionProps): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -62,7 +63,7 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
         <aside className="md:sticky md:top-[7rem] md:self-start lg:top-[8.5rem]">
           <div className="max-w-[560px]">
             <p className="text-xs font-semibold leading-relaxed tracking-[0.16em] text-[var(--gold-text)] sm:text-[13px]">
-              THE TURNKEY OUTSOURCE AND OFFSHORE ADVANTAGE
+              THE ASCENDREV ADVANTAGE
             </p>
 
             <h2 className="mt-5 font-display text-h2 text-[var(--navy-900)]">
@@ -77,38 +78,6 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
               {content.intro}
             </p>
 
-            <div className="mt-10 border-l border-[var(--line-strong)] pl-5 sm:mt-12 sm:pl-6">
-              {content.items.map((item, index) => {
-                const active = index === activeIndex;
-                return (
-                  <button
-                    key={item.heading}
-                    type="button"
-                    onClick={() => {
-                      setActiveIndex(index);
-                      chapterRefs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }}
-                    className={cn(
-                      'group relative flex w-full items-start gap-4 py-3 text-left outline-none transition-colors duration-500',
-                      active ? 'text-[var(--gold-text)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                    )}
-                    aria-current={active ? 'step' : undefined}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        'absolute -left-[21px] top-1/2 h-8 w-[2px] -translate-y-1/2 transition-all duration-500 sm:-left-[25px]',
-                        active ? 'bg-[var(--gold-text)]' : 'bg-transparent'
-                      )}
-                    />
-                    <span className="w-7 shrink-0 text-[11px] font-semibold tracking-[0.16em] sm:text-xs">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="text-sm font-medium sm:text-[15px]">{item.heading}</span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
         </aside>
 
@@ -151,6 +120,11 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
                   >
                     {PILLAR_METRICS[index]}
                   </p>
+                  {index === 1 && (
+                    <p className="mt-1 text-xs font-medium tracking-[0.08em] text-[var(--text-muted)]">
+                      Revenue generated
+                    </p>
+                  )}
 
                   <h3 className="mt-6 font-display text-h3 text-[var(--navy-900)]">
                     {item.heading}
@@ -159,6 +133,17 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
                   <p className="mt-6 text-body text-[var(--text-muted)]">
                     {item.body}
                   </p>
+
+                  {item.image && (
+                    <Image
+                      src={item.image.src}
+                      alt={item.image.alt}
+                      width={1090}
+                      height={724}
+                      sizes="(min-width: 768px) 35rem, 100vw"
+                      className="mx-auto mt-8 block aspect-[4/3] w-full max-w-[35rem] rounded-xl border border-[var(--line)] object-cover"
+                    />
+                  )}
                 </div>
               </article>
             );

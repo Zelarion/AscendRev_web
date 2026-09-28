@@ -47,15 +47,20 @@ export default function Footer(): JSX.Element {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-9 sm:py-14 lg:py-20">
-        <div className="grid gap-8 border-b border-[var(--border)] pb-8 sm:gap-10 sm:pb-10 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] lg:gap-10 lg:pb-12 xl:gap-14">
+      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-8 sm:py-10 lg:py-12">
+        <div className="grid gap-6 border-b border-[var(--border)] pb-7 sm:gap-8 sm:pb-8 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] lg:gap-8 lg:pb-9 xl:gap-10">
           <div className="md:col-span-2 lg:col-span-1">
             <div>
+              <p className="max-w-[42ch] text-sm leading-relaxed text-[var(--ink)] sm:text-[15px]">
+                <strong className="block font-semibold text-[var(--navy-900)]">AscendRev Outsourcing Services Corp.</strong>
+                <span>Canadian-based revenue, customer experience and business operations partner providing dedicated teams for North American companies.</span>
+              </p>
+
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
                 Direct Contact
               </p>
 
-              <div className="mt-4 space-y-3 text-sm leading-relaxed text-[var(--ink)] sm:mt-5 sm:space-y-4 sm:text-[15px]">
+              <div className="mt-3 space-y-2.5 text-sm leading-relaxed text-[var(--ink)] sm:mt-4 sm:space-y-3 sm:text-[15px]">
                 <a
                   href={`mailto:${site.contactEmail}`}
                   className={`flex max-w-fit items-start gap-3 ${footerLinkClassName}`}
@@ -98,13 +103,13 @@ export default function Footer(): JSX.Element {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
               Internal Sections
             </p>
-            <div className="mt-4 flex flex-col gap-1 text-sm text-[var(--ink-muted)] sm:mt-5 sm:gap-2 sm:text-[15px]">
+            <div className="mt-3 flex flex-col gap-0 text-sm text-[var(--ink-muted)] sm:mt-4 sm:gap-0.5 sm:text-[15px]">
               {navItems.map((item) => (
                 item.href === REVENUE_IMPACT_HREF ? (
                   <a
                     key={item.href}
                     href={item.href}
-                    className={`inline-flex min-h-11 items-center py-1 ${footerLinkClassName}`}
+                    className={`inline-flex min-h-8 items-center ${footerLinkClassName}`}
                     style={hoverTransitionStyle}
                   >
                     {item.label}
@@ -113,7 +118,7 @@ export default function Footer(): JSX.Element {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`inline-flex min-h-11 items-center py-1 ${footerLinkClassName}`}
+                    className={`inline-flex min-h-8 items-center ${footerLinkClassName}`}
                     style={hoverTransitionStyle}
                   >
                     {item.label}
@@ -127,11 +132,11 @@ export default function Footer(): JSX.Element {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
               Links
             </p>
-            <div className="mt-4 flex flex-col gap-1 text-sm text-[var(--ink-muted)] sm:mt-5 sm:gap-2 sm:text-[15px]">
-              <Link href="/privacy" className={`inline-flex min-h-11 items-center py-1 ${footerLinkClassName}`} style={hoverTransitionStyle}>
+            <div className="mt-3 flex flex-col gap-0 text-sm text-[var(--ink-muted)] sm:mt-4 sm:gap-0.5 sm:text-[15px]">
+              <Link href="/privacy" className={`inline-flex min-h-8 items-center ${footerLinkClassName}`} style={hoverTransitionStyle}>
                 Privacy Policy
               </Link>
-              <Link href="/terms" className={`inline-flex min-h-11 items-center py-1 ${footerLinkClassName}`} style={hoverTransitionStyle}>
+              <Link href="/terms" className={`inline-flex min-h-8 items-center ${footerLinkClassName}`} style={hoverTransitionStyle}>
                 Terms of Service
               </Link>
             </div>
@@ -139,7 +144,7 @@ export default function Footer(): JSX.Element {
         </div>
 
         <div className="flex flex-col gap-2 pt-4 text-xs text-[var(--ink-muted)] sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-6">
-          <p>© 2026 {site.companyName}. All rights reserved.</p>
+          <p>© 2026 {site.companyName} All rights reserved.</p>
           <p>Calgary, Alberta · Canada</p>
         </div>
       </div>

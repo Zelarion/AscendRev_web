@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import Image from 'next/image';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import { WordReveal } from '@/components/motion';
@@ -17,7 +18,7 @@ import GlyphIcon, { GLYPH_ACCENT_CYCLE } from './GlyphIcon';
  * DESIGN.md §3's card rules (1px border, 10px radius, no shadow) still apply.
  */
 export default function ServiceGrid(): JSX.Element {
-  const { heading, intro, items } = solutions.services;
+  const { heading, intro, items, salesDashboardImage } = solutions.services;
 
   return (
     <Section className="!pt-6 !pb-8">
@@ -40,6 +41,16 @@ export default function ServiceGrid(): JSX.Element {
         <p className="mt-4 text-body-lg text-[var(--ink-muted)] sm:mt-6">
           {intro}
         </p>
+
+        <figure className="relative mx-auto mt-10 aspect-[4/3] w-full max-w-[560px] overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface-band)] sm:mt-12">
+          <Image
+            src={salesDashboardImage.src}
+            alt={salesDashboardImage.alt}
+            fill
+            sizes="(min-width: 560px) 560px, 100vw"
+            className="object-cover"
+          />
+        </figure>
 
         <Stagger className="mt-9 grid gap-3 sm:mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-3 lg:gap-5">
           {items.map((item, index) => (

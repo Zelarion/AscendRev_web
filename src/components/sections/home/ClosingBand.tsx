@@ -13,19 +13,19 @@ export default function ClosingBand({ content }: ClosingBandProps): JSX.Element 
     <section
       className="relative isolate min-h-[250px] overflow-hidden border-t border-[var(--line)] bg-[var(--surface-band)] text-[var(--text-primary)] sm:min-h-[280px] lg:min-h-[300px]"
     >
-      <div className="relative z-[1] mx-auto grid min-h-[250px] w-full max-w-[1280px] items-center gap-10 px-[clamp(1.5rem,5vw,4.5rem)] py-10 sm:min-h-[280px] sm:py-12 lg:min-h-[300px] lg:grid-cols-[1.08fr_0.92fr] lg:gap-20 lg:py-14">
+      <div className="relative z-[1] mx-auto flex min-h-[250px] w-full max-w-[1280px] flex-col items-center justify-center gap-6 px-[clamp(1.5rem,5vw,4.5rem)] py-10 text-center sm:min-h-[280px] sm:gap-8 sm:py-12 lg:min-h-[300px] lg:py-14">
         <RevealOnScroll>
           <p className="mb-4 text-[10px] font-semibold tracking-[0.2em] text-[var(--gold-text)] sm:text-[11px]">
             LET&apos;S TALK
           </p>
-          <h2 className="max-w-[26ch] font-display text-h2 text-[var(--navy-900)]">
+          <h2 className="mx-auto max-w-[26ch] font-display text-h2 text-[var(--navy-900)]">
             {content.heading}
           </h2>
         </RevealOnScroll>
 
-        <RevealOnScroll delayMs={100} className="lg:max-w-[470px] lg:justify-self-end">
+        <RevealOnScroll delayMs={100} className="flex flex-col items-center lg:max-w-[470px]">
           {content.body.trim() ? (
-            <p className="max-w-[42ch] text-body-lg text-[var(--text-muted)]">
+            <p className="mx-auto max-w-[42ch] text-body-lg text-[var(--text-muted)]">
               {content.body}
             </p>
           ) : null}

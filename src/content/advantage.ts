@@ -141,10 +141,8 @@ export const advantage: AdvantageContent = {
     // a section heading is a credibility problem, not a wording preference.
     // Flagged back to the client for confirmation per the build brief.
     sectionLabel: 'Career Experience',
-    // Heading verbatim from the client's 2026-09-24 brief. Replaces the prior
-    // "Engineered by a Proven Player-Coach." heading, which covered the same
-    // section and would otherwise sit as a duplicate heading directly above it.
-    heading: 'Built by a Leader Who Has Lived the Revenue Journey.',
+    // One clear heading, supported by the distinct "Career Experience" label.
+    heading: 'THE EXPERIENCE BEHIND ASCENDREV',
     portrait: {
       label:
         'Portrait of Rio Vidal, Founder. Head and shoulders, plain background, natural light, business dress. Taken for AscendRev, not a profile photo cropped from somewhere else.',
@@ -155,25 +153,20 @@ export const advantage: AdvantageContent = {
     name: 'Rio Vidal',
     role: 'Founder',
     location: 'Calgary, Alberta',
-    // Client revision, 2026-09-24: replaces the prior three-paragraph
-    // narrative, which told the same "who is Rio Vidal" story and would
-    // otherwise duplicate this copy immediately below the new heading.
+    // Keep the requested company-foundation paragraph verbatim, followed by
+    // Rio's career narrative. The revenue and deal-size claims remain his
+    // career record, not AscendRev company results.
     narrative: [
-        'Rio brings decades of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated CAD1B+ in sales revenue, managed commercial opportunities and deal sizes from 10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
+      'AscendRev was built on decades of frontline sales leadership, revenue generation and executive client engagement.',
+      'Rio brings decades of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated CAD1B+ in sales revenue, managed commercial opportunities and deal sizes from CAD $10K to CAD $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
       "Growth requires more than strategy. It requires the capacity to execute. AscendRev provides dedicated professionals and purpose-built teams that extend your organization's sales, customer, and operational capabilities—allowing your internal leaders to focus on strategy, relationships, and growth.",
     ],
     // The client's own line, from the source brief, quoted as written.
     commitment:
       'Process workflow, scope of work and execution playbook is co-created and customized between AscendRev and our Partners.',
     recordHeading: 'Career record',
-    // FLAG for founder/client confirmation, 2026-09-24: three different deal
-    // size ranges now exist on this page and were not reconciled by the
-    // client's brief: this row (CAD$500,000-$35,000,000), the new narrative
-    // paragraph above ("10K to $35M", no currency given), and the new
-    // commercialStats entry below ("$10M-$35M CAD"). Implemented each exactly
-    // as given rather than guessing which is correct or deleting this row as
-    // a duplicate, since the lower bound differs by three orders of magnitude
-    // across the three mentions.
+    // The career fact, narrative, and commercial stat consistently use the
+    // requested CAD $10K–$35M deal-size range.
     facts: [
       {
         label: 'B2B revenue generated',
@@ -181,7 +174,7 @@ export const advantage: AdvantageContent = {
       },
       {
         label: 'Deal size closed',
-        value: 'CAD$500,000 to CAD$35,000,000.',
+        value: 'CAD $10K to CAD $35M.',
       },
       {
         label: 'Markets',
@@ -219,8 +212,7 @@ export const advantage: AdvantageContent = {
       },
     ],
 
-    // Client revision, 2026-09-24. Four stat cards, copy verbatim including
-    // the client's own en dashes in "60–80" and "$10M–$35M CAD".
+    // Four stat cards, with the requested CAD $10K–$35M deal-size range.
     commercialHeading: 'PROVEN COMMERCIAL EXPERIENCE',
     commercialStats: [
       {
@@ -240,7 +232,7 @@ export const advantage: AdvantageContent = {
       },
       {
         icon: '◆',
-        label: '$10M–$35M CAD Deal Sizes',
+        label: 'CAD $10K–$35M Deal Sizes',
         description: 'Experience with substantial commercial transactions.',
       },
     ],

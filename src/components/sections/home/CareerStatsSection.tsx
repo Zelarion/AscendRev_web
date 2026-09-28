@@ -15,28 +15,28 @@ export default function CareerStatsSection() {
   return (
     <section
       aria-labelledby="career-stats-heading"
-      className="border-t border-[var(--line)] bg-[var(--surface)] px-[clamp(1.25rem,5vw,4rem)] py-12 sm:py-16 md:py-20 lg:py-24"
+      className="border-y border-white/10 bg-[var(--navy-900)] px-[var(--site-gutter)] py-[clamp(3.5rem,8vw,6.5rem)] text-white"
     >
       <div className="mx-auto max-w-[1280px]">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--green-600)]">
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.18em] text-[var(--gold-300)]">
             Rio Vidal | Co-Founder and President
           </p>
           <h2
             id="career-stats-heading"
-            className="mt-3 font-display text-h2 text-[var(--navy-800)]"
+            className="mt-3 font-display text-h2 text-white"
           >
             {advantage.leadership.recordHeading}
           </h2>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2 xl:grid-cols-4">
-          <article className="bg-[var(--surface)] p-6 sm:p-8">
-            <p className="ar-type-career-stat font-display text-h2 text-[var(--navy-800)]">
-              <CountUp value={1} prefix="Over CAD" suffix="B" />
+        <div className="mt-8 grid grid-cols-1 gap-px bg-white/20 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="bg-[var(--navy-900)] p-5 sm:p-6 lg:p-7 xl:p-6 2xl:p-8">
+            <p className="ar-type-career-stat font-display text-[var(--gold-300)]">
+              <CountUp value={1} prefix="CAD $" suffix="B+" />
             </p>
-            <h3 className="mt-4 font-display text-h3 text-[var(--text-primary)] sm:mt-5">
-              Revenue generated throughout his career
+            <h3 className="mt-4 min-h-[2.6em] font-display text-h3 leading-tight text-white sm:mt-5">
+              Revenue generated
             </h3>
           </article>
 
@@ -75,14 +75,14 @@ function MetricCard({
   const label = stat.label.replace(/^\S+\s+/, '');
 
   return (
-    <article className="bg-[var(--surface)] p-6 sm:p-8">
-      <p className="ar-type-career-stat font-display text-h2 text-[var(--navy-800)]">
+    <article className="bg-[var(--navy-900)] p-5 sm:p-6 lg:p-7 xl:p-6 2xl:p-8">
+      <p className="ar-type-career-stat font-display text-[var(--gold-300)]">
         {number}
       </p>
-      <h3 className="mt-4 font-display text-h3 text-[var(--text-primary)] sm:mt-5">
+      <h3 className="mt-4 min-h-[2.6em] font-display text-h3 leading-tight text-white sm:mt-5">
         {label}
       </h3>
-      <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+      <p className="mt-2 font-sans text-sm leading-6 text-white/75">
         {stat.description}
       </p>
     </article>

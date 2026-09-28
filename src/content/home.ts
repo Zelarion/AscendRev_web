@@ -79,11 +79,8 @@ export interface HeroContent {
   headline: string;
   subheadline: string;
   /**
-   * Short line rendered beneath the subheadline, ahead of the CTAs. A tuple of
-   * exactly the three clauses the client's own colour treatment assigns to
-   * green / blue / gold (email, 2026-09-24), because HeroSection pairs each
-   * entry with a fixed colour by array position, not by parsing punctuation.
-   * Rendered joined by a single space beneath the main headline.
+   * Three short clauses presented together on a centered line in the hero.
+   * HeroSection pairs each entry with a fixed colour by array position.
    */
   tagline: readonly [string, string, string];
   primaryCta: Cta;
@@ -96,7 +93,6 @@ export interface HeroContent {
    * eyebrow/detail shape would invent structure the copy doesn't have.
    */
   credentialLine: string;
-  sideWords: readonly string[];
 }
 
 export interface TrustItem extends PendingApproval {
@@ -130,6 +126,10 @@ export interface Pillar {
   icon: PillarIcon;
   heading: string;
   body: string;
+  image?: {
+    src: string;
+    alt: string;
+  };
   quantifiedClaim?: QuantifiedClaim;
 }
 
@@ -187,25 +187,18 @@ export const home: HomeContent = {
 
   hero: {
     eyebrow: 'SCALABLE TEAMS. REAL IMPACT.',
-    // Client copy revision, 2026-09-24. Three sentences, rendered one per
-    // line by `toSentences` in HeroSection.tsx (splits on sentence-ending
-    // punctuation), gold on the final line — the same mechanism the old
-    // three-sentence headline used, so no component change was needed here.
+    // Client copy revision supplied for Wave 1A. Sentences render one per line
+    // through `toSentences` in HeroSection.tsx.
     headline: 'Dedicated Team. Targeted Solutions. Accelerated Revenue.',
-    // Client copy revision, 2026-09-24, verbatim. Says "Founder's" rather than
-    // naming Rio Vidal, same as the subheadline it replaces — flagged in the
-    // delivery report rather than silently tightened, since SPEC.md §7 item 1
-    // reads as wanting the named attribution used in the trust band below.
     subheadline:
-      "Backed by Founder's career track record of CAD1B+ in generated sales revenue, we provide fully managed front- and back-office teams that scale your business. We absorb the infrastructure costs, talent shortages, and administrative burdens—so you can focus entirely on growth.",
-    tagline: ['Identify the gap.', 'Build the team.', 'Improve the outcome.'],
+      'Built on decades of frontline sales and revenue leadership, AscendRev provides fully managed teams that extend your sales, customer experience and operational capabilities. We take on the talent, infrastructure and execution—so your team can stay focused on growth.',
+    tagline: ['People.', 'Process.', 'Performance.'],
     primaryCta: { label: 'Build Your Dedicated Team', href: '/contact' },
-    trustLead: 'LED BY',
-    // Client copy revision, 2026-09-24, verbatim including the hyphen and the
-    // pipe separators.
+    trustLead: 'LED BY EXPERIENCED REVENUE LEADERSHIP',
+    // Keep the hero credential line to generic, substantiated experience;
+    // individual credentials remain separately gated pending confirmation.
     credentialLine:
-      "Harvard Certificate in Leadership Excellence - Harvard Business Impact Enterprise | Lean Six Sigma Certified | 100M Dollar Club Recognition | 2X President's Club Award",
-    sideWords: ['PEOPLE', 'PROCESS', 'PERFORMANCE'],
+      'Founder-led execution | Decades of frontline sales leadership | Dedicated teams',
   },
 
   trustBand: {
@@ -217,7 +210,7 @@ export const home: HomeContent = {
     lead: 'AscendRev was registered in Canada on 11 September 2026. This is what stands behind it.',
     items: [
       {
-        text: 'Founded by Rio Vidal, who has generated over CAD1B in B2B revenue across a career in Canada and Australia.',
+        text: 'Founded by Rio Vidal, who has generated more than CAD $1B in B2B revenue over his career in Canada and Australia.',
       },
       {
         text: 'Head office in Calgary, Alberta. Your account is supervised on Calgary hours, not on a time zone you have to work around.',
@@ -229,37 +222,29 @@ export const home: HomeContent = {
   },
 
   pillars: {
-    // Client copy revision, 2026-09-24, verbatim (second sentence is a
-    // fragment in the source copy, kept as written per the client's
-    // no-wording-changes instruction).
     heading: 'Address Revenue Gaps.',
     supportingCopy: 'Turn missed opportunities to active conversations.',
     intro:
-      'AscendRev replaces fragmented operating costs with one managed growth model.',
+      'AscendRev gives you the dedicated capacity to pursue more opportunities, serve more customers and execute more consistently—without building every function in-house.',
     items: [
       {
-        // Client copy revision, 2026-09-24, verbatim, including the lower-case
-        // sentence opening and the em dash run against "burden" in the body.
-        // NOTE: this reintroduces the unsubstantiated "up to 50%" comparative
-        // figure that the removed `quantifiedClaim` below used to gate behind
-        // `pendingApproval` for SPEC.md §7 item 5 / Competition Act ss. 52 and
-        // 74.01 — the claim is now baked into the heading itself rather than
-        // an optional gated field. Flagged in the delivery report; not
-        // silently re-gated or altered here since it was scoped as a literal
-        // heading/body replacement.
         icon: 'cost',
-        heading: 'Up to 50% cost reduction',
+        heading: 'Increase Operating Capacity',
         body: 'By outsourcing/offshoring, we help organizations increase capacity, improve customer coverage, strengthen sales execution and reduce the operational burden— without the cost and complexity of building every function in-house.',
       },
       {
         icon: 'record',
         heading: 'Proven Revenue Engine',
-        body: 'Built from career true market, field experience and systems which generated CAD1B+ in revenue plus the operating discipline, structure and accountability needed to support growth.',
+        body: 'Built on real-world market experience, frontline sales leadership, and proven systems, AscendRev brings a disciplined, structured, and accountable approach to every engagement. Its approach draws on founder Rio Vidal’s career achievement of generating more than CAD $1B in sales revenue.',
+        image: {
+          src: '/images/ascendrev-sales-dashboard-team.png',
+          alt: 'A sales team reviewing performance metrics together around a conference table.',
+        },
       },
       {
         icon: 'accountability',
         heading: 'Dedicated Teams Built Around Your Business.',
-        body: "From generating new opportunities and following up with prospects to supporting customers and taking repetitive work off your team's plate, AscendRev provides dedicated teams that extend your capabilities and keep your business moving.",
+        body: 'From generating new opportunities and following up with prospects to supporting customers and managing repetitive work, AscendRev builds dedicated teams around the gaps in your business.',
       },
     ],
     closingLine:
@@ -268,15 +253,10 @@ export const home: HomeContent = {
 
   industries: {
     id: 'revenue-impact',
-    // Client copy revision, 2026-09-24: the industry-group tabs with stock
-    // photography are replaced outright by a nine-item revenue-gap Q&A grid,
-    // per the client's brief. Every remote image URL that used to back this
-    // section (`IndustriesSection.tsx`'s old `INDUSTRY_IMAGES` map) is gone
-    // with it — the client requires no external image dependencies here.
-    heading: "Built for Canada's Economic Engines.",
+    heading: 'Built for North American Business.',
     intro:
-      'AscendRev supports all industries that keep Canada moving with tailored operational functions built for efficiency, scale, and measurable growth.',
-    subheading: 'Revenue Gaps and Solution Framework.',
+      'AscendRev supports businesses across industries with dedicated teams designed around efficiency, scale and measurable growth.',
+    subheading: 'WHERE YOUR BUSINESS NEEDS MORE CAPACITY',
     // Client copy revision, 2026-09-24, verbatim. Icon keys are semantic and
     // mapped to the shared Phosphor family by IndustriesSection.
     items: [
@@ -319,18 +299,15 @@ export const home: HomeContent = {
       },
       {
         icon: 'growth',
-        question: 'Unheard 30%-50% growth potential?',
+        question: 'Untapped Growth Potential?',
         answer:
-          'We add a dedicated sales, customer and operational capacity needed to pursue more opportunities, follow up more consistently and broader market coverage.',
+          'We add the sales, customer and operational capacity needed to pursue more opportunities, follow up consistently and expand market coverage.',
       },
     ],
   },
 
   closing: {
-    // Heading and CTA label pinned by SPEC.md §4.1, verbatim from the client's
-    // brief. "Profit Center" keeps the client's spelling; flagged to the
-    // founder as a Canadian-spelling question, not changed unilaterally.
-    heading: 'Ready to Accelerate Profit and Revenue?',
+    heading: 'Ready to Build Your Revenue Engine?',
     body: '',
     cta: { label: 'Schedule your growth dialogue', href: '/contact' },
   },

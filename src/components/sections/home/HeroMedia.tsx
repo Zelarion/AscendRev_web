@@ -9,15 +9,12 @@ const MOBILE_VIDEO_SRC = '/video/hero-1280.mp4';
 const DESKTOP_VIDEO_SRC = '/video/hero-1920.mp4';
 const PARALLAX_LAYER_HEIGHT = '126%';
 
-interface HeroMediaProps {
-  sideWords: readonly string[];
-}
-
-export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
+export default function HeroMedia(): JSX.Element {
   const frameRef = useRef<HTMLElement>(null);
   const parallaxRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoMounted, setVideoMounted] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoSrc, setVideoSrc] = useState(MOBILE_VIDEO_SRC);
 
   useEffect(() => {
@@ -35,6 +32,22 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
   }, []);
 
   useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !videoMounted) return;
+
+    let active = true;
+    const playback = video.play();
+    playback?.catch(() => {
+      // Keep the poster visible when autoplay is unavailable or blocked.
+      if (active) setVideoPlaying(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [videoMounted, videoSrc]);
+
+  useEffect(() => {
     const frame = frameRef.current;
     const layer = parallaxRef.current;
     if (!frame || !layer || prefersReducedMotion()) return;
@@ -45,8 +58,7 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
     const update = () => {
       frameQueued = false;
       const scrolled = Math.max(0, -frame.getBoundingClientRect().top);
-      // Keep the enlarged footage inside the hero while it moves at a slower
-      // rate than the page. Clamping to its overscan prevents empty edges.
+      // Keep the enlarged footage inside the hero while it moves more slowly than the page.
       const travel = Math.max(0, layer.offsetHeight - frame.clientHeight);
       const offset = Math.min(scrolled * HERO_PARALLAX_MULTIPLIER, travel).toFixed(2);
       layer.style.transform = `translate3d(0, -${offset}px, 0)`;
@@ -76,7 +88,6 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
   return (
     <figure
       ref={frameRef}
-      aria-label="Salcedo Street, Makati City at night"
       className="pointer-events-none absolute inset-0 z-0 m-0 h-full w-full overflow-hidden bg-[#061329]"
     >
       <div
@@ -86,6 +97,7 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
         style={{ height: PARALLAX_LAYER_HEIGHT }}
       >
         <div
+          aria-hidden="true"
           className="ar-media-settle relative h-full w-full bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${POSTER_SRC})` }}
         >
@@ -94,7 +106,7 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
               id="hero-background-video"
               ref={videoRef}
               aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover"
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${videoPlaying ? 'opacity-100' : 'opacity-0'}`}
               autoPlay
               muted
               loop
@@ -102,6 +114,9 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
               preload="metadata"
               poster={POSTER_SRC}
               src={videoSrc}
+              onPlaying={() => setVideoPlaying(true)}
+              onPause={() => setVideoPlaying(false)}
+              onError={() => setVideoPlaying(false)}
             />
           )}
         </div>
@@ -109,15 +124,6 @@ export default function HeroMedia({ sideWords }: HeroMediaProps): JSX.Element {
 
       <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,16,35,0.90)_0%,rgba(4,20,42,0.74)_38%,rgba(4,20,42,0.28)_72%,rgba(4,20,42,0.12)_100%)]" />
       <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,rgba(4,16,35,0.58)_0%,rgba(4,16,35,0.08)_42%,rgba(4,16,35,0.22)_100%)]" />
-
-      <div className="absolute bottom-5 left-[clamp(1.25rem,5vw,5.5rem)] z-[1] flex flex-col gap-1 text-[9px] font-medium tracking-[0.2em] text-white/70 sm:bottom-7 sm:text-[10px]">
-        {sideWords.map((word) => (
-          <span key={word}>{word}</span>
-        ))}
-      </div>
-
-      <figcaption className="sr-only">Salcedo Street, Makati City · Night view from Ayala</figcaption>
-
     </figure>
   );
 }

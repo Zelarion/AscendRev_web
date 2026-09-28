@@ -165,47 +165,46 @@ export default function LeadershipBlock(): JSX.Element {
       */}
       <div className="relative mx-auto grid w-full max-w-[1540px] gap-9 sm:gap-11 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-20 xl:gap-24">
         <aside className="lg:sticky lg:top-28 lg:self-start lg:h-fit lg:border-r lg:border-[var(--border)] lg:pr-8 xl:pr-10">
-          <div className="rounded-[10px] bg-[var(--surface-band-raised)] p-6 lg:bg-transparent lg:p-0">
+          <div className="rounded-[10px] bg-[var(--surface-band-raised)] p-5 lg:bg-transparent lg:p-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
               THE ASCENDREV ADVANTAGE / 01
             </p>
 
-            <h2 className="mt-5 max-w-[32ch] font-display text-h2 text-[var(--navy-900)]">
+            <h2 className="mt-3 max-w-[32ch] font-display text-h2 text-[var(--navy-900)]">
               {leadership.heading}
             </h2>
 
-            <div className="mt-6 border-t border-[var(--border)] pt-5 sm:mt-7 sm:pt-6">
+            <div className="mt-4 border-t border-[var(--border)] pt-4">
               {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps this local portrait asset simple. */}
               <img
-                src="/Rio-Vidal.jpg"
+                src="/images/rio-vidal-portrait.jpg"
                 alt="Rio Vidal, Co-Founder and President of AscendRev"
-                width={611}
-                height={508}
-                className="mb-5 block aspect-[611/508] w-full max-w-[clamp(16rem,44vw,23rem)] rounded-[8px] object-cover object-[center_34%]"
+                width={781}
+                height={721}
+                className="mb-3 block h-auto w-full max-w-[clamp(16rem,40vw,20rem)] rounded-[8px] object-contain"
               />
 
               <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>
               <p className="mt-1 text-sm text-[var(--ink-muted)]">Co-Founder and President</p>
+              <p className="mt-1 text-sm leading-[1.6] text-[var(--ink-muted)]">
+                Previously with American Express Bank of Canada, Acquire BPO/Acquire Intelligence and Custom Travel Solutions
+              </p>
               {site.linkedinUrl && (
                 <a
                   href={site.linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--navy-900)] transition-colors hover:bg-[var(--surface-band-raised)]"
+                  className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--navy-900)] transition-colors hover:bg-[var(--surface-band-raised)]"
                 >
                   <LinkedinLogo size={16} weight="regular" aria-hidden="true" />
                   <span>LinkedIn profile</span>
                 </a>
               )}
-              <p className="mt-1 text-sm leading-[1.6] text-[var(--ink-muted)]">
-                Previously with AcquireBPO / Acquire Intelligence, Custom Travel Solutions, and American Express Canada.
-              </p>
-
-              <p className="mt-5 max-w-[46ch] text-body text-[var(--ink-muted)]">
+              <p className="mt-3 max-w-[46ch] text-sm leading-[1.6] text-[var(--ink-muted)]">
                 Decades of career experience translated to support People, Process, Performance and Results
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-[var(--border)] pt-5 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--border)] pt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-muted)]">
                 <span>Canadian Leadership</span>
                 <span>Direct Accountability</span>
                 <span>Commercial Experience</span>

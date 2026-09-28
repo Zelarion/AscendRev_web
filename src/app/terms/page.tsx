@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import Section from '@/components/layout/Section';
 import { site } from '@/content/site';
+import { createSeoMetadata } from '@/lib/seoMetadata';
 
 /**
  * The website terms, stated in full rather than summarised.
@@ -22,14 +22,12 @@ import { site } from '@/content/site';
 
 const LAST_UPDATED = 'September 23, 2026';
 
-export const metadata: Metadata = {
+export const metadata = createSeoMetadata({
   title: 'Terms of Use',
   description:
     'The terms that apply to visitors of the AscendRev Outsourcing Services Corp. website, including enquiries, content ownership and governing law.',
-  alternates: {
-    canonical: '/terms/',
-  },
-};
+  canonicalPath: '/terms/',
+});
 
 const headingClass = 'text-h2 font-display font-medium tracking-[-0.02em] text-[var(--ink)]';
 const bodyClass = 'mt-3 text-body text-[var(--ink-muted)]';

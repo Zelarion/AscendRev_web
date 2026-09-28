@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+import Image from 'next/image';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import ValuesList from '@/components/sections/values/ValuesList';
 import { values } from '@/content/values';
+import { createSeoMetadata } from '@/lib/seoMetadata';
 
 /**
  * `/values`. A plain content page like `/privacy`, not a hero marketing
@@ -10,13 +11,11 @@ import { values } from '@/content/values';
  * change the wording, if possible," so the page's job is to present the
  * three values faithfully rather than to dramatise them.
  */
-export const metadata: Metadata = {
+export const metadata = createSeoMetadata({
   title: values.meta.title,
   description: values.meta.description,
-  alternates: {
-    canonical: values.canonicalPath,
-  },
-};
+  canonicalPath: values.canonicalPath,
+});
 
 export default function ValuesPage() {
   return (
@@ -28,6 +27,19 @@ export default function ValuesPage() {
         <h1 className="text-h1 font-display font-medium tracking-[-0.025em] text-[var(--ink)]">
           {values.heading}
         </h1>
+
+        <div className="mx-auto mt-7 w-full max-w-[560px] sm:mt-9">
+          <figure className="relative mx-auto aspect-[4/3] w-full overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface-band)]">
+            <Image
+              src={values.teamImage.src}
+              alt={values.teamImage.alt}
+              width={1081}
+              height={723}
+              sizes="(min-width: 560px) 560px, calc(100vw - 2.5rem)"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </figure>
+        </div>
 
         <ValuesList values={values.values} />
       </Container>

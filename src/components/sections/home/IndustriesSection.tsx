@@ -29,6 +29,18 @@ const INDUSTRY_ICONS = {
   growth: ChartLineUp,
 } satisfies Record<IndustryIcon, typeof Target>;
 
+const INDUSTRY_ICON_STYLES: Record<IndustryIcon, string> = {
+  leads: 'border-[#c8e8d8] bg-[#edf8f2] text-[#25734f]',
+  'sales-capacity': 'border-[#c7dcf2] bg-[#eff6fd] text-[#285f91]',
+  'customer-service': 'border-[#d3d5f3] bg-[#f2f2fc] text-[#4b4b8b]',
+  'follow-up': 'border-[#f0dfb2] bg-[#fff8e8] text-[#8a6412]',
+  operations: 'border-[#c6d6e7] bg-[#eef3f8] text-[#304c69]',
+  retention: 'border-[#d1e7dd] bg-[#f0f8f4] text-[#31725a]',
+  scale: 'border-[#c7e3e7] bg-[#eff8fa] text-[#286874]',
+  receivables: 'border-[#ead9c5] bg-[#fbf5ef] text-[#805428]',
+  growth: 'border-[#c9def3] bg-[#f0f6fc] text-[#285c87]',
+};
+
 /**
  * Client copy revision, 2026-09-24: this section used to be industry-group
  * tabs with stock photography, scroll-linked via IntersectionObserver. The
@@ -74,7 +86,7 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
               <li key={item.question} className="flex h-full items-start gap-4 rounded-xl border border-[var(--line)] bg-white/75 p-4 shadow-[0_8px_28px_rgba(11,31,59,0.045)] sm:gap-5 sm:p-5">
                 <span
                   aria-hidden="true"
-                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface-band)] text-[var(--gold-text)] sm:h-16 sm:w-16"
+                  className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border sm:h-16 sm:w-16 ${INDUSTRY_ICON_STYLES[item.icon]}`}
                 >
                   <Icon aria-hidden="true" size={28} weight="regular" />
                 </span>

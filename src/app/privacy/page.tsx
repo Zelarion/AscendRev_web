@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import Section from '@/components/layout/Section';
 import { site } from '@/content/site';
+import { createSeoMetadata } from '@/lib/seoMetadata';
 
 /**
  * The privacy policy, stated in full rather than summarised.
@@ -29,14 +29,12 @@ import { site } from '@/content/site';
 
 const LAST_UPDATED = 'September 25, 2026';
 
-export const metadata: Metadata = {
+export const metadata = createSeoMetadata({
   title: 'Privacy Policy',
   description:
     'How AscendRev Outsourcing Services Corp. collects, uses, stores and protects personal information submitted through this website.',
-  alternates: {
-    canonical: '/privacy/',
-  },
-};
+  canonicalPath: '/privacy/',
+});
 
 const headingClass = 'text-h2 font-display font-medium tracking-[-0.02em] text-[var(--ink)]';
 const bodyClass = 'mt-3 text-body text-[var(--ink-muted)]';

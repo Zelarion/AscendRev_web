@@ -32,10 +32,14 @@ out/
   .htaccess            <- easy to miss, see below
   index.html
   404.html
-  404/  solutions/  advantage/  contact/  privacy/  terms/
+  404/  solutions/  capabilities/  advantage/  values/  contact/  privacy/  terms/
+  robots.txt  sitemap.xml
   _next/static/        <- JS, CSS, fonts, all fingerprinted
   new-logo.png
 ```
+
+`src/app/robots.ts` and `src/app/sitemap.ts` generate `robots.txt` and
+`sitemap.xml` in `out/` with every build. They are included in each deployment.
 
 ### The two things that go wrong
 
@@ -86,13 +90,39 @@ the one served, with no redirect in between.
    Settings → Show Hidden Files (dotfiles) before inspecting it.
 4. Confirm the preserved `.well-known/`, `cgi-bin/`, and holding-page backup are
    still available, and that no pre-existing file was removed without a backup.
-5. Load every route in a browser: `/`, `/solutions/`, `/advantage/`, `/contact/`,
-   `/privacy/`, `/terms/`, and a made-up URL to confirm the 404 page appears.
+5. Load every route in a browser: `/`, `/solutions/`, `/capabilities/`,
+   `/advantage/`, `/values/`, `/contact/`, `/privacy/`, `/terms/`, and a made-up
+   URL to confirm the 404 page appears.
 6. Check it on a phone, not just a narrow browser window.
 7. Test the enquiry handler with a safe no-send `GET` or unsupported-method
    request first. It should return its explicit method response without sending
    mail. Then submit one controlled enquiry and verify outbound SMTP delivery
    and inbox placement for both configured recipients.
+
+## Search indexing and social previews after deployment
+
+1. Open `https://ascend-rev.ca/robots.txt` and
+   `https://ascend-rev.ca/sitemap.xml`; confirm both load and the sitemap lists
+   only the eight public routes above.
+2. In Google Search Console, verify the domain if needed, submit
+   `https://ascend-rev.ca/sitemap.xml`, then use URL Inspection to request a
+   recrawl of the home page and any newly changed public pages. Google controls
+   crawl timing and inclusion.
+3. In Bing Webmaster Tools, verify the site if needed and submit the same
+   sitemap URL. Resubmit after future URL or sitemap changes.
+4. For a changed link card, use Meta's Sharing Debugger to refresh the cached
+   URL and inspect the new title, description, and image. WhatsApp can retain
+   previously fetched cards; after the refresh, send the link in a new chat and
+   make sure link previews are enabled in the sender's WhatsApp settings.
+5. Optional: configure IndexNow in Bing Webmaster Tools. The site owner must
+   create the key, publish its verification file at the site root, and submit
+   URLs using that key. Keep the key private and out of Git and public page
+   source. This build does not submit URLs to search engines automatically.
+6. Optional: validate the Organization/ProfessionalService JSON-LD with
+   Google's Rich Results Test or Schema Markup Validator after upload. Structured
+   data helps crawlers understand the business; it does not guarantee a rich
+   result or AI citation. The included `llms.txt` is an emerging convention,
+   not a ranking control.
 
 ## Publishing an update
 
@@ -150,4 +180,3 @@ secrets out of the public document root and out of the deployment archive.
 
 - `public/logo.svg`. The header currently uses the client's supplied `new-logo.png`. The
   scalable version is a Zelarion deliverable on this engagement.
-- `sitemap.xml` and `robots.txt` (SPEC.md §8), generated in a later pass.

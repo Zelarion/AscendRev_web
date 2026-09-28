@@ -1,10 +1,10 @@
 'use client';
 
-import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowRight, List, X } from '@phosphor-icons/react/dist/ssr';
+import { ArrowRight, CaretDown, List, X } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/cn';
 import { hoverTransitionStyle } from '@/lib/motion';
 import { navItems, ctaItem } from '@/content/nav';
@@ -12,6 +12,10 @@ import { navItems, ctaItem } from '@/content/nav';
 const SCROLL_FLOAT_ENTER_PX = 220;
 const SCROLL_FLOAT_EXIT_PX = 90;
 const REVENUE_IMPACT_HREF = '/#revenue-impact';
+const SOLUTIONS_HREFS = new Set(['/solutions/', '/capabilities/', REVENUE_IMPACT_HREF]);
+const solutionNavItems = navItems.filter((item) => SOLUTIONS_HREFS.has(item.href));
+const primaryDesktopNavItems = navItems.filter((item) => !SOLUTIONS_HREFS.has(item.href));
+const desktopNavItemClass = 'ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-[12px] font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[4px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[12px] xl:wide-nav:text-[14px]';
 
 function isActiveRoute(pathname: string, href: string): boolean {
   if (href.includes('#')) return false;
@@ -23,9 +27,12 @@ export default function Header(): JSX.Element {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [storyNavHidden, setStoryNavHidden] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const solutionsButtonRef = useRef<HTMLButtonElement>(null);
+  const solutionsMenuRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -80,9 +87,38 @@ export default function Header(): JSX.Element {
     toggleRef.current?.focus();
   }, []);
 
+  const closeSolutionsMenu = useCallback((restoreFocus = false) => {
+    setSolutionsOpen(false);
+    if (restoreFocus) solutionsButtonRef.current?.focus();
+  }, []);
+
   useEffect(() => {
     setMenuOpen(false);
+    setSolutionsOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!solutionsOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!solutionsMenuRef.current?.contains(event.target as Node)) {
+        setSolutionsOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSolutionsMenu(true);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [solutionsOpen, closeSolutionsMenu]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -174,7 +210,7 @@ export default function Header(): JSX.Element {
         <Link
           href="/"
           aria-label="AscendRev Outsourcing and Offshoring Solutions home"
-          className="absolute inset-y-0 left-0 z-20 w-[47vw] max-w-[calc(100vw-5.5rem)] outline-none md:w-[38vw] md:max-w-none wide-nav:w-[32vw]"
+          className="absolute inset-y-0 left-0 z-20 w-[47vw] max-w-[calc(100vw-5.5rem)] outline-none md:w-[38vw] md:max-w-none wide-nav:w-[30vw]"
         >
           <span className="sr-only">AscendRev home</span>
           <span
@@ -185,38 +221,85 @@ export default function Header(): JSX.Element {
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-4 wide-nav:ml-[32vw] wide-nav:flex wide-nav:gap-5 max-[120rem]:wide-nav:gap-2">
-          {navItems.map((item, index) => {
-            const active = isActiveRoute(pathname, item.href);
-            const className = "ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-sm font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[7px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[15px] max-[120rem]:wide-nav:text-[13px]";
-            const style = { ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` };
-            return item.href === REVENUE_IMPACT_HREF ? (
-              <a
-                key={item.href}
-                href={item.href}
-                className={className}
-                style={style}
-              >
-                {item.label}
-              </a>
-            ) : (
+        <nav aria-label="Primary" className="hidden flex-nowrap items-center justify-between gap-x-2 wide-nav:ml-[29vw] wide-nav:mr-4 wide-nav:flex wide-nav:flex-1 wide-nav:min-w-0">
+          {primaryDesktopNavItems.map((item, index) => (
+            <Fragment key={item.href}>
               <Link
-                key={item.href}
                 href={item.href}
-                aria-current={active ? 'page' : undefined}
-                className={className}
-                style={style}
+                aria-current={isActiveRoute(pathname, item.href) ? 'page' : undefined}
+                className={desktopNavItemClass}
+                style={{ ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` }}
               >
                 {item.label}
               </Link>
-            );
-          })}
+              {item.href === '/' && (
+                <div
+                  ref={solutionsMenuRef}
+                  className="relative flex shrink-0 items-center"
+                  onBlur={(event) => {
+                    const nextFocused = event.relatedTarget;
+                    if (!(nextFocused instanceof Node) || !event.currentTarget.contains(nextFocused)) {
+                      setSolutionsOpen(false);
+                    }
+                  }}
+                >
+                  <button
+                    ref={solutionsButtonRef}
+                    type="button"
+                    aria-expanded={solutionsOpen}
+                    aria-controls="desktop-solutions-links"
+                    onClick={() => setSolutionsOpen((open) => !open)}
+                    className={cn(desktopNavItemClass, solutionsOpen && 'text-[var(--gold-300)]')}
+                  >
+                    <span>SOLUTIONS</span>
+                    <CaretDown
+                      size={14}
+                      weight="bold"
+                      aria-hidden="true"
+                      className={cn('transition-transform duration-200', solutionsOpen && 'rotate-180')}
+                    />
+                  </button>
+                  <div
+                    id="desktop-solutions-links"
+                    hidden={!solutionsOpen}
+                    className="absolute left-0 top-full z-[var(--z-dropdown)] mt-2 w-[min(21rem,84vw)] rounded-xl border border-[var(--border)] bg-white p-2 text-[var(--navy-900)] shadow-[0_18px_40px_rgba(0,0,0,0.2)]"
+                  >
+                    <nav aria-label="Solutions links" className="flex flex-col gap-1">
+                      {solutionNavItems.map((solutionItem) => {
+                        const solutionClassName = 'flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium text-[var(--navy-900)] outline-none transition-colors hover:bg-[var(--surface-band-raised)] hover:text-[var(--accent)]';
+                        return solutionItem.href === REVENUE_IMPACT_HREF ? (
+                          <a
+                            key={solutionItem.href}
+                            href={solutionItem.href}
+                            onClick={() => closeSolutionsMenu()}
+                            className={solutionClassName}
+                          >
+                            {solutionItem.label}
+                          </a>
+                        ) : (
+                          <Link
+                            key={solutionItem.href}
+                            href={solutionItem.href}
+                            aria-current={isActiveRoute(pathname, solutionItem.href) ? 'page' : undefined}
+                            onClick={() => closeSolutionsMenu()}
+                            className={solutionClassName}
+                          >
+                            {solutionItem.label}
+                          </Link>
+                        );
+                      })}
+                    </nav>
+                  </div>
+                </div>
+              )}
+            </Fragment>
+          ))}
         </nav>
 
-        <div className="hidden items-center gap-4 wide-nav:flex wide-nav:gap-5 max-[120rem]:wide-nav:gap-2">
+        <div className="hidden shrink-0 items-center gap-4 wide-nav:flex">
           <Link
             href={ctaItem.href}
-            className="ar-nav-item group inline-flex min-h-12 min-w-[255px] items-center justify-center gap-4 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-7 text-[15px] font-semibold text-[var(--gold-ink)] shadow-[0_8px_24px_rgba(197,151,49,0.22)] outline-none transition-[transform,box-shadow,filter] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(197,151,49,0.32)] hover:brightness-105 active:translate-y-0 xl:min-w-[285px] xl:text-base wide-nav:min-w-[220px] wide-nav:gap-2 wide-nav:px-3 max-[120rem]:wide-nav:text-[13px] min-[120rem]:wide-nav:min-w-[285px] min-[120rem]:wide-nav:px-7"
+            className="ar-nav-item group inline-flex min-h-12 min-w-[255px] items-center justify-center gap-4 rounded-[9px] border border-[var(--gold-300)]/70 bg-[linear-gradient(135deg,var(--gold-300),var(--gold-500))] px-7 text-[15px] font-semibold text-[var(--gold-ink)] shadow-[0_8px_24px_rgba(197,151,49,0.22)] outline-none transition-[transform,box-shadow,filter] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(197,151,49,0.32)] hover:brightness-105 active:translate-y-0 wide-nav:min-w-[255px] wide-nav:gap-2 wide-nav:px-3 wide-nav:text-sm xl:min-w-[285px] xl:px-6 xl:text-[15px]"
             style={{ animationDelay: '540ms' }}
           >
             <span>{ctaItem.label}</span>

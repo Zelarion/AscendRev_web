@@ -18,6 +18,11 @@ export interface SolutionsHeroContent {
   subheadline: string;
 }
 
+export interface ContentImage {
+  src: string;
+  alt: string;
+}
+
 /** An icon-plus-label entry: the nine services and the six screening steps
  * share this exact shape, so one type serves both. */
 export interface IconLabelItem {
@@ -31,6 +36,7 @@ export interface IconLabelItem {
 export interface ServiceGridContent {
   heading: string;
   intro: string;
+  salesDashboardImage: ContentImage;
   items: readonly IconLabelItem[];
 }
 
@@ -41,6 +47,7 @@ export interface TeamCapabilityContent {
 
 export interface ScreeningContent {
   heading: string;
+  interviewImage: ContentImage;
   items: readonly IconLabelItem[];
 }
 
@@ -82,6 +89,10 @@ export const solutions: SolutionsContent = {
     // Client revision, 2026-09-24: exact replacement text.
     intro:
       'Core aspects where we do well. Your partnership investment is backed by premium talents where ownership, discipline, performance consistency, and winning are the way of life.',
+    salesDashboardImage: {
+      src: '/images/ascendrev-sales-dashboard-team.png',
+      alt: 'AscendRev team members collaborating around a sales performance dashboard.',
+    },
     // Client revision, 2026-09-24: descriptions removed, icon + label only.
     // Order, glyphs and labels are the client's own, verbatim.
     items: [
@@ -124,6 +135,10 @@ export const solutions: SolutionsContent = {
     // combined hiring/screening block so it carries its own heading, per the
     // client's brief.
     heading: 'How we screen our Team members',
+    interviewImage: {
+      src: '/images/ascendrev-screening-interview.png',
+      alt: 'A candidate taking part in an in-person interview with an AscendRev team member.',
+    },
     items: [
       { id: 'resume-screening', glyph: '▤✓', label: 'Resume Screening' },
       { id: 'phone-interview', glyph: '☎◉', label: 'Phone Interview' },

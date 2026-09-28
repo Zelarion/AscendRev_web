@@ -20,17 +20,13 @@ import { prefersReducedMotion } from '@/lib/motion';
 import styles from './OfficeFrameStory.module.css';
 
 const FACILITIES = [
-  { label: 'Hallway', src: '/images/hallway1.jpg', alt: 'Interior hallway at the AscendRev campus.' },
-  { label: 'Operations', src: '/images/office4.jpg', alt: 'Cubicles and workstations on the operations floor.' },
-  { label: 'Break / Coffee Area', src: '/images/new1.jpg', alt: 'Shared cafeteria and break area.' },
-  { label: 'Boardroom', src: '/images/office3.jpg', alt: 'Boardroom meeting space with a conference table and seating.' },
-  { label: 'Staff Parking', src: '/images/parking1.jpg', alt: 'Covered staff parking with vehicles.' },
-  { label: 'Guards on Duty', src: '/images/guards-on-duty-cropped.webp', alt: 'A uniformed security guard monitoring the parking entrance.' },
-  { label: 'Elevator', src: '/images/elev.jpg', alt: 'Elevator in the AscendRev building.' },
-  { label: 'Reception', src: '/images/lobby1.jpg', alt: 'Reception and lobby seating area.' },
-  { label: 'Stairs', src: '/images/staircase1.jpg', alt: 'Interior staircase connecting the building floors.' },
-  { label: 'Washroom Vanity', src: '/images/bathroom3-reflection-clean.webp', alt: 'Washroom vanity with sinks and mirrors; the mirror reflection is clear of people.' },
   { label: 'AscendRev Campus', src: '/images/ascendrev-campus.webp', alt: 'Exterior of the AscendRev campus with its icon on the building sign.' },
+  { label: 'Hallway', src: '/images/hallway1.jpg', alt: 'Interior hallway at the AscendRev campus.' },
+  { label: 'Training Room', src: '/images/ascendrev-training-room.jpg', alt: 'An empty training room with rows of desks and chairs.' },
+  { label: 'Boardroom', src: '/images/ascendrev-boardroom.png', alt: 'A conference boardroom with a long table, black chairs, and a wall-mounted screen.' },
+  { label: 'Full-Scale Operations', src: '/images/office4.jpg', alt: 'Rows of workstations and cubicles on an operations floor.' },
+  { label: 'Flexible Operations', src: '/images/ascendrev-flexible-operations.jpg', alt: 'An open operations floor with rows of workstations, blue partitions, and computer stations.' },
+  { label: 'Secure Personal Storage', src: '/images/ascendrev-secure-personal-storage.jpg', alt: 'A hallway with secure personal storage lockers outside the offices.' },
 ] as const;
 
 /**
@@ -230,14 +226,14 @@ export default function OfficeFrameStory(): JSX.Element {
   return (
     <section ref={rootRef} data-office-story className={styles.section} aria-labelledby="office-story-title">
       <div className={styles.intro}>
-        <h2 id="office-story-title" tabIndex={-1}>Our Facilities in Action</h2>
+        <h2 id="office-story-title" tabIndex={-1}>Facilities Overview</h2>
         <a className={styles.viewAllButton} href="#all-facilities-grid" onClick={openAllFacilities} aria-controls="all-facilities-grid" aria-expanded={showAllFacilities}>
-          Facilities Gallery <span aria-hidden="true">→</span>
+          View all photos <span aria-hidden="true">→</span>
         </a>
       </div>
 
-      <div id="all-facilities-grid" className={`${styles.facilitiesGallery} ${showAllFacilities ? styles.allFacilitiesMode : ''}`} data-facilities-gallery role="region" aria-label="AscendRev facilities photo gallery" tabIndex={-1}>
-        {showAllFacilities && <h3 className={styles.galleryTitle} id="all-facilities-title" tabIndex={-1}>Facilities Gallery</h3>}
+      <div id="all-facilities-grid" className={`${styles.facilitiesGallery} ${showAllFacilities ? styles.allFacilitiesMode : ''}`} data-facilities-gallery role="region" aria-label="AscendRev facilities overview photo gallery" tabIndex={-1}>
+        {showAllFacilities && <h3 className={styles.galleryTitle} id="all-facilities-title" tabIndex={-1}>Facilities Overview</h3>}
         <div className={styles.galleryViewport} data-facilities-viewport>
           <div className={styles.galleryTrack} data-facilities-track>
             {FACILITIES.map((facility, index) => (
@@ -254,7 +250,7 @@ export default function OfficeFrameStory(): JSX.Element {
                     alt={facility.alt}
                     fill
                     sizes="(max-width: 767px) 82vw, (max-width: 1023px) 48vw, 30vw"
-                    className={styles.facilityPhoto}
+                    className={`${styles.facilityPhoto} ${facility.label === 'Secure Personal Storage' ? styles.containedFacilityPhoto : ''}`}
                   />
                   <span className={styles.facilityNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                 </button>

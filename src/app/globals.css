@@ -25,6 +25,26 @@
 
 @import 'tailwindcss';
 
+/* Rubik variable font, self-hosted from Fontsource 5.3.0. Latin Extended is
+   split out so common English UI copy only downloads the smaller Latin file. */
+@font-face {
+  font-family: 'Rubik Variable';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('/fonts/rubik-latin-ext-wght-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Rubik Variable';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('/fonts/rubik-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
 @theme {
   /* ---- Colour, light (DESIGN.md §1) -------------------------------------- */
   /* Navy is no longer a background. The client asked for white as the primary
@@ -69,11 +89,11 @@
   --color-border-strong: #7e8899;
 
   /* ---- Fonts -------------------------------------------------------------
-   * Keep display, reading, and label roles for existing components, but use
-   * one system family stack across the site. */
-  --font-display: 'Times New Roman', Times, serif;
-  --font-sans: 'Times New Roman', Times, serif;
-  --font-mono: 'Times New Roman', Times, serif;
+   * Editorial headings use Newsreader; body and UI use Rubik. The mono role
+   * aliases Rubik so the site requests only these two font families. */
+  --font-display: 'Newsreader Variable', 'Newsreader', Georgia, serif;
+  --font-sans: 'Rubik Variable', Rubik, Arial, sans-serif;
+  --font-mono: var(--font-sans);
 
   /* ---- Type scale (DESIGN.md §2) -----------------------------------------
    * Each `--text-<name>` pairs with `--text-<name>--line-height` and
@@ -81,8 +101,8 @@
    * specifies one). Tailwind v4's compound font-size utility applies all of
    * them together via a single `text-<name>` class. Font *family* is not
    * part of this compound (Tailwind has no such pairing for font-family).
-   * Family roles remain separate for component compatibility, but resolve to
-   * the same Times New Roman stack above. */
+   * Family roles remain separate for component compatibility and resolve to
+   * one of the two self-hosted families above. */
   --text-display: clamp(2.75rem, 6vw, 4.75rem);
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.03em;
@@ -138,12 +158,11 @@
   --z-nav-backdrop: 110;
   --z-nav-sheet: 120;
 
-  /* Named layout tiers: tablet begins at 768px; inline navigation begins at
-     1344px so compact laptop viewports do not spend an unnecessary tier in
-     the oversized drawer layout. */
+  /* Keep the accessible menu sheet through tablet widths. Laptop navigation
+     starts at 1088px and groups the three long service destinations. */
   --breakpoint-tablet: 48rem;
   --breakpoint-desktop: 64rem;
-  --breakpoint-wide-nav: 84rem;
+  --breakpoint-wide-nav: 68rem;
 
   /* ---- Motion (DESIGN.md §4) ----------------------------------------------
    * --ease-* is a recognised Tailwind v4 namespace and generates
@@ -420,7 +439,7 @@ h3 {
 }
 
 /* One measured hierarchy across public pages. Every semantic heading uses the
-   same Times New Roman family, scale, weight, and spacing. These unlayered rules
+   Newsreader display family, scale, weight, and spacing. These unlayered rules
    intentionally normalize older one-off Tailwind sizes. */
 main h1,
 main h2,
@@ -465,9 +484,8 @@ main h2.ar-type-value-title {
   letter-spacing: -0.015em !important;
 }
 
-/* Paragraph copy uses the same sitewide Times New Roman family and consistent
-   body scale. Large numeric callouts opt into `.ar-type-stat`, whose cap stays
-   below the page-title scale. */
+/* Paragraph copy uses the Rubik body family and consistent body scale. Large
+   numeric callouts opt into `.ar-type-stat`, whose cap stays below the page-title scale. */
 main p:not(.ar-type-stat) {
   font-family: var(--font-sans) !important;
   font-size: var(--type-body) !important;

@@ -1,11 +1,9 @@
 # Bundled font licenses
 
-This site redistributes the following font software through the Fontsource packages listed in `package.json`:
+This site redistributes the following font software. Newsreader is bundled from its existing Fontsource package; Rubik is self-hosted from the Fontsource variable-font distribution, with its source package version and upstream license recorded below.
 
 - Newsreader — Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader).
-- IBM Plex Sans — Copyright 2019 IBM Corp. All rights reserved.
-- IBM Plex Mono — Copyright 2017 IBM Corp. All rights reserved.
-
+- Rubik Variable — Copyright 2015 The Rubik Project Authors (https://github.com/googlefonts/rubik). Self-hosted from `@fontsource-variable/rubik` 5.3.0 (`files/rubik-latin-wght-normal.woff2` and `files/rubik-latin-ext-wght-normal.woff2`); upstream license: https://github.com/google/fonts/blob/main/ofl/rubik/OFL.txt.
 Each font is licensed under the SIL Open Font License, Version 1.1. The complete license text follows.
 SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
 -----------------------------------------------------------

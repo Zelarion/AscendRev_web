@@ -1,10 +1,10 @@
-import type { Metadata } from 'next';
 import HiringStandard from '@/components/sections/solutions/HiringStandard';
 import Screening from '@/components/sections/solutions/Screening';
 import ServiceGrid from '@/components/sections/solutions/ServiceGrid';
 import SolutionsClosing from '@/components/sections/solutions/SolutionsClosing';
 import SolutionsHero from '@/components/sections/solutions/SolutionsHero';
 import { solutions } from '@/content/solutions';
+import { createSeoMetadata } from '@/lib/seoMetadata';
 
 /**
  * `/solutions`, section order per SPEC.md §4.2: compact navy hero, the
@@ -14,13 +14,11 @@ import { solutions } from '@/content/solutions';
  * again here, so the page's copy has exactly one source. The title is rendered
  * through the root layout's `%s | AscendRev` template.
  */
-export const metadata: Metadata = {
+export const metadata = createSeoMetadata({
   title: solutions.meta.title,
   description: solutions.meta.description,
-  alternates: {
-    canonical: '/solutions/',
-  },
-};
+  canonicalPath: '/solutions/',
+});
 
 export default function SolutionsPage() {
   return (

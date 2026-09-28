@@ -9,18 +9,13 @@ tokens, never raw hex.
 
 Derived from the client's logo, sampled directly from `brand/logo-full.png`.
 
-### Strategy: committed
+### Strategy: white-primary (client approved)
 
-Navy is not an accent on a white page. Navy **carries whole sections** as a full-bleed
-surface (hero, the proof band, the closing CTA, the footer) — roughly 35% of total
-surface area. The page alternates between navy and off-white bands. Green appears on
-primary CTAs only, and nowhere else.
-
-**Why this and not the obvious answer.** Navy + white + blue CTA is what anyone would
-guess for a corporate outsourcing firm; it is the first training-data reflex and it looks
-like every competitor. Green is already in the client's logo, gives the highest-contrast
-pairing available inside their own identity, and carries the growth meaning the copy is
-reaching for. It is also defensible in a review: it came from their file.
+The current approved presentation uses white as the primary page surface, with AscendRev
+navy and steel blue for brand structure and the header, and the existing gold and green
+brand accents for emphasis and calls to action. Lightly tinted bands can separate
+sections. Do not force a full-bleed navy treatment or a fixed target percentage of dark
+surface area; keep the established palette coherent as sections vary in purpose.
 
 ### Tokens
 
@@ -33,8 +28,11 @@ reaching for. It is also defensible in a review: it came from their file.
 --green-700  #174A37   CTA pressed        (see note)
 --green-600  #1E5E46   PRIMARY CTA. Logo green.
 --green-500  #286D50   CTA hover
---bg         #FCFCFD   body. True off-white, chroma ~0.003 toward navy.
+--bg         #FFFFFF   primary page background
 --surface    #FFFFFF   cards, form
+--band       #F4F7FB   raised, lightly tinted band surface
+--band-deep  #EEF2F8   deeper tinted band surface
+--gold       #F0D47B / #C89731  existing gold brand accent and CTA treatment
 --ink        #111827   body text
 --ink-muted  #4B5563   secondary text. 7.0:1 on --bg. Never lighter than this.
 --border     #E3E6EB   1px hairline, everywhere
@@ -59,27 +57,26 @@ Placeholder text uses `--ink-muted`, not a lighter grey. Body text is never belo
 
 ### Bans
 
-No cream, sand, beige, bone, or warm-tinted near-white body background. No gold. No
-gradient text. No glassmorphism. No colour-only meaning.
+No cream, sand, beige, bone, or warm-tinted near-white body background. Keep approved
+gold and green brand accents. Avoid gradient text, glass effects, and color-only meaning.
 
 ---
 
 ## 2. Typography
 
-Paired on a contrast axis: editorial serif display against a humanist technical sans.
+Paired on a contrast axis: editorial serif display against a rounded humanist sans.
 
-- **Display** — `Newsreader` (variable, optical sizing). h1, h2, pull quotes.
-  Serif buys institutional permanence, which is exactly what a two-week-old company
-  needs and what its Poppins-and-Inter competitors do not have.
-- **Body / UI** — `IBM Plex Sans`. Humanist, engineered, credible. Not Inter, not Roboto,
-  not Open Sans.
-- **Mono** — `IBM Plex Mono`. Stats, form labels, field micro-copy, footer meta.
+- **Display** — `Newsreader Variable` (variable, optical sizing). h1, h2, pull quotes.
+- **Body / UI** — `Rubik Variable`, matching the client’s Native Teams typography reference.
+- **Utility labels** — Rubik with tracking; do not introduce a third family for monospaced styling.
 
-Self-hosted via `next/font/google` so there is no render-blocking request to Google and
-no third-party call from a PIPEDA-scoped page. `display: swap`.
+Use no more than two families: Newsreader Variable for display headings and Rubik Variable
+for body/UI and utility labels. Newsreader is loaded from the existing local Fontsource
+package; Rubik is self-hosted under `public/fonts/`. Both use local font files with
+`display: swap`; the page makes no Google Fonts request.
 
-**Fallback if the client rejects the serif:** IBM Plex Sans alone across the full weight
-range, 300 to 700. Do not substitute a second sans.
+Keep the Newsreader/Rubik pairing unless the client requests a change. Do not introduce a
+third type family.
 
 ### Scale
 
@@ -87,11 +84,11 @@ range, 300 to 700. Do not substitute a second sans.
 display   clamp(2.75rem, 6vw, 4.75rem)   Newsreader 500, tracking -0.03em, lh 1.05
 h1        clamp(2.25rem, 4.5vw, 3.5rem)  Newsreader 500, tracking -0.025em, lh 1.1
 h2        clamp(1.75rem, 3vw, 2.5rem)    Newsreader 500, tracking -0.02em, lh 1.15
-h3        1.25rem                        Plex Sans 600, tracking -0.01em
-body-lg   1.125rem / 1.65                Plex Sans 400
-body      1rem / 1.65                    Plex Sans 400
-small     0.875rem / 1.55                Plex Sans 400
-label     0.75rem / 1.4                  Plex Mono 500, tracking 0.06em, uppercase
+h3        1.25rem                        Rubik 600, tracking -0.01em
+body-lg   1.125rem / 1.65                Rubik 400
+body      1rem / 1.65                    Rubik 400
+small     0.875rem / 1.55                Rubik 400
+label     0.75rem / 1.4                  Rubik 500, tracking 0.06em, uppercase
 ```
 
 Display ceiling is 4.75rem, under the 6rem limit. Letter-spacing floor is -0.03em.
@@ -119,7 +116,10 @@ ordered process.
 - Spacing scale 4px-based: `4 8 12 16 24 32 48 64 96 128`.
 - Section vertical rhythm: `clamp(5rem, 10vw, 8rem)` standard, `clamp(7rem, 14vw, 11rem)`
   for hero and closing band.
-- Breakpoints `480 / 768 / 1024 / 1280`. Mobile-first. Verified at 375px.
+- Breakpoints `480 / 768 / 1024 / 1280`, plus the desktop navigation onset at
+  `68rem / 1088px`. Keep the accessible hamburger sheet below 68rem, including phone
+  and tablet widths through 1024px; show desktop tabs from 1088px upward. Mobile-first.
+  Verify the layout at laptop and phone widths.
 - Flexbox for 1D, Grid for 2D. Responsive grids use
   `repeat(auto-fit, minmax(clamp value, 1fr))` before reaching for a breakpoint.
 
@@ -175,13 +175,7 @@ No bounce. No elastic. No linear on UI transitions.
 | Scroll reveal | `translateY(14px)` + `opacity 0 → 1`, 600ms, ease-out-expo, IntersectionObserver, fires once |
 | Grid / list entrance | stagger 60ms per item, capped at 8 items then instant |
 | Hero | headline words rise on a 90ms stagger; navy field wipes up behind via `clip-path` |
-| Nav | sticky, solid navy at all scroll positions; hairline bottom border fades in past 80px, 250ms |
-
-The nav was originally specified as transparent over the hero. That only works
-above a navy hero: on `/privacy`, `/terms` and the 404 the white nav text sits on
-the off-white band and disappears until the reader scrolls. The hero band is
-`--navy-800` anyway, so a solid navy header looks identical there and the failure
-mode goes away. Changed during the foundation pass.
+| Nav | fixed branded header; keep the complete accessible menu sheet below 68rem / 1088px, including phone/tablet widths through 1024px; from 1088px show HOME, OUR DIFFERENCE, OUR VALUES, CONTACT, and a separate CTA, with PROBLEM-SOLUTION FRAMEWORK, CAPABILITIES, and REVENUE IMPACT grouped in the SOLUTIONS dropdown |
 | Buttons | `scale(0.98)` on `:active`, background shift 150ms |
 | Cards | border colour deepens + `translateY(-2px)`, 200ms. No shadow bloom |
 | Industry tabs | animated underline slides between tabs, shared-element style |

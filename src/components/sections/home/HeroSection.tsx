@@ -29,11 +29,7 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
     'text-[#a9cfff]',
     'text-[var(--gold-300)]',
   ];
-  const taglineColors = [
-    'text-[#72d3a1]',
-    'text-[#a9cfff]',
-    'text-[var(--gold-300)]',
-  ];
+  const taglineColors = ['text-[#72d3a1]', 'text-[#a9cfff]', 'text-[var(--gold-300)]'];
 
   return (
     <>
@@ -41,9 +37,9 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
         data-tone="navy"
         className="ar-home-hero relative isolate flex min-h-[100svh] w-full overflow-hidden bg-[#061329] text-white lg:h-[100vh] lg:min-h-0 supports-[height:100svh]:lg:h-[100svh]"
       >
-        <HeroMedia sideWords={content.sideWords} />
+        <HeroMedia />
         <div className="ar-home-hero-content relative z-[2] mx-auto flex min-h-[100svh] w-full max-w-[1540px] flex-col justify-center px-[clamp(1.25rem,5vw,5.5rem)] pb-12 pt-[6.25rem] sm:pb-16 sm:pt-[7rem] lg:h-full lg:min-h-0 lg:pb-20 lg:pt-[calc(var(--header-height)+2.5rem)]">
-          <div className="flex w-full flex-1 items-center py-4 sm:py-6 lg:py-8">
+          <div className="flex w-full flex-1 flex-col justify-center py-4 sm:py-6 lg:py-8">
             <div className="w-full max-w-[820px] text-left">
               <p
                 className="ar-home-hero-eyebrow ar-fade-rise mb-3.5 text-[10px] font-semibold tracking-[0.22em] text-[var(--gold-300)] sm:mb-5 sm:text-[11px] lg:mb-6 lg:text-xs"
@@ -76,18 +72,6 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
                 {content.subheadline}
               </p>
 
-              <p
-                aria-label={content.tagline.join(' ')}
-                className="ar-fade-rise mt-3 flex max-w-[52ch] flex-wrap gap-x-1.5 text-[0.78rem] font-semibold tracking-[0.04em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-[0.85rem] lg:mt-4 lg:text-[0.92rem]"
-                style={{ animationDelay: `${HERO_SUPPORT_DELAY_MS + 120}ms` }}
-              >
-                {content.tagline.map((clause, index) => (
-                  <span key={clause} className={taglineColors[index] ?? 'text-white/85'}>
-                    {clause}
-                  </span>
-                ))}
-              </p>
-
               <div
                 className="ar-home-hero-cta ar-fade-rise mt-5 flex w-full max-w-[22rem] flex-col items-stretch justify-start gap-2.5 sm:mt-6 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-start sm:gap-3 lg:mt-7"
                 style={{ animationDelay: `${HERO_CTA_DELAY_MS}ms` }}
@@ -109,6 +93,17 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
                 </Button>
               </div>
             </div>
+            <p
+              aria-label={content.tagline.join(' ')}
+              className="ar-fade-rise mt-7 flex w-full flex-nowrap items-center justify-center gap-x-[0.38em] whitespace-nowrap text-center text-[clamp(0.9rem,4.2vw,2rem)] font-semibold tracking-[0.07em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)] sm:mt-9"
+              style={{ animationDelay: `${HERO_SUPPORT_DELAY_MS + 120}ms` }}
+            >
+              {content.tagline.map((clause, index) => (
+                <span key={clause} className={taglineColors[index] ?? 'text-white/85'}>
+                  {clause}
+                </span>
+              ))}
+            </p>
           </div>
         </div>
 

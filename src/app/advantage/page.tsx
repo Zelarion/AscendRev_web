@@ -1,8 +1,8 @@
-import type { Metadata } from 'next';
 import AdvantageHero from '@/components/sections/advantage/AdvantageHero';
 import InfrastructureBlock from '@/components/sections/advantage/InfrastructureBlock';
 import LeadershipBlock from '@/components/sections/advantage/LeadershipBlock';
 import { advantage } from '@/content/advantage';
+import { createSeoMetadata } from '@/lib/seoMetadata';
 
 /**
  * `/advantage`, section order per SPEC.md §4.3: compact navy hero, leadership
@@ -12,13 +12,11 @@ import { advantage } from '@/content/advantage';
  * source. The title is rendered through the root layout's `%s | AscendRev`
  * template.
  */
-export const metadata: Metadata = {
+export const metadata = createSeoMetadata({
   title: advantage.meta.title,
   description: advantage.meta.description,
-  alternates: {
-    canonical: '/advantage/',
-  },
-};
+  canonicalPath: '/advantage/',
+});
 
 export default function AdvantagePage() {
   return (

@@ -245,7 +245,7 @@ export default function Header(): JSX.Element {
       aria-hidden={headerHidden || undefined}
       inert={headerHidden}
       className={cn(
-        'fixed inset-x-0 top-0 isolate z-[var(--z-nav)] w-full px-0 pt-0 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+        'fixed inset-x-0 top-0 isolate z-[var(--z-nav)] w-full px-0 pt-0 transition-[translate,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
         headerHidden ? 'pointer-events-none -translate-y-[125%] opacity-0' : 'translate-y-0 opacity-100'
       )}
     >

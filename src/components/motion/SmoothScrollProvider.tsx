@@ -28,10 +28,9 @@ const LENIS_OPTIONS = {
   /** Touch devices keep their native scroll physics. Smoothing a touch scroll
    * fights the platform's own inertia and reads as lag on a phone. */
   syncTouch: false,
-  /** In-page anchors (`/#revenue-impact` from the nav) land below the sticky
-   * header rather than underneath it. Lenis offsets the destination by the
-   * negated value, so -80px places the section 80px below the header. */
-  anchors: { offset: -80 },
+  /** `useScrollToTop` owns hash navigation so pinned sections can settle their
+   * layout before it confirms the final anchor destination. */
+  anchors: false,
 } as const;
 
 interface SmoothScrollProviderProps {

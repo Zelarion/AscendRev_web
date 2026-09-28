@@ -174,11 +174,9 @@ export default function OfficeFrameStory(): JSX.Element {
       let finalFrameExitReady = false;
       let finalFrameSettleRaf = 0;
       let pinTrigger: ScrollTrigger | null = null;
-      let touchStartY: number | null = null;
-      let lastTouchY: number | null = null;
-      let touchDirection = 0;
-      let touchBlocked = false;
-      let touchEntryLocked = false;
+      let touchOrigin: { x: number; y: number } | null = null;
+      let touchConsumed = false;
+      let suppressClickUntil = 0;
       let anchorNavigationInProgress = false;
 
       const clampIndex = (index: number): number => Math.max(0, Math.min(stepCount, index));
@@ -428,12 +426,6 @@ export default function OfficeFrameStory(): JSX.Element {
         if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return event.deltaY * window.innerHeight;
         return event.deltaY;
       };
-      const setTouchScrollDelta = (event: TouchEvent, previousY: number, delta: number): void => {
-        const touch = event.targetTouches[0] ?? event.touches[0];
-        if (!touch) return;
-        const boundedTouch = [{ clientX: touch.clientX, clientY: previousY - delta }] as unknown as TouchList;
-        Object.defineProperty(event, 'targetTouches', { configurable: true, value: boundedTouch });
-      };
       const handleWheel = (event: WheelEvent): void => {
         const trigger = galleryTriggerRef.current;
         if (anchorNavigationInProgress || !trigger || event.ctrlKey || isLightboxEvent(event) || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
@@ -569,123 +561,80 @@ export default function OfficeFrameStory(): JSX.Element {
         animateToIndex(nextIndex);
       };
 
+      // Touch has an explicit boundary: one finger-down/up pair is one intent.
+      // Never feed its movement or momentum into the wheel quiet-window logic.
       const handleTouchStart = (event: TouchEvent): void => {
-        if (anchorNavigationInProgress || !event.touches.length || isLightboxEvent(event)) return;
-        // A new finger-down is an explicit new gesture. Unlike wheel input,
-        // touch has a reliable gesture boundary, so it need not inherit the
-        // wheel-momentum quiet window from a previous interaction.
-        if (!isAnimating && gestureLocked) unlockForDirectionChange();
-        touchStartY = lastTouchY = event.touches[0].clientY;
-        touchDirection = 0;
-        touchBlocked = false;
-        touchEntryLocked = false;
+        touchOrigin = null;
+        touchConsumed = false;
+        if (anchorNavigationInProgress || event.touches.length !== 1 || isLightboxEvent(event)) return;
+        touchOrigin = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        if (!isAnimating) unlockForDirectionChange();
       };
       const handleTouchMove = (event: TouchEvent): void => {
         const trigger = galleryTriggerRef.current;
-        if (anchorNavigationInProgress || !trigger || touchStartY === null || lastTouchY === null || !event.touches.length || isLightboxEvent(event)) return;
-        const currentY = event.touches[0].clientY;
-        const scroll = trigger.scroll();
-        const totalDelta = touchStartY - currentY;
-        if (Math.abs(totalDelta) < 14) {
-          lastTouchY = currentY;
-          return;
-        }
-        const direction = Math.sign(totalDelta);
-        if (entryInProgress) {
+        if (anchorNavigationInProgress || !trigger || !touchOrigin || isLightboxEvent(event)) return;
+        if (event.touches.length !== 1) { touchOrigin = null; return; }
+        if (touchConsumed) { blockLenisAndBrowser(event); return; }
+        const dx = touchOrigin.x - event.touches[0].clientX;
+        const dy = touchOrigin.y - event.touches[0].clientY;
+        const horizontal = Math.abs(dx) > Math.abs(dy);
+        const delta = horizontal ? dx : dy;
+        const active = isTriggerActive(trigger);
+        // Cancel the very first active move, before the browser starts a native
+        // pan. Waiting for the swipe threshold lets native scrolling win first.
+        if (active) blockLenisAndBrowser(event);
+        if (Math.abs(delta) < 12) return;
+        const direction = Math.sign(delta);
+        if (!active) {
+          const scroll = trigger.scroll();
+          const crossing = !horizontal && ((direction > 0 && scroll < trigger.start && scroll + dy >= trigger.start)
+            || (direction < 0 && scroll > trigger.end && scroll + dy <= trigger.end));
+          if (!crossing) return;
           blockLenisAndBrowser(event);
-          queueDirectionDuringEntry(direction);
-          lastTouchY = currentY;
-          touchDirection = 0;
-          touchBlocked = false;
+          touchConsumed = true;
+          suppressClickUntil = performance.now() + 700;
+          setTourActive(true, true);
+          landInsidePin(trigger, direction > 0 ? 'start' : 'end');
           return;
         }
-        if (touchEntryLocked) {
-          blockLenisAndBrowser(event);
-          lastTouchY = currentY;
-          return;
-        }
-        if (isAnimating) {
-          blockLenisAndBrowser(event);
-          queueDirectionDuringAnimation(direction);
-          lastTouchY = currentY;
-          touchDirection = 0;
-          touchBlocked = false;
-          return;
-        }
-        if (gestureLocked && direction === gestureDirection) {
-          blockLenisAndBrowser(event);
-          releaseGestureLock();
-          lastTouchY = currentY;
-          touchDirection = 0;
-          touchBlocked = false;
-          return;
-        }
-        if (gestureLocked && direction !== gestureDirection) unlockForDirectionChange();
-        if (!isTriggerActive(trigger)) {
-          const scrollDelta = touchStartY - currentY;
-          let boundedDelta = 0;
-          if (scrollDelta > 0 && scroll < trigger.start && scroll + scrollDelta >= trigger.start) {
-            boundedDelta = trigger.start + 1 - scroll;
-          } else if (scrollDelta < 0 && scroll > trigger.end && scroll + scrollDelta <= trigger.end) {
-            boundedDelta = trigger.start + 1 - scroll;
-          }
-          if (boundedDelta) {
-            try {
-              setTouchScrollDelta(event, lastTouchY, boundedDelta);
-              event.preventDefault();
-              touchEntryLocked = true;
-              beginEntry(direction);
-              setTourActive(true);
-              lockGesture(direction, wheelGestureQuietMs);
-              if (direction > 0) animateToIndex(desiredIndex + 1);
-            } catch {
-              // If a browser does not allow a bounded TouchList, leave this
-              // move alone and let the next touch event retry at the boundary.
-            }
-          }
-          lastTouchY = currentY;
-          return;
-        }
-
-        setTourActive(true);
-        if (!direction) return;
+        touchConsumed = true;
+        suppressClickUntil = performance.now() + 700;
+        // A finger gesture that starts during a transition is consumed, never
+        // replayed later or counted once more on finger-up.
+        if (isAnimating) return;
+        if (entrySettleRaf) window.cancelAnimationFrame(entrySettleRaf);
+        entrySettleRaf = 0;
+        entryInProgress = false;
+        reverseEntryPending = false;
+        pendingDirection = 0;
+        unlockForDirectionChange();
         const nextIndex = clampIndex(desiredIndex + direction);
         if (nextIndex === desiredIndex) {
-          if ((direction > 0 && desiredIndex === stepCount && finalFrameComplete)
-            || (direction < 0 && desiredIndex === 0)) {
-            setTourActive(false);
-            lastTouchY = currentY;
-            return;
+          // Only vertical outward swipes leave the tour. Horizontal edge swipes
+          // stay on the first/last photo, just like a bounded carousel.
+          if (!horizontal && ((direction > 0 && finalFrameComplete) || direction < 0)) {
+            setTourActive(false, true);
+            trigger.scroll(direction > 0 ? trigger.end + 2 : Math.max(0, trigger.start - 2));
+            ScrollTrigger.update();
           }
-          if (direction > 0 && desiredIndex === stepCount && !finalFrameComplete) {
-            lockGesture(direction);
-            blockLenisAndBrowser(event);
-            lastTouchY = currentY;
-            return;
-          }
-          lastTouchY = currentY;
           return;
         }
-        touchDirection = direction;
-        touchBlocked = true;
-        blockLenisAndBrowser(event);
-        lastTouchY = currentY;
+        setTourActive(true);
+        animateToIndex(nextIndex);
       };
       const handleTouchEnd = (event: TouchEvent): void => {
-        if (touchStartY === null) return;
-        if (touchEntryLocked) blockLenisAndBrowser(event);
-        touchStartY = null;
-        lastTouchY = null;
-        if (touchBlocked && touchDirection) {
-          const nextIndex = clampIndex(desiredIndex + touchDirection);
-          if (nextIndex !== desiredIndex) {
-            lockGesture(touchDirection);
-            animateToIndex(nextIndex);
-          }
+        if (touchConsumed) {
+          blockLenisAndBrowser(event);
+          suppressClickUntil = performance.now() + 700;
         }
-        touchDirection = 0;
-        touchBlocked = false;
-        touchEntryLocked = false;
+        touchOrigin = null;
+        touchConsumed = false;
+      };
+      const handleSwipeClick = (event: MouseEvent): void => {
+        if (event.detail && performance.now() < suppressClickUntil && gallery.contains(event.target as Node)) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
       };
 
       const handleKeyDown = (event: KeyboardEvent): void => {
@@ -893,8 +842,9 @@ export default function OfficeFrameStory(): JSX.Element {
       window.addEventListener('wheel', handleWheel, { capture: true, passive: false });
       window.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
       window.addEventListener('touchmove', handleTouchMove, { capture: true, passive: false });
-      window.addEventListener('touchend', handleTouchEnd, { capture: true, passive: true });
-      window.addEventListener('touchcancel', handleTouchEnd, { capture: true, passive: true });
+      window.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
+      window.addEventListener('click', handleSwipeClick, true);
+      window.addEventListener('touchcancel', handleTouchEnd, { capture: true, passive: false });
       window.addEventListener('keydown', handleKeyDown, { capture: true });
 
       const refresh = (): void => ScrollTrigger.refresh();
@@ -909,6 +859,7 @@ export default function OfficeFrameStory(): JSX.Element {
         window.removeEventListener('touchstart', handleTouchStart, true);
         window.removeEventListener('touchmove', handleTouchMove, true);
         window.removeEventListener('touchend', handleTouchEnd, true);
+        window.removeEventListener('click', handleSwipeClick, true);
         window.removeEventListener('touchcancel', handleTouchEnd, true);
         window.removeEventListener('keydown', handleKeyDown, true);
         pinTrigger.kill(true);

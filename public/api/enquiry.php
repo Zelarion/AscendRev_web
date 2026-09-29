@@ -877,15 +877,19 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
     . '<tr><td align="center">'
     . '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(15,27,51,.10);">'
 
-    // Header band, white. The wordmark is navy, so white is the background the
-    // logo was drawn for and it needs no treatment behind it. The logo is
-    // embedded by Content-ID rather than hotlinked, so it displays without the
-    // recipient clicking "show images".
-    //
-    // The 230px-wide logo remains sharp on a retina screen.
-    . '<tr><td style="background:#ffffff;padding:24px 32px 20px;">'
-    . '<img src="cid:ascendrev-logo" width="230" height="77" alt="AscendRev"'
-    . ' style="display:block;border:0;width:230px;height:auto;">'
+    // Header band: the site's own header artwork, logo already composed into
+    // it, run edge to edge so it reads as the brand's letterhead rather than a
+    // logo placed on a blank strip. Embedded by Content-ID rather than
+    // hotlinked, so it displays without the recipient clicking "show images".
+    // 1200x400 source at 600px for retina; JPEG because Outlook desktop cannot
+    // render WebP. The cell background is the artwork's average colour, so a
+    // client that blocks images still shows the navy band, with the alt text
+    // in white on it.
+    . '<tr><td style="background:#073268;padding:0;font-size:0;line-height:0;">'
+    . '<img src="cid:ascendrev-header" width="600" height="200"'
+    . ' alt="AscendRev, Outsourcing &amp; Offshoring Solutions"'
+    . ' style="display:block;border:0;width:100%;max-width:600px;height:auto;'
+    . 'color:#ffffff;font:600 18px/200px Arial,Helvetica,sans-serif;text-align:center;">'
     . '</td></tr>'
 
     // The gold and green rule from the site, carried across so the email is
@@ -968,16 +972,16 @@ $mime = '--' . $boundaryRelated . "\r\n"
 
     . '--' . $boundaryAlt . '--' . "\r\n\r\n";
 
-$logoPath = dirname(__DIR__) . '/new-logo.png';
-if (is_readable($logoPath)) {
-    $logoData = @file_get_contents($logoPath);
-    if ($logoData !== false) {
+$headerImagePath = dirname(__DIR__) . '/email-header.jpg';
+if (is_readable($headerImagePath)) {
+    $headerImageData = @file_get_contents($headerImagePath);
+    if ($headerImageData !== false) {
         $mime .= '--' . $boundaryRelated . "\r\n"
-            . 'Content-Type: image/png; name="new-logo.png"' . "\r\n"
+            . 'Content-Type: image/jpeg; name="email-header.jpg"' . "\r\n"
             . 'Content-Transfer-Encoding: base64' . "\r\n"
-            . 'Content-ID: <ascendrev-logo>' . "\r\n"
-            . 'Content-Disposition: inline; filename="new-logo.png"' . "\r\n\r\n"
-            . chunk_split(base64_encode($logoData), 76, "\r\n") . "\r\n";
+            . 'Content-ID: <ascendrev-header>' . "\r\n"
+            . 'Content-Disposition: inline; filename="email-header.jpg"' . "\r\n\r\n"
+            . chunk_split(base64_encode($headerImageData), 76, "\r\n") . "\r\n";
     }
 }
 

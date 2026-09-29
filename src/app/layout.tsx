@@ -82,7 +82,63 @@ export default function RootLayout({
     <html lang="en-CA" suppressHydrationWarning>
       <head>
         <Script id="ascendrev-loader-bootstrap" strategy="beforeInteractive">
-          {`(() => { const loaderRoot = document.documentElement; let visited = false; try { visited = sessionStorage.getItem('ascendrev-loader-visited') === '1'; } catch {} loaderRoot.dataset.ascendrevLoaderStartedAt = String(performance.now()); loaderRoot.dataset.ascendrevLoaderFast = visited ? 'true' : 'false'; loaderRoot.dataset.ascendrevLoader = 'active'; window.setTimeout(() => { if (loaderRoot.dataset.ascendrevLoader === 'active') { loaderRoot.dataset.ascendrevLoader = 'expired'; delete loaderRoot.dataset.ascendrevLoaderStartedAt; } }, 10000); })();`}
+          {`(() => {
+            const loaderRoot = document.documentElement;
+            const startedAt = performance.now();
+            let lastDomChangeAt = startedAt;
+            let released = false;
+            let checkingLayout = false;
+            loaderRoot.dataset.ascendrevLoaderStartedAt = String(startedAt);
+            loaderRoot.dataset.ascendrevLoader = 'active';
+
+            const observer = new MutationObserver(() => {
+              lastDomChangeAt = performance.now();
+            });
+            observer.observe(loaderRoot, {
+              subtree: true,
+              childList: true,
+              attributes: true,
+              attributeFilter: ['class', 'style', 'href', 'rel', 'media', 'disabled'],
+            });
+
+            const poll = window.setInterval(() => {
+              if (released || checkingLayout || document.readyState === 'loading') return;
+              const main = document.getElementById('main');
+              if (!main) return;
+              const stylesPending = Array.from(document.querySelectorAll('link[rel~="stylesheet"]'))
+                .some((link) => !link.disabled && link.sheet === null);
+              if (
+                stylesPending
+                || performance.now() - lastDomChangeAt < 180
+                || performance.now() - startedAt < 10000
+              ) return;
+
+              checkingLayout = true;
+              window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+                checkingLayout = false;
+                const currentMain = document.getElementById('main');
+                const currentStylesPending = Array.from(document.querySelectorAll('link[rel~="stylesheet"]'))
+                  .some((link) => !link.disabled && link.sheet === null);
+                if (
+                  !currentMain
+                  || currentStylesPending
+                  || performance.now() - lastDomChangeAt < 180
+                  || performance.now() - startedAt < 10000
+                ) return;
+
+                currentMain.getBoundingClientRect();
+                released = true;
+                observer.disconnect();
+                window.clearInterval(poll);
+                loaderRoot.dataset.ascendrevLoader = 'expired';
+                delete loaderRoot.dataset.ascendrevLoaderStartedAt;
+              }));
+            }, 40);
+
+            document.addEventListener('DOMContentLoaded', () => {
+              lastDomChangeAt = performance.now();
+            }, { once: true });
+          })();`}
         </Script>
         <noscript><style>{`.page-loader-boot { display: none !important; }`}</style></noscript>
       </head>

@@ -6,230 +6,91 @@ import LoaderMotionMark from '@/components/ui/LoaderMotionMark';
 
 type LoaderPhase = 'boot' | 'entering' | 'leaving';
 
-const BOOT_MINIMUM_DISPLAY_MS = 120;
-const CACHED_BOOT_MINIMUM_DISPLAY_MS = 0;
-// Route assets must settle before the cover leaves; no extra fixed dwell is
-// added after they are ready.
-const ROUTE_MINIMUM_DISPLAY_MS = 0;
-const ASSET_WAIT_CAP_MS = 8_000;
-const TRANSITION_HARD_CAP_MS = 10_000;
-const ROUTE_COMMIT_CAP_MS = 6_000;
-const COLD_DOM_STABILITY_MS = 180;
-const WARM_DOM_STABILITY_MS = 40;
-
-function waitForImageElement(image: HTMLImageElement): Promise<void> {
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      image.removeEventListener('load', finish);
-      image.removeEventListener('error', finish);
-      resolve();
-    };
-
-    image.addEventListener('load', finish, { once: true });
-    image.addEventListener('error', finish, { once: true });
-
-    if (typeof image.decode === 'function') {
-      image.decode().then(finish, () => {
-        // A decode rejection is terminal only once the fetch itself settled.
-        if (image.complete) finish();
-      });
-    } else if (image.complete) {
-      finish();
-    }
-
-    if (image.complete && typeof image.decode !== 'function') finish();
-  });
-}
-
-function preloadUrl(url: string): Promise<void> {
-  return new Promise((resolve) => {
-    let settled = false;
-    const image = new Image();
-    image.fetchPriority = 'low';
-    image.decoding = 'async';
-
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      image.removeEventListener('load', handleLoad);
-      image.removeEventListener('error', finish);
-      resolve();
-    };
-    const handleLoad = () => {
-      if (typeof image.decode === 'function') image.decode().then(finish, finish);
-      else finish();
-    };
-
-    image.addEventListener('load', handleLoad, { once: true });
-    image.addEventListener('error', finish, { once: true });
-    image.src = url;
-
-    if (image.complete) {
-      if (image.naturalWidth > 0) handleLoad();
-      else finish();
-    }
-  });
-}
-
-function extractCssUrls(backgroundImage: string): string[] {
-  const urls: string[] = [];
-  const expression = /url\(\s*(['"]?)(.*?)\1\s*\)/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = expression.exec(backgroundImage)) !== null) {
-    const value = match[2].trim();
-    if (value) urls.push(value);
-  }
-
-  return urls;
-}
+const MINIMUM_DISPLAY_MS = 10_000;
+const BOOT_DOM_STABILITY_MS = 180;
+const ROUTE_DOM_STABILITY_MS = 120;
 
 /**
- * Promote native lazy images before releasing the loader, then wait for current
- * and newly inserted images, CSS backgrounds, video posters and document fonts.
- * Warm routes use a shorter DOM quiet window, but never skip a pending asset.
+ * Wait for the requested route's React commit, parsed HTML, loaded stylesheets,
+ * and a rendered/stable DOM. Images are intentionally excluded: the browser
+ * continues loading them after visitors can start reading the page.
  */
-async function waitForPageAssets(stabilityMs: number): Promise<boolean> {
-  const startedAt = performance.now();
-  const deadlineAt = startedAt + ASSET_WAIT_CAP_MS;
-  const pendingAssets = new Set<Promise<void>>();
-  const seenUrls = new Set<string>();
-  const imageSources = new WeakMap<HTMLImageElement, string>();
-  let lastDomChangeAt = startedAt;
+function waitForPageReady(
+  stabilityMs: number,
+  earliestReadyAt: number,
+  signal: AbortSignal
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    let intervalId: number | null = null;
+    let settled = false;
+    let checkingLayout = false;
+    let lastDomChangeAt = performance.now();
+    const observer = new MutationObserver(() => {
+      lastDomChangeAt = performance.now();
+    });
 
-  const track = (asset: Promise<unknown>) => {
-    const settledAsset = asset.then(() => undefined, () => undefined);
-    pendingAssets.add(settledAsset);
-    void settledAsset.then(() => pendingAssets.delete(settledAsset));
-  };
+    const finish = (ready: boolean) => {
+      if (settled) return;
+      settled = true;
+      observer.disconnect();
+      if (intervalId !== null) window.clearInterval(intervalId);
+      signal.removeEventListener('abort', abort);
+      resolve(ready);
+    };
 
-  const trackFonts = () => {
-    track(document.fonts.ready);
-  };
-
-  const scanImage = (image: HTMLImageElement) => {
-    if (!image.getAttribute('src') && !image.getAttribute('srcset')) return;
-    const sourceKey = `${image.getAttribute('src') ?? ''}\u0000${image.getAttribute('srcset') ?? ''}\u0000${image.getAttribute('sizes') ?? ''}`;
-    if (imageSources.get(image) === sourceKey) return;
-    imageSources.set(image, sourceKey);
-
-    const wasLazy = image.loading === 'lazy';
-    image.loading = 'eager';
-    if (wasLazy && image.fetchPriority === 'auto') image.fetchPriority = 'low';
-    track(waitForImageElement(image));
-  };
-
-  const addUrl = (value: string) => {
-    try {
-      const url = new URL(value, document.baseURI);
-      if (url.protocol === 'data:' || url.protocol === 'blob:') return;
-      if (seenUrls.has(url.href)) return;
-      seenUrls.add(url.href);
-      track(preloadUrl(url.href));
-    } catch {
-      // Ignore a malformed optional decoration; the page remains usable.
-    }
-  };
-
-  const scanElement = (element: Element) => {
-    if (element instanceof HTMLImageElement) scanImage(element);
-    if (element instanceof HTMLSourceElement) {
-      const image = element.parentElement?.querySelector('img');
-      if (image) scanImage(image);
-    }
-    if (element instanceof HTMLVideoElement && element.poster) addUrl(element.poster);
-
-    const styles = [
-      window.getComputedStyle(element),
-      window.getComputedStyle(element, '::before'),
-      window.getComputedStyle(element, '::after'),
-    ];
-
-    for (const style of styles) {
-      for (const url of extractCssUrls(style.backgroundImage)) addUrl(url);
-    }
-  };
-
-  const scanTree = (root: Element) => {
-    scanElement(root);
-    for (const element of Array.from(root.querySelectorAll('*'))) scanElement(element);
-  };
-
-  const observer = new MutationObserver((mutations) => {
-    lastDomChangeAt = performance.now();
-
-    for (const mutation of mutations) {
-      if (mutation.type === 'childList') {
-        for (const node of Array.from(mutation.addedNodes)) {
-          if (!(node instanceof Element)) continue;
-          if (node instanceof HTMLStyleElement || (node instanceof HTMLLinkElement && node.rel === 'stylesheet')) {
-            scanTree(document.documentElement);
-            trackFonts();
-          } else {
-            scanTree(node);
-          }
-        }
-        continue;
-      }
-
-      if (!(mutation.target instanceof Element)) continue;
-      const target = mutation.target;
-      const stylesheetChanged = target instanceof HTMLStyleElement
-        || (target instanceof HTMLLinkElement && target.rel === 'stylesheet');
-      if (stylesheetChanged) {
-        scanTree(document.documentElement);
-        trackFonts();
-      } else {
-        scanTree(target);
-      }
-    }
-  });
-
-  observer.observe(document.documentElement, {
-    subtree: true,
-    childList: true,
-    attributes: true,
-    attributeFilter: ['class', 'style', 'src', 'srcset', 'sizes', 'media', 'loading', 'poster', 'href', 'rel'],
-  });
-  scanTree(document.documentElement);
-  addUrl('/ascendrev-loader-logo-transparent.png');
-  trackFonts();
-
-  let timeoutId: number | undefined;
-  let stabilityPollId: number | undefined;
-  const pageAssetsSettled = new Promise<boolean>((resolve) => {
-    const checkForStability = () => {
-      if (pendingAssets.size === 0 && performance.now() - lastDomChangeAt >= stabilityMs) {
-        resolve(true);
+    const abort = () => finish(false);
+    const check = () => {
+      if (settled) return;
+      if (signal.aborted) {
+        finish(false);
         return;
       }
-      stabilityPollId = window.setTimeout(checkForStability, 25);
+
+      if (document.readyState === 'loading' || checkingLayout) return;
+      const main = document.querySelector<HTMLElement>('main#main');
+      if (!main) return;
+
+      const stylesPending = Array.from(
+        document.querySelectorAll<HTMLLinkElement>('link[rel~="stylesheet"]')
+      ).some((link) => !link.disabled && link.sheet === null);
+      if (
+        stylesPending
+        || performance.now() - lastDomChangeAt < stabilityMs
+        || performance.now() < earliestReadyAt
+      ) return;
+
+      checkingLayout = true;
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+        checkingLayout = false;
+        const currentMain = document.querySelector<HTMLElement>('main#main');
+        const currentStylesPending = Array.from(
+          document.querySelectorAll<HTMLLinkElement>('link[rel~="stylesheet"]')
+        ).some((link) => !link.disabled && link.sheet === null);
+        if (
+          !currentMain
+          || currentStylesPending
+          || performance.now() - lastDomChangeAt < stabilityMs
+          || performance.now() < earliestReadyAt
+        ) return;
+
+        currentMain.getBoundingClientRect();
+        finish(!signal.aborted);
+      }));
     };
-    checkForStability();
+
+    observer.observe(document.documentElement, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['class', 'style', 'href', 'rel', 'media', 'disabled'],
+    });
+    signal.addEventListener('abort', abort, { once: true });
+    intervalId = window.setInterval(check, 40);
+    check();
   });
-
-  const assetsSettled = await Promise.race([
-    pageAssetsSettled,
-    new Promise<boolean>((resolve) => {
-      const remaining = Math.max(0, deadlineAt - performance.now());
-      timeoutId = window.setTimeout(() => resolve(false), remaining);
-    }),
-  ]);
-
-  observer.disconnect();
-  if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-  if (stabilityPollId !== undefined) window.clearTimeout(stabilityPollId);
-  return assetsSettled;
 }
 
-/**
- * A server-rendered first-paint cover and route-transition cover. The early
- * head bootstrap owns the initial ten-second lease, so failed hydration still
- * releases the server-rendered overlay.
- */
+/** A server-rendered first-paint cover and route-transition cover. */
 export default function PageLoader(): JSX.Element | null {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
@@ -237,119 +98,68 @@ export default function PageLoader(): JSX.Element | null {
   const targetUrl = useRef<string | null>(null);
   const transitionId = useRef(0);
   const transitionStartedAt = useRef(0);
-  const assetWaitStartedFor = useRef<number | null>(null);
-  const finishedTransitionFor = useRef<number | null>(null);
-  const failsafeTimer = useRef<number | null>(null);
+  const readinessWaitStartedFor = useRef<number | null>(null);
+  const readinessController = useRef<AbortController | null>(null);
   const queryPollTimer = useRef<number | null>(null);
   const leaveTimer = useRef<number | null>(null);
   const isBootTransition = useRef(true);
   const [phase, setPhase] = useState<LoaderPhase | null>('boot');
 
   const clearPendingTimers = useCallback(() => {
-    if (failsafeTimer.current !== null) window.clearTimeout(failsafeTimer.current);
+    readinessController.current?.abort();
+    readinessController.current = null;
     if (queryPollTimer.current !== null) window.clearInterval(queryPollTimer.current);
     if (leaveTimer.current !== null) window.clearTimeout(leaveTimer.current);
-    failsafeTimer.current = null;
     queryPollTimer.current = null;
     leaveTimer.current = null;
   }, []);
 
   const finishTransition = useCallback((id: number) => {
     if (transitionId.current !== id) return;
-    finishedTransitionFor.current = id;
-    if (failsafeTimer.current !== null) window.clearTimeout(failsafeTimer.current);
-    if (queryPollTimer.current !== null) window.clearInterval(queryPollTimer.current);
-    failsafeTimer.current = null;
-    queryPollTimer.current = null;
+    leaveTimer.current = null;
+    readinessWaitStartedFor.current = null;
     targetPathname.current = null;
     targetUrl.current = null;
 
-    const timeUntilHardCap = TRANSITION_HARD_CAP_MS
-      - (performance.now() - transitionStartedAt.current);
-    if (timeUntilHardCap <= 300) {
-      delete document.documentElement.dataset.ascendrevLoader;
-      delete document.documentElement.dataset.ascendrevLoaderStartedAt;
-      delete document.documentElement.dataset.ascendrevLoaderFast;
-      setPhase(null);
-      return;
-    }
-
-    const warmTransition = document.documentElement.dataset.ascendrevLoaderFast === 'true';
-    const leaveDuration = warmTransition ? 70 : 180;
     setPhase((current) => (current ? 'leaving' : null));
     leaveTimer.current = window.setTimeout(() => {
       if (transitionId.current !== id) return;
       leaveTimer.current = null;
-      delete document.documentElement.dataset.ascendrevLoaderFast;
       delete document.documentElement.dataset.ascendrevLoaderStartedAt;
       setPhase(null);
-    }, leaveDuration);
+    }, 180);
   }, []);
 
   const beginTransition = useCallback(() => {
     clearPendingTimers();
     transitionId.current += 1;
     transitionStartedAt.current = performance.now();
-    assetWaitStartedFor.current = null;
-    finishedTransitionFor.current = null;
+    readinessWaitStartedFor.current = null;
     isBootTransition.current = false;
-    delete document.documentElement.dataset.ascendrevLoaderFast;
     const id = transitionId.current;
     setPhase('entering');
     return id;
   }, [clearPendingTimers]);
 
   const waitForCurrentPage = useCallback((id: number) => {
-    if (assetWaitStartedFor.current === id) return;
-    assetWaitStartedFor.current = id;
+    if (readinessWaitStartedFor.current === id) return;
+    readinessWaitStartedFor.current = id;
 
-    if (failsafeTimer.current !== null) window.clearTimeout(failsafeTimer.current);
-    const remainingHardCap = Math.max(
-      0,
-      TRANSITION_HARD_CAP_MS - (performance.now() - transitionStartedAt.current)
-    );
-    failsafeTimer.current = window.setTimeout(
-      () => finishTransition(id),
-      remainingHardCap
-    );
+    const controller = new AbortController();
+    readinessController.current = controller;
+    const stabilityMs = isBootTransition.current
+      ? BOOT_DOM_STABILITY_MS
+      : ROUTE_DOM_STABILITY_MS;
 
-    let warmTransition = document.documentElement.dataset.ascendrevLoaderFast === 'true';
-    if (!isBootTransition.current) {
-      try {
-        warmTransition = sessionStorage.getItem('ascendrev-loader-visited') === '1';
-      } catch {
-        warmTransition = false;
-      }
-    }
-
-    void waitForPageAssets(warmTransition ? WARM_DOM_STABILITY_MS : COLD_DOM_STABILITY_MS)
-      .catch(() => false)
-      .then((assetsSettled) => {
-        if (transitionId.current !== id || finishedTransitionFor.current === id) return;
-        if (isBootTransition.current && assetsSettled) {
-          try {
-            sessionStorage.setItem('ascendrev-loader-visited', '1');
-          } catch {
-            // The loader still works when browser storage is unavailable.
-          }
-        }
-        if (!isBootTransition.current && assetsSettled) {
-          // This only shortens the fade after every scanned asset has settled.
-          // Uncached images, fonts and CSS art continue to hold the cover.
-          document.documentElement.dataset.ascendrevLoaderFast = 'true';
-        }
-      })
-      .finally(() => {
-        if (transitionId.current !== id || finishedTransitionFor.current === id) return;
-        const elapsed = performance.now() - transitionStartedAt.current;
-        const fastBoot = isBootTransition.current
-          && document.documentElement.dataset.ascendrevLoaderFast === 'true';
-        const minimumDisplay = isBootTransition.current
-          ? (fastBoot ? CACHED_BOOT_MINIMUM_DISPLAY_MS : BOOT_MINIMUM_DISPLAY_MS)
-          : ROUTE_MINIMUM_DISPLAY_MS;
-        const remaining = Math.max(0, minimumDisplay - elapsed);
-        leaveTimer.current = window.setTimeout(() => finishTransition(id), remaining);
-      });
+    void waitForPageReady(
+      stabilityMs,
+      transitionStartedAt.current + MINIMUM_DISPLAY_MS,
+      controller.signal
+    ).then((ready) => {
+      if (!ready || transitionId.current !== id) return;
+      readinessController.current = null;
+      finishTransition(id);
+    });
   }, [finishTransition]);
 
   useEffect(() => {
@@ -367,7 +177,9 @@ export default function PageLoader(): JSX.Element | null {
       ? bootStartedAt
       : performance.now();
     waitForCurrentPage(id);
-  }, [waitForCurrentPage]);
+
+    return clearPendingTimers;
+  }, [clearPendingTimers, waitForCurrentPage]);
 
   useEffect(() => {
     if (phase === 'leaving') {
@@ -406,8 +218,6 @@ export default function PageLoader(): JSX.Element | null {
 
       if (destination.origin !== window.location.origin) return;
       const current = new URL(window.location.href);
-      // Same-page anchors scroll normally and do
-      // not start a second loading cover.
       if (destination.pathname === current.pathname && destination.search === current.search) return;
 
       const destinationUrl = `${destination.pathname}${destination.search}`;
@@ -416,10 +226,6 @@ export default function PageLoader(): JSX.Element | null {
       const id = beginTransition();
       targetPathname.current = destination.pathname;
       targetUrl.current = destinationUrl;
-      failsafeTimer.current = window.setTimeout(
-        () => finishTransition(id),
-        ROUTE_COMMIT_CAP_MS
-      );
 
       if (destination.pathname === current.pathname) {
         queryPollTimer.current = window.setInterval(() => {
@@ -438,7 +244,7 @@ export default function PageLoader(): JSX.Element | null {
       document.removeEventListener('click', handleClick, true);
       clearPendingTimers();
     };
-  }, [beginTransition, clearPendingTimers, finishTransition, waitForCurrentPage]);
+  }, [beginTransition, clearPendingTimers, waitForCurrentPage]);
 
   if (!phase) return null;
 

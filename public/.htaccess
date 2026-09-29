@@ -18,6 +18,21 @@
 </IfModule>
 
 # ---------------------------------------------------------------------------
+# Public directory URLs behind Render's TLS proxy
+# ---------------------------------------------------------------------------
+# Apache's mod_dir redirect uses the private connection scheme and port, which
+# can expose Render's container port (for example :10000). Render enforces
+# public HTTPS, so canonicalize directory URLs directly from the public Host
+# header instead of letting mod_dir build a Location header.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^(?:ascendrev-web|ascendrev-api)\.onrender\.com$ [NC]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_URI} !/$
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}/ [R=302,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
 # 404
 # ---------------------------------------------------------------------------
 ErrorDocument 404 /404.html

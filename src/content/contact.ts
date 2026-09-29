@@ -180,8 +180,8 @@ export const contact: ContactContent = {
     },
     states: {
       submitting: 'Sending your details',
-      success:
-        'Sent. You will hear from a person at AscendRev within eight business hours, Calgary time.',
+      // Client revision, 2026-09-29: Rio's exact wording.
+      success: "We received your inquiry, we appreciate it, and we'll talk soon.",
       failure:
         'That did not send. Nothing has been lost from the form, so try once more. If it fails again, email us at the address in the footer and we will pick it up from there.',
       validationSummary:

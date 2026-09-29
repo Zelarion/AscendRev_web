@@ -176,6 +176,51 @@ SendGrid or other API alternative is needed.
 Storage defaults outside `public_html/`. Keep enquiry records and runtime
 secrets out of the public document root and out of the deployment archive.
 
+### Delivery retry cron
+
+The handler answers the visitor as soon as the enquiry is saved to
+`enquiries.csv` and its delivery-state file, then sends the email in the
+background over one SMTP session. If that attempt does not reach both
+recipients (Gmail slow or refusing a connection, one mailbox rejecting), nothing
+is lost: the row is on disk and a cron job finishes the delivery. Without the
+cron job, a failed first attempt is never retried.
+
+In cPanel, open **Cron Jobs**, add a job that runs every five minutes, and use
+this command, replacing `ACCOUNT` with the cPanel account's home directory name:
+
+```
+*/5 * * * * /usr/local/bin/php /home/ACCOUNT/public_html/api/enquiry.php retry >/dev/null 2>&1
+```
+
+- The binary must be the PHP **CLI**, version 8.2. php-cgi (which some cPanel
+  wrappers such as `/usr/local/bin/ea-php82` resolve to) drops the `retry`
+  argument, so the job would run and silently do nothing. If
+  `/usr/local/bin/php` is not 8.2 on this host, use the 8.2 CLI directly:
+  `/opt/cpanel/ea-php82/root/usr/bin/php` on EasyApache, or
+  `/opt/alt/php82/usr/bin/php` on CloudLinux. The host can confirm which.
+- **Check it is running.** Every run rewrites `ascendrev-enquiries/retry-heartbeat`
+  above `public_html/`. Ten minutes after adding the job, its modified time in
+  File Manager should be within the last five minutes. If it is missing or
+  stale, the command path is wrong.
+- `retry` only works from the command line. Requesting the same URL in a browser
+  still behaves as the normal form endpoint.
+- Each unfinished submission is retried with a growing wait (2, 4, 8 minutes and
+  so on, capped at one hour). Only recipients that have not yet received the
+  email are sent it, so nobody gets a duplicate. After 8 attempts in total (the
+  first one is the web request) the submission is marked abandoned and the log
+  records `delivery_abandoned attempts=8`; the lead is still in `enquiries.csv`
+  for a person to follow up.
+- A submission whose web request is still delivering is skipped and picked up on
+  a later run, so the cron job and a live request never send at the same time.
+- Watch `ascendrev-enquiries/enquiry.log` above `public_html/`. `delivery_attempt`
+  lines show how many recipients were reached and how long the attempt took.
+  `smtp_failed stage=... code=... enhanced=...` names the step that failed and
+  the server's reply code, for example `stage=auth code=535` for a rejected
+  app password. The log never contains the password, the username, recipient
+  addresses or anything the visitor typed.
+- `ASCENDREV_SMTP_CAFILE` and `ASCENDREV_RETRY_MIN_AGE_SECONDS` exist for the
+  local test harness in `tests/enquiry/` only. Do not set them on the host.
+
 ## Remaining static-site items
 
 - `public/logo.svg`. The header currently uses the client's supplied `new-logo.png`. The

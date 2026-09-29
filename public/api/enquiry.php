@@ -14,6 +14,11 @@
  *   status code carries the meaning and the JSON is for operators and future
  *   clients.
  *
+ * Delivery is decoupled from the response. Once the row and the delivery state
+ * are durable the visitor gets their answer immediately, and mail is sent
+ * afterwards over a single SMTP session. Whatever that attempt could not finish
+ * is retried by `php enquiry.php retry`, run from cron (see DEPLOY.md).
+ *
  * Two things this file deliberately does not do. It never echoes a submitted
  * value back into HTML, because the only safe way to render attacker-supplied
  * text is not to. And it never writes a full submission to anywhere reachable
@@ -31,6 +36,18 @@ declare(strict_types=1);
  * climbs out of the document root rather than sitting beside this file.
  * ------------------------------------------------------------------------ */
 
+/**
+ * The directory that holds private runtime files: one level above public_html.
+ * A web request gets it from the document root. The cron retry has no document
+ * root, so it derives the same place from this file's own location
+ * (public_html/api/enquiry.php).
+ */
+function accountRoot(): string
+{
+    $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+    return $documentRoot !== '' ? dirname($documentRoot) : dirname(__DIR__, 2);
+}
+
 /** Reads an env var, falling back to a value from an out-of-root config file. */
 function config(string $key, string $default = ''): string
 {
@@ -44,7 +61,7 @@ function config(string $key, string $default = ''): string
         $file = [];
         // One level above the document root, so it is never web-reachable even
         // if .htaccess is lost. See DEPLOY.md.
-        $path = dirname($_SERVER['DOCUMENT_ROOT'] ?? __DIR__) . '/ascendrev-enquiry.config.php';
+        $path = accountRoot() . '/ascendrev-enquiry.config.php';
         if (is_readable($path)) {
             $loaded = require $path;
             if (is_array($loaded)) {
@@ -74,7 +91,7 @@ $RECIPIENTS = array_map(
  */
 $STORAGE_DIR = config(
     'ASCENDREV_ENQUIRY_STORAGE',
-    dirname($_SERVER['DOCUMENT_ROOT'] ?? __DIR__) . '/ascendrev-enquiries'
+    accountRoot() . '/ascendrev-enquiries'
 );
 
 /**
@@ -87,13 +104,19 @@ $STORAGE_DIR = config(
  * is never written to a log, never returned in a response, and never placed in
  * a header.
  */
-$SMTP_HOST   = config('ASCENDREV_SMTP_HOST', 'smtp.gmail.com');
-$SMTP_PORT   = (int) (config('ASCENDREV_SMTP_PORT', '587') ?: 587);
-$SMTP_USER   = config('ASCENDREV_SMTP_USER', '');
-$SMTP_PASS   = config('ASCENDREV_SMTP_PASS', '');
+$SMTP = [
+    'host' => config('ASCENDREV_SMTP_HOST', 'smtp.gmail.com'),
+    'port' => (int) (config('ASCENDREV_SMTP_PORT', '587') ?: 587),
+    'user' => config('ASCENDREV_SMTP_USER', ''),
+    'pass' => config('ASCENDREV_SMTP_PASS', ''),
+    // Test harness only: a private CA to trust instead of the system store, so
+    // the delivery tests can talk STARTTLS to a local fake server with full
+    // certificate verification. Unset in production.
+    'cafile' => config('ASCENDREV_SMTP_CAFILE', ''),
+];
 
 /** Envelope sender. Defaults to the authenticated Google Workspace identity. */
-$MAIL_FROM = config('ASCENDREV_ENQUIRY_FROM', $SMTP_USER);
+$MAIL_FROM = config('ASCENDREV_ENQUIRY_FROM', $SMTP['user']);
 
 /** Hosts allowed to submit. Origin/Referer must match one of these. */
 $ALLOWED_HOSTS = array_values(array_filter(array_map(
@@ -116,6 +139,21 @@ const RATE_LIMIT_WINDOW_SECONDS = 3600;
 
 /** How long an identical submission is treated as a duplicate, not a new lead. */
 const DEDUPE_WINDOW_SECONDS = 900;
+
+/**
+ * Delivery attempts (the web request counts as the first) before a submission is
+ * given up on. Bounded so a permanently rejected recipient cannot be retried
+ * forever; the CSV row still holds the lead for a human to follow up.
+ */
+const MAX_DELIVERY_ATTEMPTS = 8;
+
+/** Retry backoff is 60s doubled per attempt, capped here. */
+const RETRY_BACKOFF_CAP_SECONDS = 3600;
+
+const CSV_HEADER = [
+    'submitted_at_utc', 'individual_name', 'business_email', 'entity_name',
+    'best_number_to_call', 'comments', 'ip_hash', 'submission_key',
+];
 
 /* ---------------------------------------------------------------------------
  * Vocabularies — must match src/lib/enquirySchema.ts exactly.
@@ -159,10 +197,11 @@ const ALLOWED_FIELDS = [
  * ------------------------------------------------------------------------ */
 
 /**
- * Ends the request with JSON. No submitted value is ever placed in the body,
- * so there is nothing for a caller to reflect back into a page.
+ * Emits a JSON response without ending the script, so the caller can hand the
+ * response to the browser and keep working. No submitted value is ever placed
+ * in the body, so there is nothing for a caller to reflect back into a page.
  */
-function respond(int $status, array $body): never
+function sendJson(int $status, array $body): void
 {
     http_response_code($status);
     header('Cache-Control: no-store');
@@ -171,11 +210,17 @@ function respond(int $status, array $body): never
     // 204 means "no content", so it must not carry one. Sending a body with it
     // makes some clients treat the response as malformed.
     if ($status === 204) {
-        exit;
+        return;
     }
 
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($body, JSON_UNESCAPED_SLASHES);
+}
+
+/** Ends the request with JSON. */
+function respond(int $status, array $body): never
+{
+    sendJson($status, $body);
     exit;
 }
 
@@ -194,6 +239,20 @@ function logLine(string $storageDir, string $message): void
         sprintf("%s  %s\n", gmdate('c'), $message),
         FILE_APPEND | LOCK_EX
     );
+}
+
+/* ---------------------------------------------------------------------------
+ * Outbox retry (cron).
+ *
+ * `php enquiry.php retry` re-attempts deliveries a web request could not finish.
+ * It is dispatched here, before any HTTP gate, because none of them apply: there
+ * is no visitor, origin, method or form. Only the PHP CLI binary can reach it;
+ * php-cgi does not pass command-line arguments through, so a cron job must call
+ * the CLI binary (DEPLOY.md, "Delivery retry cron").
+ * ------------------------------------------------------------------------ */
+
+if (PHP_SAPI === 'cli' && ($_SERVER['argv'][1] ?? '') === 'retry') {
+    exit(runRetrySweep($STORAGE_DIR, $RECIPIENTS, $SMTP, $MAIL_FROM));
 }
 
 /* ---------------------------------------------------------------------------
@@ -470,11 +529,6 @@ $submissionKey = $useClientKey
  * and SMTP-250 checkpoints, never submission fields or recipient addresses.
  * ------------------------------------------------------------------------ */
 
-const CSV_HEADER = [
-    'submitted_at_utc', 'individual_name', 'business_email', 'entity_name',
-    'best_number_to_call', 'comments', 'ip_hash', 'submission_key',
-];
-
 /** Releases the per-submission lock before any response path exits. */
 function releaseSubmissionLock($handle): void
 {
@@ -705,30 +759,13 @@ if (file_exists($deliveryStatePath)) {
     $deliveryState = null;
 }
 
-$validatedRecipients = array_map('headerSafe', $RECIPIENTS);
-$recipientsValid = count($validatedRecipients) >= 2
-    && count($validatedRecipients) === count($RECIPIENTS)
-    && count(array_unique(array_map('strtolower', $validatedRecipients))) === count($validatedRecipients)
-    && !in_array('', $validatedRecipients, true);
-foreach ($validatedRecipients as $recipient) {
-    if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
-        $recipientsValid = false;
-        break;
-    }
-}
-
-if (!$recipientsValid) {
+$validatedRecipients = validateRecipients($RECIPIENTS);
+if ($validatedRecipients === null) {
     logLine($STORAGE_DIR, 'recipient_config_invalid count=' . count($RECIPIENTS) . ' csv=ok');
     releaseSubmissionLock($submissionLock);
     respond(500, ['ok' => false, 'error' => 'recipient_configuration_invalid', 'recorded' => true]);
 }
-
-$requiredRecipientIds = array_map(
-    static fn(string $recipient): string => hash('sha256', strtolower($recipient)),
-    $validatedRecipients
-);
-$sortedRequiredRecipientIds = $requiredRecipientIds;
-sort($sortedRequiredRecipientIds, SORT_STRING);
+$requiredRecipientIds = recipientIds($validatedRecipients);
 
 if ($deliveryState === null) {
     $deliveryState = [
@@ -737,54 +774,145 @@ if ($deliveryState === null) {
         'required' => $requiredRecipientIds,
         'accepted' => [],
     ];
-    $stateJson = json_encode($deliveryState, JSON_UNESCAPED_SLASHES);
-    if (!is_string($stateJson) || !atomicWriteFile($deliveryStatePath, $stateJson)) {
+    if (!writeDeliveryState($deliveryStatePath, $deliveryState)) {
         logLine($STORAGE_DIR, 'delivery_state_write_failed');
         releaseSubmissionLock($submissionLock);
         respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
     }
 } else {
-    $storedRequired = $deliveryState['required'] ?? null;
-    $storedAccepted = $deliveryState['accepted'] ?? null;
-    if (
-        ($deliveryState['version'] ?? null) !== 1
-        || !is_string($deliveryState['payload_hash'] ?? null)
-        || !hash_equals($payloadHash, $deliveryState['payload_hash'])
-        || !is_array($storedRequired)
-        || count($storedRequired) !== count($requiredRecipientIds)
-        || !is_array($storedAccepted)
-    ) {
+    $checked = checkDeliveryState($deliveryState, $payloadHash, $requiredRecipientIds);
+    if ($checked['problem'] === 'recipients_changed') {
+        logLine($STORAGE_DIR, 'recipient_set_changed');
+        releaseSubmissionLock($submissionLock);
+        respond(409, ['ok' => false, 'error' => 'recipient_configuration_changed', 'recorded' => true]);
+    }
+    if ($checked['problem'] !== null) {
         logLine($STORAGE_DIR, 'delivery_state_invalid');
         releaseSubmissionLock($submissionLock);
         respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
     }
+    $deliveryState = $checked['state'];
+}
+
+/* ---------------------------------------------------------------------------
+ * Delivery state.
+ *
+ * One JSON file per submission, written only by code holding that submission's
+ * lock. `version` stays 1: readers ignore keys they do not know, so files
+ * written before the retry fields existed still load, with attempts read as 0.
+ *
+ *   accepted         recipient ids the server has acknowledged with a 250
+ *   attempts         delivery attempts made, the web request being the first
+ *   last_attempt_at  unix time of the latest attempt, for retry backoff
+ *   terminal         absent, or 'abandoned' once attempts ran out
+ * ------------------------------------------------------------------------ */
+
+/** Writes the delivery state atomically, so a crash never leaves half a file. */
+function writeDeliveryState(string $path, array $state): bool
+{
+    $json = json_encode($state, JSON_UNESCAPED_SLASHES);
+    return is_string($json) && atomicWriteFile($path, $json);
+}
+
+/**
+ * At least two recipients, so no lead depends on a single mailbox. Returns the
+ * header-safe list, or null when the configuration cannot be trusted.
+ */
+function validateRecipients(array $recipients): ?array
+{
+    $validated = array_map('headerSafe', $recipients);
+    if (
+        count($validated) < 2
+        || count(array_unique(array_map('strtolower', $validated))) !== count($validated)
+        || in_array('', $validated, true)
+    ) {
+        return null;
+    }
+    foreach ($validated as $recipient) {
+        if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+    }
+    return $validated;
+}
+
+/**
+ * Recipients are identified in state by a hash of the address, so the state file
+ * holds no address. Ids stay parallel to the recipient list.
+ */
+function recipientIds(array $recipients): array
+{
+    return array_map(
+        static fn(string $recipient): string => hash('sha256', strtolower($recipient)),
+        $recipients
+    );
+}
+
+/** How many of the required recipients the server has acknowledged. */
+function acceptedCount(array $state, array $requiredIds): int
+{
+    return count(array_intersect($requiredIds, $state['accepted']));
+}
+
+/**
+ * Validates a loaded state file against this payload and the configured
+ * recipients. Returns the normalised state, or a problem: 'invalid' for a file
+ * that cannot be trusted, 'recipients_changed' when the configured recipients no
+ * longer match the ones the state was created for.
+ *
+ * @return array{problem: ?string, state: ?array}
+ */
+function checkDeliveryState(array $state, string $payloadHash, array $requiredIds): array
+{
+    $invalid = ['problem' => 'invalid', 'state' => null];
+    $storedRequired = $state['required'] ?? null;
+    $storedAccepted = $state['accepted'] ?? null;
+
+    if (
+        ($state['version'] ?? null) !== 1
+        || !is_string($state['payload_hash'] ?? null)
+        || !hash_equals($payloadHash, $state['payload_hash'])
+        || !is_array($storedRequired)
+        || count($storedRequired) !== count($requiredIds)
+        || !is_array($storedAccepted)
+    ) {
+        return $invalid;
+    }
+    // Absent is fine (older files); present must be exactly what this handler
+    // writes, so an unrecognised value fails closed rather than passing.
+    foreach (['attempts', 'last_attempt_at'] as $counter) {
+        if (array_key_exists($counter, $state) && (!is_int($state[$counter]) || $state[$counter] < 0)) {
+            return $invalid;
+        }
+    }
+    if (array_key_exists('terminal', $state) && $state['terminal'] !== 'abandoned') {
+        return $invalid;
+    }
     foreach ($storedRequired as $requiredId) {
         if (!is_string($requiredId) || preg_match('/^[a-f0-9]{64}$/', $requiredId) !== 1) {
-            logLine($STORAGE_DIR, 'delivery_state_invalid');
-            releaseSubmissionLock($submissionLock);
-            respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
+            return $invalid;
         }
     }
     $storedRequired = array_values($storedRequired);
+    $sortedRequired = $requiredIds;
     sort($storedRequired, SORT_STRING);
-    if ($storedRequired !== $sortedRequiredRecipientIds) {
-        logLine($STORAGE_DIR, 'recipient_set_changed');
-        releaseSubmissionLock($submissionLock);
-        respond(409, ['ok' => false, 'error' => 'recipient_configuration_changed', 'recorded' => true]);
+    sort($sortedRequired, SORT_STRING);
+    if ($storedRequired !== $sortedRequired) {
+        return ['problem' => 'recipients_changed', 'state' => null];
     }
     foreach ($storedAccepted as $acceptedId) {
         if (
             !is_string($acceptedId)
             || preg_match('/^[a-f0-9]{64}$/', $acceptedId) !== 1
-            || !in_array($acceptedId, $requiredRecipientIds, true)
+            || !in_array($acceptedId, $requiredIds, true)
         ) {
-            logLine($STORAGE_DIR, 'delivery_state_invalid');
-            releaseSubmissionLock($submissionLock);
-            respond(500, ['ok' => false, 'error' => 'delivery_state_unavailable', 'recorded' => true]);
+            return $invalid;
         }
     }
-    $deliveryState['required'] = $requiredRecipientIds;
-    $deliveryState['accepted'] = array_values(array_unique($storedAccepted));
+
+    $state['required'] = $requiredIds;
+    $state['accepted'] = array_values(array_unique($storedAccepted));
+    return ['problem' => null, 'state' => $state];
 }
 
 /* ---------------------------------------------------------------------------
@@ -800,43 +928,6 @@ function headerSafe(string $value): string
 {
     return trim(str_replace(["\r", "\n", "\0"], '', $value));
 }
-
-$lines = [
-    'A new enquiry was submitted on ascend-rev.ca.',
-    '',
-    'Name             : ' . $individualName,
-    'Business email   : ' . $businessEmail,
-    'Entity           : ' . $entityName,
-    'Phone            : ' . $bestNumberToCall,
-    '',
-    'Comments:',
-    $comments !== '' ? $comments : '(none)',
-    '',
-    '---',
-    'Submitted ' . $submittedAt . ' UTC',
-    $csvWritten ? 'Also recorded in enquiries.csv' : 'WARNING: could not be written to enquiries.csv',
-];
-
-$subject = headerSafe(sprintf(
-    '[AscendRev] Enquiry from %s at %s',
-    $individualName,
-    $entityName
-));
-
-/* ---------------------------------------------------------------------------
- * HTML body.
- *
- * Built with nested tables and inline styles, not because that is good HTML
- * but because it is the only markup Outlook's rendering engine handles
- * predictably. A plain-text alternative is sent alongside it, so a client that
- * cannot or will not render HTML still shows a readable enquiry rather than a
- * wall of markup.
- *
- * Every value inserted below goes through htmlspecialchars. These values have
- * already been validated, but an enquiry is attacker-controlled text arriving
- * in someone's inbox, and escaping at the point of output is the only habit
- * that survives a later change to the validation.
- */
 
 /** Escapes for HTML output. */
 function e(string $value): string
@@ -862,177 +953,283 @@ function row(string $label, string $value, bool $isLink = false): string
         . '</tr>';
 }
 
-$html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
-    . '<meta name="viewport" content="width=device-width,initial-scale=1">'
-    . '<title>New enquiry</title></head>'
-    . '<body style="margin:0;padding:0;background:#eef1f5;">'
-
-    // Preheader: the grey line inboxes show beside the subject. Hidden in the
-    // body itself, which is why it carries the zero-height styling.
-    . '<div style="display:none;max-height:0;overflow:hidden;opacity:0;">'
-    . e($individualName) . ' at ' . e($entityName)
-    . '</div>'
-
-    . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef1f5;padding:28px 12px;">'
-    . '<tr><td align="center">'
-    . '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(15,27,51,.10);">'
-
-    // Header band: the site's own header artwork, logo already composed into
-    // it, run edge to edge so it reads as the brand's letterhead rather than a
-    // logo placed on a blank strip. Embedded by Content-ID rather than
-    // hotlinked, so it displays without the recipient clicking "show images".
-    // 1200x400 source at 600px for retina; JPEG because Outlook desktop cannot
-    // render WebP. The cell background is the artwork's average colour, so a
-    // client that blocks images still shows the navy band, with the alt text
-    // in white on it.
-    . '<tr><td style="background:#073268;padding:0;font-size:0;line-height:0;">'
-    . '<img src="cid:ascendrev-header" width="600" height="200"'
-    . ' alt="AscendRev, Outsourcing &amp; Offshoring Solutions"'
-    . ' style="display:block;border:0;width:100%;max-width:600px;height:auto;'
-    . 'color:#ffffff;font:600 18px/200px Arial,Helvetica,sans-serif;text-align:center;">'
-    . '</td></tr>'
-
-    // The gold and green rule from the site, carried across so the email is
-    // recognisably the same brand as the page the enquiry came from.
-    . '<tr><td style="font-size:0;line-height:0;">'
-    . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
-    . '<td width="74" style="background:#267455;height:3px;font-size:0;line-height:0;">&nbsp;</td>'
-    . '<td style="background:#EBCB89;height:3px;font-size:0;line-height:0;">&nbsp;</td>'
-    . '</tr></table></td></tr>'
-
-    . '<tr><td style="padding:30px 32px 8px;">'
-    . '<p style="margin:0 0 4px;font:600 11px/16px Arial,Helvetica,sans-serif;color:#1E5E46;text-transform:uppercase;letter-spacing:.14em;">New enquiry</p>'
-    . '<h1 style="margin:0;font:400 26px/32px Georgia,\'Times New Roman\',serif;color:#0F1B33;">'
-    . e($individualName) . '</h1>'
-    . '<p style="margin:6px 0 0;font:400 15px/22px Arial,Helvetica,sans-serif;color:#4B5563;">'
-    . e($entityName) . '</p>'
-    . '</td></tr>'
-
-    . '<tr><td style="padding:14px 32px 4px;">'
-    . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">'
-    . row('Business email', $businessEmail)
-    . row('Entity name', $entityName)
-    . row('Phone', $bestNumberToCall)
-    . '</table></td></tr>';
-
-if ($comments !== '') {
-    $html .= '<tr><td style="padding:22px 32px 0;">'
-        . '<p style="margin:0 0 8px;font:600 12px/16px Arial,Helvetica,sans-serif;color:#6b7484;text-transform:uppercase;letter-spacing:.05em;">Comments</p>'
-        . '<div style="background:#f6f8fa;border-left:3px solid #EBCB89;padding:14px 16px;border-radius:0 4px 4px 0;'
-        . 'font:400 15px/23px Arial,Helvetica,sans-serif;color:#111827;white-space:pre-wrap;">'
-        . e($comments) . '</div></td></tr>';
-}
-
-$html .= '<tr><td style="padding:26px 32px 4px;">'
-    . '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
-    . '<td style="background:#1E5E46;border-radius:6px;">'
-    . '<a href="mailto:' . e($businessEmail) . '?subject=' . rawurlencode('Re: your enquiry to AscendRev')
-    . '" style="display:inline-block;padding:13px 26px;font:600 14px/18px Arial,Helvetica,sans-serif;'
-    . 'color:#ffffff;text-decoration:none;">Reply to ' . e($individualName) . '</a>'
-    . '</td></tr></table>'
-    . '<p style="margin:12px 0 0;font:400 12px/18px Arial,Helvetica,sans-serif;color:#6b7484;">'
-    . 'Replying to this email also reaches them directly.</p>'
-    . '</td></tr>'
-
-    . '<tr><td style="padding:24px 32px 28px;">'
-    . '<hr style="border:0;border-top:1px solid #e9ecf1;margin:0 0 14px;">'
-    . '<p style="margin:0;font:400 12px/18px Arial,Helvetica,sans-serif;color:#8a93a3;">'
-    . 'Submitted ' . e($submittedAt) . ' UTC via ascend-rev.ca<br>'
-    . ($csvWritten
-        ? 'Also recorded in enquiries.csv'
-        : '<span style="color:#B42318;font-weight:bold;">Warning: could not be written to enquiries.csv</span>')
-    . '</p></td></tr>'
-
-    . '</table></td></tr></table></body></html>';
-
-/* ---------------------------------------------------------------------------
- * MIME assembly.
+/**
+ * Builds the subject, MIME body and headers for one enquiry.
  *
- * multipart/related wraps a multipart/alternative (plain text + HTML) and the
- * logo. "related" rather than "mixed" is what tells the client the image
- * belongs to the HTML rather than being a file the recipient should download,
- * which is why it appears in the layout and not as an attachment.
- * ------------------------------------------------------------------------ */
+ * A function of the persisted row alone, so the web request and the cron retry
+ * produce the same message for the same submission; only the random MIME
+ * boundaries differ between two calls.
+ *
+ * @param array{0:string,1:string,2:string,3:string,4:string} $values
+ *        name, business email, entity, phone, comments, as stored in the CSV row
+ * @return array{subject: string, mime: string, headers: string}
+ */
+function buildEnquiryMessage(array $values, string $submittedAt, bool $csvWritten, string $from): array
+{
+    [$individualName, $businessEmail, $entityName, $bestNumberToCall, $comments] = $values;
 
-$boundaryRelated = 'rel_' . bin2hex(random_bytes(12));
-$boundaryAlt     = 'alt_' . bin2hex(random_bytes(12));
+    $lines = [
+        'A new enquiry was submitted on ascend-rev.ca.',
+        '',
+        'Name             : ' . $individualName,
+        'Business email   : ' . $businessEmail,
+        'Entity           : ' . $entityName,
+        'Phone            : ' . $bestNumberToCall,
+        '',
+        'Comments:',
+        $comments !== '' ? $comments : '(none)',
+        '',
+        '---',
+        'Submitted ' . $submittedAt . ' UTC',
+        $csvWritten ? 'Also recorded in enquiries.csv' : 'WARNING: could not be written to enquiries.csv',
+    ];
 
-$mime = '--' . $boundaryRelated . "\r\n"
-    . 'Content-Type: multipart/alternative; boundary="' . $boundaryAlt . '"' . "\r\n\r\n"
+    $subject = headerSafe(sprintf(
+        '[AscendRev] Enquiry from %s at %s',
+        $individualName,
+        $entityName
+    ));
 
-    . '--' . $boundaryAlt . "\r\n"
-    . 'Content-Type: text/plain; charset=utf-8' . "\r\n"
-    . 'Content-Transfer-Encoding: 8bit' . "\r\n\r\n"
-    . implode("\n", $lines) . "\r\n\r\n"
+    /* ---------------------------------------------------------------------------
+     * HTML body.
+     *
+     * Built with nested tables and inline styles, not because that is good HTML
+     * but because it is the only markup Outlook's rendering engine handles
+     * predictably. A plain-text alternative is sent alongside it, so a client that
+     * cannot or will not render HTML still shows a readable enquiry rather than a
+     * wall of markup.
+     *
+     * Every value inserted below goes through htmlspecialchars. These values have
+     * already been validated, but an enquiry is attacker-controlled text arriving
+     * in someone's inbox, and escaping at the point of output is the only habit
+     * that survives a later change to the validation.
+     */
 
-    . '--' . $boundaryAlt . "\r\n"
-    . 'Content-Type: text/html; charset=utf-8' . "\r\n"
-    . 'Content-Transfer-Encoding: 8bit' . "\r\n\r\n"
-    . $html . "\r\n\r\n"
+    $html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+        . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        . '<title>New enquiry</title></head>'
+        . '<body style="margin:0;padding:0;background:#eef1f5;">'
 
-    . '--' . $boundaryAlt . '--' . "\r\n\r\n";
+        // Preheader: the grey line inboxes show beside the subject. Hidden in the
+        // body itself, which is why it carries the zero-height styling.
+        . '<div style="display:none;max-height:0;overflow:hidden;opacity:0;">'
+        . e($individualName) . ' at ' . e($entityName)
+        . '</div>'
 
-$headerImagePath = dirname(__DIR__) . '/email-header.jpg';
-if (is_readable($headerImagePath)) {
-    $headerImageData = @file_get_contents($headerImagePath);
-    if ($headerImageData !== false) {
-        $mime .= '--' . $boundaryRelated . "\r\n"
-            . 'Content-Type: image/jpeg; name="email-header.jpg"' . "\r\n"
-            . 'Content-Transfer-Encoding: base64' . "\r\n"
-            . 'Content-ID: <ascendrev-header>' . "\r\n"
-            . 'Content-Disposition: inline; filename="email-header.jpg"' . "\r\n\r\n"
-            . chunk_split(base64_encode($headerImageData), 76, "\r\n") . "\r\n";
+        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef1f5;padding:28px 12px;">'
+        . '<tr><td align="center">'
+        . '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(15,27,51,.10);">'
+
+        // Header band: the site's own header artwork, logo already composed into
+        // it, run edge to edge so it reads as the brand's letterhead rather than a
+        // logo placed on a blank strip. Embedded by Content-ID rather than
+        // hotlinked, so it displays without the recipient clicking "show images".
+        // 1200x400 source at 600px for retina; JPEG because Outlook desktop cannot
+        // render WebP. The cell background is the artwork's average colour, so a
+        // client that blocks images still shows the navy band, with the alt text
+        // in white on it.
+        . '<tr><td style="background:#073268;padding:0;font-size:0;line-height:0;">'
+        . '<img src="cid:ascendrev-header" width="600" height="200"'
+        . ' alt="AscendRev, Outsourcing &amp; Offshoring Solutions"'
+        . ' style="display:block;border:0;width:100%;max-width:600px;height:auto;'
+        . 'color:#ffffff;font:600 18px/200px Arial,Helvetica,sans-serif;text-align:center;">'
+        . '</td></tr>'
+
+        // The gold and green rule from the site, carried across so the email is
+        // recognisably the same brand as the page the enquiry came from.
+        . '<tr><td style="font-size:0;line-height:0;">'
+        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
+        . '<td width="74" style="background:#267455;height:3px;font-size:0;line-height:0;">&nbsp;</td>'
+        . '<td style="background:#EBCB89;height:3px;font-size:0;line-height:0;">&nbsp;</td>'
+        . '</tr></table></td></tr>'
+
+        . '<tr><td style="padding:30px 32px 8px;">'
+        . '<p style="margin:0 0 4px;font:600 11px/16px Arial,Helvetica,sans-serif;color:#1E5E46;text-transform:uppercase;letter-spacing:.14em;">New enquiry</p>'
+        . '<h1 style="margin:0;font:400 26px/32px Georgia,\'Times New Roman\',serif;color:#0F1B33;">'
+        . e($individualName) . '</h1>'
+        . '<p style="margin:6px 0 0;font:400 15px/22px Arial,Helvetica,sans-serif;color:#4B5563;">'
+        . e($entityName) . '</p>'
+        . '</td></tr>'
+
+        . '<tr><td style="padding:14px 32px 4px;">'
+        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">'
+        . row('Business email', $businessEmail)
+        . row('Entity name', $entityName)
+        . row('Phone', $bestNumberToCall)
+        . '</table></td></tr>';
+
+    if ($comments !== '') {
+        $html .= '<tr><td style="padding:22px 32px 0;">'
+            . '<p style="margin:0 0 8px;font:600 12px/16px Arial,Helvetica,sans-serif;color:#6b7484;text-transform:uppercase;letter-spacing:.05em;">Comments</p>'
+            . '<div style="background:#f6f8fa;border-left:3px solid #EBCB89;padding:14px 16px;border-radius:0 4px 4px 0;'
+            . 'font:400 15px/23px Arial,Helvetica,sans-serif;color:#111827;white-space:pre-wrap;">'
+            . e($comments) . '</div></td></tr>';
     }
+
+    $html .= '<tr><td style="padding:26px 32px 4px;">'
+        . '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+        . '<td style="background:#1E5E46;border-radius:6px;">'
+        . '<a href="mailto:' . e($businessEmail) . '?subject=' . rawurlencode('Re: your enquiry to AscendRev')
+        . '" style="display:inline-block;padding:13px 26px;font:600 14px/18px Arial,Helvetica,sans-serif;'
+        . 'color:#ffffff;text-decoration:none;">Reply to ' . e($individualName) . '</a>'
+        . '</td></tr></table>'
+        . '<p style="margin:12px 0 0;font:400 12px/18px Arial,Helvetica,sans-serif;color:#6b7484;">'
+        . 'Replying to this email also reaches them directly.</p>'
+        . '</td></tr>'
+
+        . '<tr><td style="padding:24px 32px 28px;">'
+        . '<hr style="border:0;border-top:1px solid #e9ecf1;margin:0 0 14px;">'
+        . '<p style="margin:0;font:400 12px/18px Arial,Helvetica,sans-serif;color:#8a93a3;">'
+        . 'Submitted ' . e($submittedAt) . ' UTC via ascend-rev.ca<br>'
+        . ($csvWritten
+            ? 'Also recorded in enquiries.csv'
+            : '<span style="color:#B42318;font-weight:bold;">Warning: could not be written to enquiries.csv</span>')
+        . '</p></td></tr>'
+
+        . '</table></td></tr></table></body></html>';
+
+    /* ---------------------------------------------------------------------------
+     * MIME assembly.
+     *
+     * multipart/related wraps a multipart/alternative (plain text + HTML) and the
+     * logo. "related" rather than "mixed" is what tells the client the image
+     * belongs to the HTML rather than being a file the recipient should download,
+     * which is why it appears in the layout and not as an attachment.
+     * ------------------------------------------------------------------------ */
+
+    $boundaryRelated = 'rel_' . bin2hex(random_bytes(12));
+    $boundaryAlt     = 'alt_' . bin2hex(random_bytes(12));
+
+    $mime = '--' . $boundaryRelated . "\r\n"
+        . 'Content-Type: multipart/alternative; boundary="' . $boundaryAlt . '"' . "\r\n\r\n"
+
+        . '--' . $boundaryAlt . "\r\n"
+        . 'Content-Type: text/plain; charset=utf-8' . "\r\n"
+        . 'Content-Transfer-Encoding: 8bit' . "\r\n\r\n"
+        . implode("\n", $lines) . "\r\n\r\n"
+
+        . '--' . $boundaryAlt . "\r\n"
+        . 'Content-Type: text/html; charset=utf-8' . "\r\n"
+        . 'Content-Transfer-Encoding: 8bit' . "\r\n\r\n"
+        . $html . "\r\n\r\n"
+
+        . '--' . $boundaryAlt . '--' . "\r\n\r\n";
+
+    $headerImagePath = dirname(__DIR__) . '/email-header.jpg';
+    if (is_readable($headerImagePath)) {
+        $headerImageData = @file_get_contents($headerImagePath);
+        if ($headerImageData !== false) {
+            $mime .= '--' . $boundaryRelated . "\r\n"
+                . 'Content-Type: image/jpeg; name="email-header.jpg"' . "\r\n"
+                . 'Content-Transfer-Encoding: base64' . "\r\n"
+                . 'Content-ID: <ascendrev-header>' . "\r\n"
+                . 'Content-Disposition: inline; filename="email-header.jpg"' . "\r\n\r\n"
+                . chunk_split(base64_encode($headerImageData), 76, "\r\n") . "\r\n";
+        }
+    }
+
+    $mime .= '--' . $boundaryRelated . '--' . "\r\n";
+
+    $headers = implode("\r\n", [
+        'From: AscendRev Website <' . $from . '>',
+        'Reply-To: ' . headerSafe($individualName) . ' <' . headerSafe($businessEmail) . '>',
+        'MIME-Version: 1.0',
+        'Content-Type: multipart/related; boundary="' . $boundaryRelated . '"',
+        'X-Mailer: ascend-rev.ca',
+    ]);
+
+    return ['subject' => $subject, 'mime' => $mime, 'headers' => $headers];
 }
 
-$mime .= '--' . $boundaryRelated . '--' . "\r\n";
+/**
+ * The three-digit SMTP reply code, or 'none' when the server said nothing
+ * (connection dropped or timed out), which is itself a diagnosis.
+ */
+function smtpReplyCode(string $reply): string
+{
+    return preg_match('/^(\d{3})[ -]/', $reply, $match) === 1 ? $match[1] : 'none';
+}
 
-$headers = implode("\r\n", [
-    'From: AscendRev Website <' . headerSafe($MAIL_FROM) . '>',
-    'Reply-To: ' . headerSafe($individualName) . ' <' . headerSafe($businessEmail) . '>',
-    'MIME-Version: 1.0',
-    'Content-Type: multipart/related; boundary="' . $boundaryRelated . '"',
-    'X-Mailer: ascend-rev.ca',
-]);
+/** The RFC 3463 enhanced status (x.y.z) from a reply, or 'none' when absent. */
+function smtpEnhancedCode(string $reply): string
+{
+    // A multiline reply repeats the enhanced code on every line; the last is the verdict.
+    return preg_match_all('/^\d{3}[ -](\d\.\d{1,3}\.\d{1,3})(?=\s|$)/m', $reply, $matches) > 0
+        ? end($matches[1])
+        : 'none';
+}
+
+/**
+ * Logs where an SMTP conversation failed. Stage and codes only: the reply text
+ * can quote the recipient or the account, so it is never written to the log.
+ */
+function logSmtpFailure(string $storageDir, string $stage, string $reply, ?int $errno = null): void
+{
+    logLine($storageDir, sprintf(
+        'smtp_failed stage=%s code=%s enhanced=%s%s',
+        $stage,
+        smtpReplyCode($reply),
+        smtpEnhancedCode($reply),
+        $errno === null ? '' : ' errno=' . $errno
+    ));
+}
 
 /**
  * Minimal SMTP submission over STARTTLS with AUTH LOGIN.
  *
  * Deliberately dependency-free: the site ships no Composer vendor tree, and
  * pulling one in for a single send would be a new supply chain on the client's
- * host. Returns true only when the server has accepted the message with a 250
- * to the final dot, so a partial conversation never counts as delivered.
+ * host.
+ *
+ * One session serves every pending recipient. Connecting, STARTTLS and AUTH
+ * cost several round trips each, so paying them once per recipient is what made
+ * a submission take over ten seconds. Each recipient still gets its own message
+ * and its own transaction, so a rejected address cannot block another.
+ *
+ * $onAccepted runs immediately after the server's 250 to the final dot, with
+ * the recipient id, so the checkpoint is durable before the next recipient is
+ * attempted. It returns false to stop the session (checkpoint could not be
+ * written). A recipient counts as delivered only through that callback, never
+ * from a partial conversation.
+ *
+ * @param array<string,string> $pending recipient id => address
  */
-function smtpSend(
-    string $host,
-    int $port,
-    string $user,
-    string $pass,
+function smtpDeliver(
+    array $smtp,
+    string $storageDir,
     string $from,
-    array $recipients,
+    array $pending,
     string $subject,
     string $body,
-    string $headers
-): bool {
-    if (
-        $host === '' ||
-        $user === '' ||
-        $pass === '' ||
-        $from === '' ||
-        $recipients === []
-    ) {
-        return false;
+    string $headers,
+    callable $onAccepted
+): void {
+    if ($smtp['host'] === '' || $smtp['user'] === '' || $smtp['pass'] === '' || $from === '' || $pending === []) {
+        logLine($storageDir, 'smtp_config_incomplete');
+        return;
     }
 
+    // Verification is never relaxed. A cafile only swaps which roots are trusted.
+    $context = $smtp['cafile'] === ''
+        ? null
+        : stream_context_create(['ssl' => [
+            'cafile' => $smtp['cafile'],
+            'peer_name' => $smtp['host'],
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+        ]]);
+
     $socket = @stream_socket_client(
-        sprintf('tcp://%s:%d', $host, $port),
+        sprintf('tcp://%s:%d', $smtp['host'], $smtp['port']),
         $errno,
         $errstr,
         20,
-        STREAM_CLIENT_CONNECT
+        STREAM_CLIENT_CONNECT,
+        $context
     );
     if ($socket === false) {
-        return false;
+        logSmtpFailure($storageDir, 'connect', '', $errno);
+        return;
     }
     stream_set_timeout($socket, 20);
 
@@ -1047,154 +1244,428 @@ function smtpSend(
         }
         return $out;
     };
-    $expect = static function (string $reply, string $code): bool {
-        return str_starts_with(trim($reply), $code);
-    };
     $write = static function (string $line) use ($socket): void {
-        fwrite($socket, $line . "\r\n");
+        @fwrite($socket, $line . "\r\n");
     };
 
-    $ok = $expect($read(), '220');
+    // No reply at all means the connection is gone; there is nothing to RSET.
+    $connectionLost = false;
+    $step = static function (string $stage, string $code) use ($read, $storageDir, &$connectionLost): bool {
+        $reply = $read();
+        if (str_starts_with(trim($reply), $code)) {
+            return true;
+        }
+        logSmtpFailure($storageDir, $stage, $reply);
+        $connectionLost = smtpReplyCode($reply) === 'none';
+        return false;
+    };
 
-    if ($ok) {
+    $ready = $step('greeting', '220');
+    if ($ready) {
         $write('EHLO ascend-rev.ca');
-        $ok = $expect($read(), '250');
+        $ready = $step('ehlo', '250');
     }
-    if ($ok) {
+    if ($ready) {
         $write('STARTTLS');
-        $ok = $expect($read(), '220');
+        $ready = $step('starttls', '220');
     }
-    if ($ok) {
-        $ok = (bool) @stream_socket_enable_crypto(
-            $socket,
-            true,
-            STREAM_CRYPTO_METHOD_TLS_CLIENT
-        );
+    if ($ready && !@stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+        logSmtpFailure($storageDir, 'tls', '');
+        $ready = false;
     }
-    if ($ok) {
+    if ($ready) {
         // EHLO again: the capability list before and after TLS are different
         // sessions as far as the server is concerned.
         $write('EHLO ascend-rev.ca');
-        $ok = $expect($read(), '250');
+        $ready = $step('ehlo_tls', '250');
     }
-    if ($ok) {
+    if ($ready) {
         $write('AUTH LOGIN');
-        $ok = $expect($read(), '334');
-        if ($ok) {
-            $write(base64_encode($user));
-            $ok = $expect($read(), '334');
-        }
-        if ($ok) {
-            $write(base64_encode($pass));
-            $ok = $expect($read(), '235');
-        }
+        $ready = $step('auth', '334');
     }
-    if ($ok) {
-        $write('MAIL FROM:<' . $from . '>');
-        $ok = $expect($read(), '250');
+    if ($ready) {
+        $write(base64_encode($smtp['user']));
+        $ready = $step('auth', '334');
     }
-    foreach ($recipients as $recipient) {
-        if (!$ok) {
-            break;
-        }
-        $write('RCPT TO:<' . $recipient . '>');
-        $ok = $expect($read(), '250');
+    if ($ready) {
+        $write(base64_encode($smtp['pass']));
+        $ready = $step('auth', '235');
     }
-    if ($ok) {
-        $write('DATA');
-        $ok = $expect($read(), '354');
-    }
-    if ($ok) {
+
+    if ($ready) {
         // Normalise to CRLF exactly once. The body may already be CRLF
         // (MIME) or LF (plain text); collapsing first makes both safe.
         $normalised = preg_replace("/\r\n?|\n/", "\n", $body) ?? $body;
         // Dot-stuffing: a line of a single "." would end the message early.
         $payload = preg_replace('/^\./m', '..', $normalised) ?? $normalised;
         $payload = str_replace("\n", "\r\n", $payload);
-        $write(
-            $headers . "\r\n"
-            . 'To: ' . implode(', ', $recipients) . "\r\n"
-            . 'Subject: ' . $subject . "\r\n"
-            . 'Date: ' . gmdate('r') . "\r\n"
-            . "\r\n"
-            . $payload . "\r\n."
-        );
-        $ok = $expect($read(), '250');
+
+        foreach ($pending as $recipientId => $recipient) {
+            $write('MAIL FROM:<' . $from . '>');
+            $sent = $step('mail_from', '250');
+            if ($sent) {
+                $write('RCPT TO:<' . $recipient . '>');
+                $sent = $step('rcpt', '250');
+            }
+            if ($sent) {
+                $write('DATA');
+                $sent = $step('data', '354');
+            }
+            if ($sent) {
+                $write(
+                    $headers . "\r\n"
+                    . 'To: ' . $recipient . "\r\n"
+                    . 'Subject: ' . $subject . "\r\n"
+                    . 'Date: ' . gmdate('r') . "\r\n"
+                    . "\r\n"
+                    . $payload . "\r\n."
+                );
+                $sent = $step('body', '250');
+            }
+
+            if ($sent) {
+                if (!$onAccepted((string) $recipientId)) {
+                    break;
+                }
+                continue;
+            }
+            if ($connectionLost) {
+                break;
+            }
+            // Abandon the failed transaction so the next recipient starts clean.
+            $write('RSET');
+            if (!$step('rset', '250')) {
+                break;
+            }
+        }
     }
 
     $write('QUIT');
     fclose($socket);
-
-    return $ok;
 }
 
-$from = headerSafe($MAIL_FROM);
-$fromValid = (bool) filter_var($from, FILTER_VALIDATE_EMAIL);
-$checkpointFailed = false;
+/**
+ * One delivery attempt for every recipient not yet acknowledged, over a single
+ * SMTP session. Returns true when every required recipient is acknowledged and
+ * checkpointed. Caller holds the submission lock.
+ *
+ * @param array<string,string> $recipientsById recipient id => address
+ * @param array{0:string,1:string,2:string,3:string,4:string} $values persisted CSV values
+ * @param 'background'|'sync'|'retry' $mode where the attempt ran, for the log
+ */
+function runDeliveryAttempt(
+    array $smtp,
+    string $storageDir,
+    string $statePath,
+    array $state,
+    array $recipientsById,
+    array $values,
+    string $submittedAt,
+    string $from,
+    string $mode
+): bool {
+    $started = microtime(true);
+    $requiredIds = array_keys($recipientsById);
 
-// SMTP and local state cannot commit atomically: a crash after remote 250 but
-// before this checkpoint can make a retry send that recipient again.
-foreach ($validatedRecipients as $index => $recipient) {
-    $recipientId = $requiredRecipientIds[$index];
-    if (in_array($recipientId, $deliveryState['accepted'], true)) {
-        continue;
-    }
-    if (!$fromValid) {
-        continue;
+    // Counted and stored before sending, so an attempt that dies mid-session
+    // still spends its share of the budget and cannot be retried forever.
+    $state['attempts'] = (int) ($state['attempts'] ?? 0) + 1;
+    $state['last_attempt_at'] = time();
+    if (!writeDeliveryState($statePath, $state)) {
+        logLine($storageDir, 'delivery_state_write_failed');
+        return false;
     }
 
-    // Use one SMTP transaction per recipient so a rejected RCPT does not block another.
-    $recipientAccepted = smtpSend(
-        $SMTP_HOST,
-        $SMTP_PORT,
-        $SMTP_USER,
-        $SMTP_PASS,
+    $pending = array_diff_key($recipientsById, array_flip($state['accepted']));
+    $checkpointFailed = false;
+
+    // SMTP and local state cannot commit atomically: a crash after remote 250 but
+    // before this checkpoint can make a retry send that recipient again.
+    if ($pending !== [] && filter_var($from, FILTER_VALIDATE_EMAIL)) {
+        $message = buildEnquiryMessage($values, $submittedAt, true, $from);
+        smtpDeliver(
+            $smtp,
+            $storageDir,
+            $from,
+            $pending,
+            $message['subject'],
+            $message['mime'],
+            $message['headers'],
+            static function (string $recipientId) use (&$state, $statePath, &$checkpointFailed): bool {
+                $state['accepted'][] = $recipientId;
+                $state['accepted'] = array_values(array_unique($state['accepted']));
+                if (!writeDeliveryState($statePath, $state)) {
+                    $checkpointFailed = true;
+                    return false;
+                }
+                return true;
+            }
+        );
+    }
+
+    $accepted = acceptedCount($state, $requiredIds);
+    $complete = !$checkpointFailed && $accepted === count($requiredIds);
+
+    logLine($storageDir, sprintf(
+        'delivery_attempt accepted=%d required=%d mode=%s ms=%d%s',
+        $accepted,
+        count($requiredIds),
+        $mode,
+        (int) round((microtime(true) - $started) * 1000),
+        $checkpointFailed ? ' checkpoint=failed' : ''
+    ));
+
+    if (!$complete && $state['attempts'] >= MAX_DELIVERY_ATTEMPTS) {
+        // The CSV row still holds the lead; this only stops the automatic retries.
+        $state['terminal'] = 'abandoned';
+        writeDeliveryState($statePath, $state);
+        logLine($storageDir, 'delivery_abandoned attempts=' . $state['attempts']);
+    }
+
+    return $complete;
+}
+
+/**
+ * The function that hands a finished response to the web server and frees the
+ * visitor's connection while PHP keeps running, or null where there is none
+ * (php -S, CLI). LiteSpeed's LSAPI is the production case; FastCGI covers hosts
+ * that run PHP-FPM instead.
+ */
+function finishRequestFunction(): ?string
+{
+    foreach (['litespeed_finish_request', 'fastcgi_finish_request'] as $function) {
+        if (function_exists($function)) {
+            return $function;
+        }
+    }
+    return null;
+}
+
+/** Records one submission against this IP's hourly budget. */
+function recordRateHit(string $rateFile, array $hits, int $now): void
+{
+    $hits[] = $now;
+    @file_put_contents($rateFile, json_encode($hits), LOCK_EX);
+}
+
+/* ---------------------------------------------------------------------------
+ * Outbox retry.
+ *
+ * The delivery-state files are the outbox: a submission with accepted recipients
+ * short of the required set and no terminal marker is unfinished work. The sweep
+ * claims each one with the same per-submission lock a web request holds, without
+ * waiting, so it never contends with a request that is mid-delivery.
+ * ------------------------------------------------------------------------ */
+
+/** Seconds to wait after the given number of attempts: 60s doubling, capped. */
+function retryBackoffSeconds(int $attempts): int
+{
+    return min(60 * (2 ** $attempts), RETRY_BACKOFF_CAP_SECONDS);
+}
+
+/** True when the state's accepted set already covers everything required. */
+function stateIsComplete(array $state): bool
+{
+    $required = $state['required'] ?? null;
+    $accepted = $state['accepted'] ?? null;
+    return is_array($required) && $required !== [] && is_array($accepted)
+        && array_diff($required, $accepted) === [];
+}
+
+/** The persisted CSV row for a submission key, or null when it cannot be read. */
+function findCsvRow(string $path, string $submissionKey): ?array
+{
+    $input = @fopen($path, 'r');
+    if ($input === false) {
+        return null;
+    }
+    $found = null;
+    if (fgetcsv($input) === CSV_HEADER) {
+        while (($row = fgetcsv($input)) !== false) {
+            if (count($row) === count(CSV_HEADER) && $row[7] === $submissionKey) {
+                $found = $row;
+                break;
+            }
+        }
+    }
+    fclose($input);
+    return $found;
+}
+
+/**
+ * One submission's retry, run while its lock is held.
+ *
+ * @param array<string,string> $recipientsById
+ * @return string 'attempted' or 'skipped'
+ */
+function retryLocked(
+    string $storageDir,
+    string $submissionKey,
+    array $recipientsById,
+    array $smtp,
+    string $from,
+    ?int $minAgeOverride
+): string {
+    $statePath = $storageDir . '/delivery-' . $submissionKey . '.json';
+    $state = json_decode((string) @file_get_contents($statePath), true);
+    if (!is_array($state)) {
+        logLine($storageDir, 'delivery_state_invalid');
+        return 'skipped';
+    }
+    if (($state['terminal'] ?? null) === 'abandoned' || stateIsComplete($state)) {
+        return 'skipped';
+    }
+
+    // Cheap age check before the CSV is read, so a backlog of not-yet-due
+    // submissions costs a stat-sized read each rather than a CSV scan.
+    $minAge = $minAgeOverride ?? retryBackoffSeconds((int) ($state['attempts'] ?? 0));
+    if (time() - (int) ($state['last_attempt_at'] ?? 0) < $minAge) {
+        return 'skipped';
+    }
+
+    $row = findCsvRow($storageDir . '/enquiries.csv', $submissionKey);
+    if ($row === null) {
+        logLine($storageDir, 'retry_row_missing');
+        return 'skipped';
+    }
+    $values = [(string) $row[1], (string) $row[2], (string) $row[3], (string) $row[4], (string) $row[5]];
+    $payloadHash = enquiryPayloadHash($values);
+    if (!is_string($state['payload_hash'] ?? null) || !hash_equals($payloadHash, $state['payload_hash'])) {
+        logLine($storageDir, 'retry_payload_mismatch');
+        return 'skipped';
+    }
+
+    $checked = checkDeliveryState($state, $payloadHash, array_keys($recipientsById));
+    if ($checked['problem'] !== null) {
+        logLine($storageDir, $checked['problem'] === 'recipients_changed' ? 'recipient_set_changed' : 'delivery_state_invalid');
+        return 'skipped';
+    }
+
+    runDeliveryAttempt(
+        $smtp,
+        $storageDir,
+        $statePath,
+        $checked['state'],
+        $recipientsById,
+        $values,
+        (string) $row[0],
         $from,
-        [$recipient],
-        $subject,
-        $mime,
-        $headers
+        'retry'
     );
-    if (!$recipientAccepted) {
-        continue;
-    }
-
-    $deliveryState['accepted'][] = $recipientId;
-    $deliveryState['accepted'] = array_values(array_unique($deliveryState['accepted']));
-    $stateJson = json_encode($deliveryState, JSON_UNESCAPED_SLASHES);
-    if (!is_string($stateJson) || !atomicWriteFile($deliveryStatePath, $stateJson)) {
-        $checkpointFailed = true;
-        break;
-    }
+    return 'attempted';
 }
 
-$acceptedRecipientCount = count(array_intersect($requiredRecipientIds, $deliveryState['accepted']));
-$mailDelivered = !$checkpointFailed && $acceptedRecipientCount === count($requiredRecipientIds);
+/**
+ * Sweeps the outbox once. Returns the process exit code: 0 when the sweep ran,
+ * 1 when the configuration prevents any delivery.
+ *
+ * @param string[] $recipients raw configured recipients
+ */
+function runRetrySweep(string $storageDir, array $recipients, array $smtp, string $mailFrom): int
+{
+    $validated = validateRecipients($recipients);
+    if ($validated === null || !is_dir($storageDir)) {
+        logLine($storageDir, 'retry_config_invalid');
+        echo "retry_sweep config_invalid\n";
+        return 1;
+    }
+    $recipientsById = array_combine(recipientIds($validated), $validated);
+    $from = headerSafe($mailFrom);
 
-if (!$mailDelivered) {
-    logLine(
-        $STORAGE_DIR,
-        'mail_delivery_incomplete accepted=' . $acceptedRecipientCount
-            . ' required=' . count($requiredRecipientIds)
-            . ' checkpoint=' . ($checkpointFailed ? 'failed' : 'ok')
-    );
+    // Test hook: a fixed minimum age replaces the backoff schedule.
+    $override = config('ASCENDREV_RETRY_MIN_AGE_SECONDS');
+    $minAgeOverride = ctype_digit($override) ? (int) $override : null;
+
+    $counts = ['scanned' => 0, 'attempted' => 0, 'busy' => 0];
+    foreach (glob($storageDir . '/delivery-*.json') ?: [] as $statePath) {
+        if (preg_match('/delivery-([a-f0-9]{64})\.json$/', $statePath, $match) !== 1) {
+            continue;
+        }
+        $counts['scanned']++;
+
+        $lock = @fopen($storageDir . '/submission-' . $match[1] . '.lock', 'c');
+        if ($lock === false) {
+            continue;
+        }
+        // Non-blocking: a held lock means a web request is delivering right now.
+        if (!flock($lock, LOCK_EX | LOCK_NB)) {
+            fclose($lock);
+            $counts['busy']++;
+            logLine($storageDir, 'delivery_retry_skipped reason=busy');
+            continue;
+        }
+        $outcome = retryLocked($storageDir, $match[1], $recipientsById, $smtp, $from, $minAgeOverride);
+        releaseSubmissionLock($lock);
+        if ($outcome === 'attempted') {
+            $counts['attempted']++;
+        }
+    }
+
+    // A cron job that never runs looks identical to one with nothing to do. The
+    // heartbeat's modified time is the one thing in File Manager that tells
+    // them apart, without writing a log line every five minutes.
+    @file_put_contents($storageDir . '/retry-heartbeat', gmdate('c') . "\n", LOCK_EX);
+
+    echo sprintf("retry_sweep scanned=%d attempted=%d busy=%d\n", $counts['scanned'], $counts['attempted'], $counts['busy']);
+    return 0;
 }
 
 /* ---------------------------------------------------------------------------
  * Outcome.
  *
- * The browser treats every 2xx as success. Do not return one until the durable
- * row and each configured recipient's SMTP DATA 250 are checkpointed.
+ * The browser treats every 2xx as success, so a 2xx must mean the enquiry
+ * cannot be lost. It can be once the CSV row and the delivery state are on disk:
+ * from there the visitor is answered at once and delivery continues detached,
+ * with cron retrying anything the attempt does not finish.
  * ------------------------------------------------------------------------ */
 
-$hits[] = $now;
-@file_put_contents($rateFile, json_encode($hits), LOCK_EX);
+$from = headerSafe($MAIL_FROM);
+$recipientsById = array_combine($requiredRecipientIds, $validatedRecipients);
+$alreadyDelivered = acceptedCount($deliveryState, $requiredRecipientIds) === count($requiredRecipientIds);
+$finishRequest = $alreadyDelivered ? null : finishRequestFunction();
 
+// Delivery must survive the visitor closing the tab, and one session can outlast
+// the default execution limit when the mail server is slow.
+ignore_user_abort(true);
+set_time_limit(120);
+
+if ($finishRequest !== null) {
+    recordRateHit($rateFile, $hits, $now);
+    sendJson(200, ['ok' => true, 'recorded' => true, 'mailed' => false, 'queued' => true]);
+    $finishRequest();
+
+    runDeliveryAttempt(
+        $SMTP,
+        $STORAGE_DIR,
+        $deliveryStatePath,
+        $deliveryState,
+        $recipientsById,
+        $persistedValues,
+        $submittedAt,
+        $from,
+        'background'
+    );
+    releaseSubmissionLock($submissionLock);
+    exit;
+}
+
+// No way to detach (php -S, CLI), or nothing left to send on a replay: answer
+// after delivery, as the handler always did.
+$mailDelivered = $alreadyDelivered || runDeliveryAttempt(
+    $SMTP,
+    $STORAGE_DIR,
+    $deliveryStatePath,
+    $deliveryState,
+    $recipientsById,
+    $persistedValues,
+    $submittedAt,
+    $from,
+    'sync'
+);
+
+recordRateHit($rateFile, $hits, $now);
 releaseSubmissionLock($submissionLock);
 
-if (!$csvWritten) {
-    respond(500, ['ok' => false, 'error' => 'not_recorded']);
-}
 if (!$mailDelivered) {
     respond(503, ['ok' => false, 'error' => 'delivery_incomplete', 'recorded' => true]);
 }

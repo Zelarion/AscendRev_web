@@ -1,5 +1,4 @@
 import type { JSX } from 'react';
-import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import Stagger from '@/components/ui/Stagger';
 import { solutions } from '@/content/solutions';
@@ -8,49 +7,47 @@ import { solutions } from '@/content/solutions';
  * "We employ Premium and Experienced Career Professionals, Not
  * Clock-Punchers." (SPEC.md §4.2, item 3).
  *
- * Client revision, 2026-09-24: the former explanatory paragraph under the
- * heading is deleted, not replaced, per the client's instruction. What
- * was a two-column "what we hire for / how we screen" sheet is now this
- * section (heading + a "Team Capability" label block) plus a separate
- * screening section (`Screening.tsx`) with its own heading, matching the
- * client's brief, which gives the two blocks distinct headings.
- *
- * Tracked mono label kept from the previous version of this section: genuine
- * labels naming what the list below is, which is the case DESIGN.md §2
- * permits the style for.
+ * The heading, capability details and screening sequence share a left edge.
+ * The page keeps candidate standards distinct from the screening steps below.
  */
-const COLUMN_LABEL =
-  'font-mono text-small font-medium uppercase tracking-[0.3em] text-[var(--ink)]';
+const CAPABILITY_LABEL =
+  'text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--gold-text)]';
 
 export default function HiringStandard(): JSX.Element {
   const { heading, capability } = solutions.hiring;
 
   return (
-    <Section className="!pt-8 !pb-2">
-      <Container>
+    <Section className="!py-[clamp(3rem,6vw,5.5rem)]">
+      <div className="mx-auto w-full max-w-[1540px] px-[clamp(1.25rem,5vw,5.5rem)]">
         <h2
-          className="ar-type-hiring-standard max-w-none font-display text-h2 text-[var(--ink)] lg:whitespace-nowrap"
+          className="max-w-[34ch] text-left font-display text-h2 text-[var(--ink)]"
         >
           {heading}
         </h2>
+        <p className="mt-4 max-w-[68ch] text-left text-body-lg text-[var(--ink-muted)]">
+          {capability.intro}
+        </p>
 
-        <div className="mt-9 sm:mt-12">
-          <h3 className={COLUMN_LABEL}>{capability.heading}</h3>
-          {/* Every row carries a top hairline including the first, so the
-              group reads as a set with a rule above it rather than rows that
-              happen to be separated. */}
-          <Stagger className="mt-5 grid gap-x-8 sm:mt-7 md:grid-cols-2 md:gap-x-10 lg:gap-x-12">
-            {capability.items.map((item) => (
-              <p
-                key={item}
-                className="border-t border-[var(--border)] py-4 text-body text-[var(--ink-muted)] sm:py-5"
+        <div className="mt-8 border-t border-[var(--border)] pt-5 sm:mt-10 sm:pt-6">
+          <h3 className={CAPABILITY_LABEL}>{capability.heading}</h3>
+          <Stagger className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:gap-5">
+            {capability.items.map((item, index) => (
+              <article
+                key={item.title}
+                className="flex min-h-32 items-start gap-4 rounded-lg border border-[var(--border)] bg-[var(--surface-raised)] p-5 sm:min-h-36 sm:p-6"
               >
-                {item}
-              </p>
+                <span aria-hidden="true" className="mt-0.5 font-mono text-[11px] tracking-[0.16em] text-[var(--gold-text)]">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <div>
+                  <h4 className="font-semibold text-[var(--ink)]">{item.title}</h4>
+                  <p className="mt-2 text-body text-[var(--ink-muted)]">{item.detail}</p>
+                </div>
+              </article>
             ))}
           </Stagger>
         </div>
-      </Container>
+      </div>
     </Section>
   );
 }

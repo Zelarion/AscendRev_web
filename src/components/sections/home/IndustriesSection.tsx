@@ -55,25 +55,26 @@ export default function IndustriesSection({ content }: IndustriesSectionProps): 
   return (
     <section
       id={content.id}
-      className="relative isolate scroll-mt-[var(--header-height)] overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] pt-5 pb-[clamp(4rem,9vw,8rem)] text-[var(--text-primary)] md:pt-6"
+      className="relative isolate scroll-mt-[var(--header-height)] overflow-hidden bg-[var(--surface-band)] px-[clamp(1.25rem,5vw,5.5rem)] pt-[calc(var(--header-height)+clamp(1.5rem,4vw,3rem))] pb-[clamp(4rem,9vw,8rem)] text-[var(--text-primary)]"
     >
       <AtmosphereLayer variant="light-network" />
       <div className="relative z-10 mx-auto w-full max-w-[1540px]">
         <header className="w-full text-left">
-          <h2 className="font-display text-h2 text-[var(--navy-900)]">
+          <h1 className="max-w-[24ch] font-display text-h1 text-[var(--navy-900)]">
+            Problem-Solution Framework
+          </h1>
+          <h2 className="mt-5 font-display text-h2 text-[var(--navy-900)] sm:mt-7">
             {content.heading}
           </h2>
-          <p className="mt-5 w-full text-body-lg text-[var(--text-muted)] md:mt-6 lg:mt-7">
+          <p className="mt-3 max-w-[76ch] text-body-lg text-[var(--text-muted)] md:mt-4">
             {content.intro}
           </p>
         </header>
 
-        <div className="mx-auto mt-[clamp(2rem,3vw,2.5rem)] flex max-w-[900px] items-center justify-center gap-4 text-center">
-          <span aria-hidden="true" className="h-px w-8 bg-[var(--gold-text)] sm:w-12" />
-          <p className="text-body-lg text-[var(--navy-900)]">
+        <div className="mt-[clamp(2rem,3vw,2.5rem)] text-left">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--navy-900)] sm:text-xs">
             {content.subheading}
           </p>
-          <span aria-hidden="true" className="h-px w-8 bg-[var(--gold-text)] sm:w-12" />
         </div>
 
         <RevealOnScroll

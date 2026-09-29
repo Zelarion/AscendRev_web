@@ -9,7 +9,9 @@ import {
   Target,
 } from '@phosphor-icons/react/dist/ssr';
 import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
+import CapabilityApproach from '@/components/sections/capabilities/CapabilityApproach';
 import CapabilityJourney from '@/components/sections/capabilities/CapabilityJourney';
+import ServiceGrid from '@/components/sections/solutions/ServiceGrid';
 import { capabilities } from '@/content/capabilities';
 import { createSeoMetadata } from '@/lib/seoMetadata';
 
@@ -91,6 +93,12 @@ export default function CapabilitiesPage() {
               <ArrowRight size={17} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
+        </div>
+      </section>
+      <ServiceGrid />
+      <section className="bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))]">
+        <div className="mx-auto w-full max-w-[1200px]">
+          <CapabilityApproach />
         </div>
       </section>
       <CapabilityJourney />

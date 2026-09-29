@@ -1,4 +1,3 @@
-import AdvantageHero from '@/components/sections/advantage/AdvantageHero';
 import InfrastructureBlock from '@/components/sections/advantage/InfrastructureBlock';
 import LeadershipBlock from '@/components/sections/advantage/LeadershipBlock';
 import { advantage } from '@/content/advantage';
@@ -21,7 +20,6 @@ export const metadata = createSeoMetadata({
 export default function AdvantagePage() {
   return (
     <>
-      <AdvantageHero />
       <LeadershipBlock />
       <InfrastructureBlock />
     </>

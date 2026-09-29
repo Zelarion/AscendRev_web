@@ -94,13 +94,13 @@ export default function HeroSection({ content }: HeroSectionProps): JSX.Element 
               </div>
             </div>
             <p
-              aria-label={content.tagline.join(' ')}
-              className="ar-fade-rise mt-7 flex w-full flex-nowrap items-center justify-center gap-x-[0.38em] whitespace-nowrap text-center text-[clamp(0.9rem,4.2vw,2rem)] font-semibold tracking-[0.07em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)] sm:mt-9"
+              aria-label={content.tagline.join(' ').toUpperCase()}
+              className="ar-fade-rise mt-7 flex w-full flex-nowrap items-center justify-center gap-x-[0.32em] whitespace-nowrap text-center text-[clamp(0.85rem,1.65vw,1.25rem)] font-bold tracking-[0.1em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)] sm:mt-9"
               style={{ animationDelay: `${HERO_SUPPORT_DELAY_MS + 120}ms` }}
             >
               {content.tagline.map((clause, index) => (
                 <span key={clause} className={taglineColors[index] ?? 'text-white/85'}>
-                  {clause}
+                  {clause.toUpperCase()}
                 </span>
               ))}
             </p>

@@ -199,7 +199,7 @@ export default function InfrastructureBlock(): JSX.Element {
           target.style.transform = 'rotateX(0deg) rotateY(0deg)';
         });
       }}
-      className="relative bg-[var(--surface-band)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] text-[var(--ink)]"
+      className="relative bg-[var(--surface-band)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] pt-[clamp(1rem,1.5vw,1.5rem)] pb-[var(--section-space,clamp(3.5rem,8vw,8rem))] text-[var(--ink)]"
     >
       <div className="mx-auto w-full max-w-[1540px]">
         <header>
@@ -207,10 +207,10 @@ export default function InfrastructureBlock(): JSX.Element {
             THE ASCENDREV ADVANTAGE / 02
           </p>
           <h2 className="mt-5 font-display text-h2 text-[var(--navy-900)]">
-            State-of-the-Art Operations.
+            The commitments behind the operating standard.
           </h2>
           <p className="mt-6 text-body-lg text-[var(--ink-muted)]">
-            Premium Philippine operations are built around reliability, security, talent, and continuity.
+            The Philippine operation is being set up around reliability, security, talent, and continuity.
           </p>
 
         </header>

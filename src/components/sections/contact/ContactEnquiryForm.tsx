@@ -364,11 +364,11 @@ export default function ContactEnquiryForm({ content }: ContactEnquiryFormProps)
             </span>
           </button>
 
-          <p className="mt-4 text-center text-[11px] leading-5 text-[var(--ink-muted)]">
+          <p className="mt-4 text-left text-[11px] leading-5 text-[var(--ink-muted)]">
             {content.consent.text}
           </p>
 
-          <p className="mt-3 text-center text-[10px] leading-4 text-[var(--ink-muted)]">
+          <p className="mt-3 text-left text-[10px] leading-4 text-[var(--ink-muted)]">
             <Link
               href={content.consent.policyHref}
               className="underline decoration-[var(--border)] underline-offset-4 transition-colors hover:text-[var(--navy-900)]"

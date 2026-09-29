@@ -1,6 +1,6 @@
 /**
- * Homepage copy. Section order matches SPEC.md §4.1 exactly: hero, trust band,
- * pillars, industries, closing band.
+ * Homepage copy. Revenue-gap questions now live on the Solutions page, while
+ * the homepage focuses on the hero, proof, pillars and operating model.
  *
  * This file also holds the content primitives the other three page files share
  * (`PageMeta`, `Cta`, `ImageSlot`, `PendingApproval`, `ClosingBandContent`).
@@ -161,7 +161,7 @@ export interface IndustryQuestion {
 }
 
 export interface IndustriesContent {
-  /** Anchor target for the `/#revenue-impact` nav item (SPEC.md §3). */
+  /** Anchor target for the Revenue Impact section on `/solutions/`. */
   id: string;
   heading: string;
   intro: string;
@@ -174,7 +174,7 @@ export interface HomeContent {
   hero: HeroContent;
   trustBand: TrustBandContent;
   pillars: PillarsContent;
-  industries: IndustriesContent;
+  revenueImpact: IndustriesContent;
   closing: ClosingBandContent;
 }
 
@@ -250,7 +250,7 @@ export const home: HomeContent = {
       'Your team focuses on growth. We handle the execution that makes it possible.',
   },
 
-  industries: {
+  revenueImpact: {
     id: 'revenue-impact',
     heading: 'Built for North American Business.',
     intro:

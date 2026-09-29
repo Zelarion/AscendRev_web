@@ -9,69 +9,59 @@ import { solutions } from '@/content/solutions';
 import { stateTransitionStyle } from '@/lib/motion';
 import GlyphIcon, { GLYPH_ACCENT_CYCLE } from './GlyphIcon';
 
-/**
- * The nine-function grid (SPEC.md §4.2, item 2).
- *
- * Client revision, 2026-09-24: the per-service description paragraph is
- * removed. A card here is now a small icon plus its label, nothing else, so
- * the grid runs 3-wide on desktop rather than the old 2-wide layout — a
- * tighter grid to match the shorter content, not a stretched-out list.
- * DESIGN.md §3's card rules (1px border, 10px radius, no shadow) still apply.
- */
+/** Capability overview and nine-function service list for `/capabilities`. */
 export default function ServiceGrid(): JSX.Element {
   const { heading, intro, items, salesDashboardImage } = solutions.services;
 
   return (
-    <Section className="relative isolate overflow-hidden !pt-6 !pb-8">
+    <Section className="relative isolate overflow-hidden !py-[clamp(3rem,6vw,5rem)]">
       <AtmosphereLayer variant="light-network" />
       <Container className="relative z-10 max-w-none wide-nav:px-10">
-        {/* The one word-by-word reveal on this page. It resolves under the
-            reader's own scroll, which is the cause-and-effect DESIGN.md §4
-            asks motion to express; used on every heading it would just be a
-            page-wide tic. */}
-        {/* No `text-[var(--ink)]` here. WordReveal passes className through
-            `cn`, which runs tailwind-merge, and tailwind-merge cannot tell
-            whether the arbitrary value in `text-[var(--ink)]` is a colour or a
-            font size. It resolves the ambiguity by treating it as a font size
-            and dropping `text-h2`, which silently renders the heading at body
-            size. The colour is inherited from Section's light tone anyway, so
-            the fix is to not ask for it twice. */}
-        <WordReveal as="h2" className="max-w-none font-display text-h2 md:whitespace-nowrap">
-          {heading}
-        </WordReveal>
+        <div className="grid items-center gap-7 lg:grid-cols-2 lg:gap-10 2xl:gap-14">
+          <figure className="relative m-0 aspect-[4/3] w-full min-w-0 overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface-band)]">
+            <Image
+              src={salesDashboardImage.src}
+              alt={salesDashboardImage.alt}
+              fill
+              sizes="(min-width: 768px) 50vw, 100vw"
+              className="object-cover"
+            />
+          </figure>
 
-        <p className="mt-4 text-body-lg text-[var(--ink-muted)] sm:mt-6">
-          {intro}
-        </p>
+          <div className="min-w-0 text-left">
+            <div className="max-w-[620px]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
+                CAPABILITIES / SERVICES
+              </p>
+              <WordReveal as="h2" className="mt-3 max-w-[20ch] font-display text-h2">
+                {heading}
+              </WordReveal>
+              <p className="mt-4 text-body-lg text-[var(--ink-muted)] sm:mt-6">
+                {intro}
+              </p>
+            </div>
 
-        <figure className="relative mx-auto mt-10 aspect-[4/3] w-full max-w-[560px] overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface-band)] sm:mt-12">
-          <Image
-            src={salesDashboardImage.src}
-            alt={salesDashboardImage.alt}
-            fill
-            sizes="(min-width: 560px) 560px, 100vw"
-            className="object-cover"
-          />
-        </figure>
-
-        <Stagger className="mt-9 grid gap-3 sm:mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-3 lg:gap-5">
-          {items.map((item, index) => (
-            <article
-              key={item.id}
-              // Hover deepens the hairline (DESIGN.md §4). No shadow bloom.
-              className="flex min-h-[76px] items-center gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-4 transition-[border-color] hover:border-[var(--border-strong)] sm:min-h-[88px] sm:gap-4 sm:p-5"
-              style={stateTransitionStyle}
-            >
-              <GlyphIcon
-                glyph={item.glyph}
-                accent={GLYPH_ACCENT_CYCLE[index % GLYPH_ACCENT_CYCLE.length]}
-              />
-              <h3 className="text-body font-medium text-[var(--ink)] min-[115rem]:whitespace-nowrap">
-                {item.label}
-              </h3>
-            </article>
-          ))}
-        </Stagger>
+            <Stagger className="mt-7 grid min-w-0 grid-cols-1 gap-3 min-[640px]:grid-cols-2 2xl:grid-cols-3">
+              {items.map((item, index) => (
+                <article
+                  key={item.id}
+                  // Hover deepens the hairline (DESIGN.md §4). No shadow bloom.
+                  className="flex min-h-[76px] min-w-0 items-center gap-2.5 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-3 transition-[border-color] hover:border-[var(--border-strong)] sm:min-h-[82px] sm:gap-3 sm:p-3.5"
+                  style={stateTransitionStyle}
+                >
+                  <GlyphIcon
+                    glyph={item.glyph}
+                    accent={GLYPH_ACCENT_CYCLE[index % GLYPH_ACCENT_CYCLE.length]}
+                    className="h-8 w-8 shrink-0 text-sm"
+                  />
+                  <h3 className="ar-service-card-title min-w-0 flex-1 text-left [overflow-wrap:anywhere]">
+                    {item.label}
+                  </h3>
+                </article>
+              ))}
+            </Stagger>
+          </div>
+        </div>
       </Container>
     </Section>
   );

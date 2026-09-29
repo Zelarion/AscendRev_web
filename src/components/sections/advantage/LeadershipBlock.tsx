@@ -14,7 +14,7 @@ interface StoryStep {
   label: string;
   title: string;
   body?: string;
-  kind?: 'career' | 'commercial' | 'operating';
+  kind?: 'career' | 'commercial' | 'operations' | 'operating';
 }
 
 /** Cycles the four stat-card glyphs through gold, blue and green so the grid
@@ -104,8 +104,16 @@ export default function LeadershipBlock(): JSX.Element {
       kind: 'commercial',
     },
     {
-      id: 'operating-model',
+      id: 'state-of-the-art-operations',
       number: '03',
+      label: 'STATE-OF-THE-ART OPERATIONS',
+      title: 'The standard we are building toward.',
+      body: advantage.infrastructure.status,
+      kind: 'operations',
+    },
+    {
+      id: 'operating-model',
+      number: '04',
       label: 'OPERATING MODEL',
       title: 'Experience converted into execution.',
       body: leadership.commitment,
@@ -151,7 +159,7 @@ export default function LeadershipBlock(): JSX.Element {
     <section
       id={leadership.id}
       data-tone="navy"
-      className="relative isolate border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] !pt-[clamp(2rem,4vw,3rem)] text-[var(--ink)]"
+      className="relative isolate border-t border-[var(--border)] bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] py-[var(--section-space,clamp(3.5rem,8vw,8rem))] !pt-[calc(var(--header-height)_+_1rem)] pb-[clamp(1rem,1.5vw,1.5rem)] text-[var(--ink)]"
     >
       <div
         aria-hidden="true"
@@ -166,8 +174,17 @@ export default function LeadershipBlock(): JSX.Element {
         panel background (build brief: "--surface-band-raised or a hairline
         border ... rather than a dark panel").
       */}
-      <div className="relative z-[1] mx-auto grid w-full max-w-[1540px] gap-9 sm:gap-11 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-20 xl:gap-24">
-        <aside className="lg:sticky lg:top-28 lg:self-start lg:h-fit lg:border-r lg:border-[var(--border)] lg:pr-8 xl:pr-10">
+      <div className="relative z-[1] mx-auto grid w-full max-w-[1540px] gap-9 sm:gap-11 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-x-20 lg:gap-y-0 xl:gap-x-24">
+        <header className="order-2 text-left lg:col-start-2 lg:row-start-1 lg:order-none">
+          <h1 className="max-w-[24ch] font-display text-h1 text-[var(--navy-900)]">
+            {advantage.hero.headline}
+          </h1>
+          <p className="mt-3 max-w-[64ch] text-body-lg text-[var(--steel-600)] sm:mt-4">
+            {advantage.hero.subheadline}
+          </p>
+        </header>
+
+        <aside className="order-1 lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:order-none lg:sticky lg:top-[calc(var(--header-height)_+_1rem)] lg:self-start lg:h-fit lg:border-r lg:border-[var(--border)] lg:pr-8 xl:pr-10">
           <div className="relative isolate rounded-[10px] bg-[var(--surface-band-raised)] p-5 lg:bg-transparent lg:p-0">
             <div
               aria-hidden="true"
@@ -191,7 +208,7 @@ export default function LeadershipBlock(): JSX.Element {
                   alt="Rio Vidal, Co-Founder and President of AscendRev"
                   width={781}
                   height={721}
-                  className="mb-3 block h-auto w-full max-w-[clamp(16rem,40vw,20rem)] rounded-[8px] object-contain"
+                  className="mb-3 block h-[clamp(10rem,19vh,13.5rem)] w-full max-w-[17rem] rounded-[8px] object-cover object-center"
                 />
 
                 <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>
@@ -224,7 +241,7 @@ export default function LeadershipBlock(): JSX.Element {
           </div>
         </aside>
 
-        <div className="relative">
+        <div className="relative order-3 lg:col-start-2 lg:row-start-2 lg:order-none">
           <div aria-hidden="true" className="absolute bottom-10 left-[21px] top-10 w-px bg-[var(--border)] sm:bottom-14 sm:left-[25px] sm:top-14">
             <span
               className="absolute left-0 top-0 w-px bg-[var(--gold-400)] transition-[height] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
@@ -244,7 +261,7 @@ export default function LeadershipBlock(): JSX.Element {
                     milestoneRefs.current[index] = node;
                   }}
                   data-founder-step={index}
-                  className="relative py-9 pl-14 sm:py-14 sm:pl-20 lg:py-20"
+                  className={`relative py-9 pl-14 sm:py-14 sm:pl-20 lg:py-20 ${index === 0 ? 'lg:pt-8' : ''}`}
                 >
                   <span
                     aria-hidden="true"
@@ -314,6 +331,21 @@ export default function LeadershipBlock(): JSX.Element {
                             ))}
                           </div>
                         </div>
+                      ) : step.kind === 'operations' ? (
+                        <div className="mt-7 max-w-[840px]">
+                          <h3 className="max-w-[42ch] font-display text-h3 text-[var(--navy-900)]">
+                            {step.title}
+                          </h3>
+                          <p className="mt-5 max-w-[62ch] text-body-lg text-[var(--ink-muted)]">
+                            {step.body}
+                          </p>
+                          <a
+                            href="#infrastructure"
+                            className="mt-5 inline-flex min-h-10 items-center text-sm font-semibold text-[var(--steel-600)] underline decoration-[var(--gold-text)] underline-offset-4"
+                          >
+                            Review the operating commitments
+                          </a>
+                        </div>
                       ) : step.kind === 'operating' ? (
                         <div className="mt-7 max-w-[840px]">
                           <h3 className="max-w-[42ch] font-display text-h3 text-[var(--navy-900)]">
@@ -359,7 +391,7 @@ export default function LeadershipBlock(): JSX.Element {
 
           <div className="ml-16 border-t border-[var(--border)] pt-7 sm:ml-20">
             <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
-              Next / Philippine Infrastructure
+              Next / Operating Commitments
             </p>
           </div>
         </div>

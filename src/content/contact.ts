@@ -17,16 +17,19 @@ import type { PageMeta } from './home';
 export interface ContactHeroContent {
   headline: string;
   subheadline: string;
+  description: string;
 }
 
 /* Section: what to expect. */
 
 export interface ExpectStep {
   title: string;
+  detail: string;
 }
 
 export interface WhatToExpectContent {
   heading: string;
+  description: string;
   steps: readonly ExpectStep[];
 }
 
@@ -102,15 +105,28 @@ export const contact: ContactContent = {
     headline: "Let's Engineer Your Scaled Support Infrastructure.",
     subheadline:
       'Go from strategic sign-off to a fully operational, elite dedicated team in 30-60 days.',
+    description:
+      'Start with the work to be covered, the people it serves, and where the operation needs more capacity. We will shape a solution blueprint around the right dedicated team.',
   },
 
   whatToExpect: {
     // En dash, per the client's copy.
-    heading: 'What to expect – the 15 minute Blueprint',
+    heading: 'From Discovery to Deployment — In 3 Simple Steps.',
+    description:
+      'A focused 15-minute conversation to identify the work, agree the team, and define a practical path to launch.',
     steps: [
-      { title: 'REVENUE GAPS AND COST EFFICIENCY DIAGNOSTICS' },
-      { title: 'DEFINE SCOPE OF WORK AND THE RIGHT DEDICATED TEAM' },
-      { title: 'GO LIVE' },
+      {
+        title: 'Revenue gaps and cost efficiency',
+        detail: 'Review the operation, identify gaps, and surface opportunities to improve performance.',
+      },
+      {
+        title: 'Scope and the right dedicated team',
+        detail: 'Agree the work, responsibilities, and team structure before launch.',
+      },
+      {
+        title: 'Go live',
+        detail: 'Prepare the team and begin delivery against the agreed scope.',
+      },
     ],
   },
 

@@ -406,7 +406,7 @@ export default function PageLoader(): JSX.Element | null {
 
       if (destination.origin !== window.location.origin) return;
       const current = new URL(window.location.href);
-      // Same-page anchors (including Revenue Impact) scroll normally and do
+      // Same-page anchors scroll normally and do
       // not start a second loading cover.
       if (destination.pathname === current.pathname && destination.search === current.search) return;
 

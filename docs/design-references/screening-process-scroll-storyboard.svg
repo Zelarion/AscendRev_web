@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title description">
+  <title id="title">AscendRev team screening process design reference</title>
+  <desc id="description">A bright editorial page with an interview image on the left and a seven-step screening timeline on the right. The final step is Job Offer.</desc>
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07172f"/><stop offset="1" stop-color="#14365e"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#f2d47b"/><stop offset="1" stop-color="#c6962f"/></linearGradient>
+    <linearGradient id="photo" x1="0" y1="0" x2="0.9" y2="1"><stop stop-color="#e5edf3"/><stop offset="1" stop-color="#c8d8e2"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#0b1b32" flood-opacity=".11"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="#f5f7fa"/>
+  <rect width="1600" height="88" fill="url(#navy)"/>
+  <rect y="86" width="1600" height="2" fill="url(#gold)"/>
+  <text x="86" y="54" fill="#ffffff" font-family="Arial, sans-serif" font-size="21" font-weight="700" letter-spacing="3">ASCENDREV</text>
+  <text x="1510" y="53" fill="#e6edf6" text-anchor="end" font-family="Arial, sans-serif" font-size="14" font-weight="600" letter-spacing="2">PEOPLE · PROCESS · PERFORMANCE</text>
+
+  <text x="98" y="153" fill="#9b711e" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="3">OUR PEOPLE / HOW WE HIRE</text>
+  <text x="96" y="220" fill="#101b30" font-family="Georgia, serif" font-size="54" font-weight="500" letter-spacing="-1.5">How we screen our</text>
+  <text x="96" y="278" fill="#101b30" font-family="Georgia, serif" font-size="54" font-weight="500" letter-spacing="-1.5">team members</text>
+  <text x="98" y="324" fill="#4f5e72" font-family="Arial, sans-serif" font-size="19">A clear sequence checks experience, role fit and readiness.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="96" y="370" width="650" height="490" rx="18" fill="url(#photo)"/>
+    <rect x="96" y="370" width="650" height="490" rx="18" fill="none" stroke="#d8e1e9"/>
+  </g>
+  <!-- Editorial illustration placeholder: two people in a structured interview. -->
+  <rect x="123" y="400" width="596" height="320" rx="12" fill="#eaf1f5"/>
+  <rect x="143" y="420" width="556" height="214" rx="8" fill="#f9fbfc"/>
+  <path d="M144 634h555" stroke="#cbd7e0" stroke-width="2"/>
+  <path d="M180 459h160M180 481h108M570 451h88M570 472h112" stroke="#d6e0e8" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="302" cy="516" r="35" fill="#bb8d6b"/>
+  <path d="M257 635c5-53 20-80 45-80s42 27 47 80" fill="#244c70"/>
+  <circle cx="535" cy="502" r="37" fill="#d5a783"/>
+  <path d="M482 635c5-61 23-90 53-90s49 29 54 90" fill="#122b4a"/>
+  <path d="M332 598h173" stroke="#956b35" stroke-width="9" stroke-linecap="round"/>
+  <path d="M351 598l-13 48M488 598l14 48" stroke="#956b35" stroke-width="7" stroke-linecap="round"/>
+  <rect x="393" y="570" width="64" height="32" rx="4" fill="#fff" stroke="#ccd6df"/>
+  <rect x="405" y="577" width="40" height="4" rx="2" fill="#d7e2e9"/>
+  <rect x="405" y="586" width="30" height="4" rx="2" fill="#d7e2e9"/>
+  <text x="128" y="774" fill="#976f21" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.4">CLEAR STANDARDS. CONSISTENT REVIEW.</text>
+  <text x="128" y="816" fill="#112039" font-family="Georgia, serif" font-size="27">A considered process, from first review to offer.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="790" y="147" width="716" height="742" rx="18" fill="#ffffff"/>
+    <rect x="790" y="147" width="716" height="742" rx="18" fill="none" stroke="#dce3ea"/>
+  </g>
+  <text x="837" y="198" fill="#9b711e" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.6">THE SCREENING SEQUENCE</text>
+  <text x="1458" y="198" fill="#647286" text-anchor="end" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.5">07 STEPS</text>
+  <path d="M859 244v558" stroke="#e3e9ef" stroke-width="3" stroke-linecap="round"/>
+  <path d="M859 244v558" stroke="url(#gold)" stroke-width="3" stroke-linecap="round"/>
+
+  <g font-family="Arial, sans-serif">
+    <circle cx="859" cy="254" r="17" fill="#123355"/><text x="859" y="259" fill="#fff" text-anchor="middle" font-size="10" font-weight="700">01</text>
+    <text x="897" y="250" fill="#15233b" font-size="19" font-weight="700">Resume Screening</text><text x="897" y="274" fill="#69778a" font-size="14">Review experience against the role.</text>
+    <path d="M897 296h552" stroke="#edf0f3"/>
+
+    <circle cx="859" cy="334" r="17" fill="#123355"/><text x="859" y="339" fill="#fff" text-anchor="middle" font-size="10" font-weight="700">02</text>
+    <text x="897" y="330" fill="#15233b" font-size="19" font-weight="700">Phone Interview</text><text x="897" y="354" fill="#69778a" font-size="14">Discuss interest, communication and fit.</text>
+    <path d="M897 376h552" stroke="#edf0f3"/>
+
+    <circle cx="859" cy="414" r="17" fill="#123355"/><text x="859" y="419" fill="#fff" text-anchor="middle" font-size="10" font-weight="700">03</text>
+    <text x="897" y="410" fill="#15233b" font-size="19" font-weight="700">Face-to-Face Screening</text><text x="897" y="434" fill="#69778a" font-size="14">Explore experience and working approach.</text>
+    <path d="M897 456h552" stroke="#edf0f3"/>
+
+    <circle cx="859" cy="494" r="17" fill="#123355"/><text x="859" y="499" fill="#fff" text-anchor="middle" font-size="10" font-weight="700">04</text>
+    <text x="897" y="490" fill="#15233b" font-size="19" font-weight="700">Skills &amp; Technical Assessment</text><text x="897" y="514" fill="#69778a" font-size="14">Assess the skills needed for the work.</text>
+    <path d="M897 536h552" stroke="#edf0f3"/>
+
+    <circle cx="859" cy="574" r="17" fill="#123355"/><text x="859" y="579" fill="#fff" text-anchor="middle" font-size="10" font-weight="700">05</text>
+    <text x="897" y="570" fill="#15233b" font-size="19" font-weight="700">Client / Partner Final Interview</text><text x="897" y="594" fill="#69778a" font-size="14">Confirm role expectations with the client.</text>
+    <path d="M897 616h552" stroke="#edf0f3"/>
+
+    <circle cx="859" cy="654" r="17" fill="#123355"/><text x="859" y="659" fill="#fff" text-anchor="middle" font-size="10" font-weight="700">06</text>
+    <text x="897" y="650" fill="#15233b" font-size="19" font-weight="700">Background Check &amp; Clearance</text><text x="897" y="674" fill="#69778a" font-size="14">Complete the final checks for the role.</text>
+    <path d="M897 696h552" stroke="#edf0f3"/>
+
+    <rect x="823" y="718" width="650" height="126" rx="13" fill="#f8f4e9" stroke="#dfc887"/>
+    <circle cx="859" cy="755" r="17" fill="url(#gold)"/><text x="859" y="760" fill="#14243b" text-anchor="middle" font-size="10" font-weight="700">07</text>
+    <text x="897" y="751" fill="#132a48" font-size="20" font-weight="700">Job Offer</text>
+    <text x="897" y="778" fill="#536276" font-size="14">Confirm the terms and next steps.</text>
+    <text x="897" y="816" fill="#9b711e" font-size="11" font-weight="700" letter-spacing="2">FINAL STEP</text>
+  </g>
+
+  <text x="800" y="945" fill="#657286" font-family="Arial, sans-serif" font-size="13" letter-spacing="1.2">Scroll reveals each step in sequence · motion stays optional</text>
+  <path d="M1481 932v29m0 0-8-8m8 8 8-8" fill="none" stroke="#ad832f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

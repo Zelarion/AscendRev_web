@@ -7,8 +7,8 @@
  * framework, capabilities, and revenue destinations under SOLUTIONS so its
  * main row can stay readable beside the CTA on laptops.
  *
- * "Our Revenue Impact" is an anchor into the home page rather than a route,
- * because that section lives on the home page. Everything else is a real page.
+ * The revenue-gap problem/solution framework is part of `/solutions/`; it is
+ * not a separate navigation destination.
  */
 
 export interface NavItem {
@@ -20,7 +20,6 @@ export const navItems: NavItem[] = [
   { label: 'HOME', href: '/' },
   { label: 'PROBLEM-SOLUTION FRAMEWORK', href: '/solutions/' },
   { label: 'CAPABILITIES', href: '/capabilities/' },
-  { label: 'REVENUE IMPACT', href: '/#revenue-impact' },
   { label: 'OUR DIFFERENCE', href: '/advantage/' },
   { label: 'OUR VALUES', href: '/values/' },
   { label: 'CONTACT', href: '/contact/' },

@@ -42,7 +42,11 @@ export interface ServiceGridContent {
 
 export interface TeamCapabilityContent {
   heading: string;
-  items: readonly string[];
+  intro: string;
+  items: readonly {
+    title: string;
+    detail: string;
+  }[];
 }
 
 export interface ScreeningContent {
@@ -121,11 +125,25 @@ export const solutions: SolutionsContent = {
     // labels only, matching the rest of this revision.
     capability: {
       heading: 'Team Capability',
+      intro:
+        'Each role starts with the work to be done and the standards needed to carry it through.',
       items: [
-        'Years of relevant industry experience',
-        'Formal and relevant education',
-        'Operational Discipline',
-        'Dedicated Execution',
+        {
+          title: 'Years of relevant industry experience',
+          detail: 'Experience that aligns with the role and its day-to-day responsibilities.',
+        },
+        {
+          title: 'Formal and relevant education',
+          detail: 'Knowledge and preparation suited to the position.',
+        },
+        {
+          title: 'Operational Discipline',
+          detail: 'Consistent attention to process, priorities, and follow-through.',
+        },
+        {
+          title: 'Dedicated Execution',
+          detail: 'Ownership of agreed responsibilities from handoff through completion.',
+        },
       ],
     },
   },

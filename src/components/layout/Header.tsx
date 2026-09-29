@@ -11,8 +11,7 @@ import { navItems, ctaItem } from '@/content/nav';
 
 const SCROLL_FLOAT_ENTER_PX = 220;
 const SCROLL_FLOAT_EXIT_PX = 90;
-const REVENUE_IMPACT_HREF = '/#revenue-impact';
-const SOLUTIONS_HREFS = new Set(['/solutions/', '/capabilities/', REVENUE_IMPACT_HREF]);
+const SOLUTIONS_HREFS = new Set(['/solutions/', '/capabilities/']);
 const solutionNavItems = navItems.filter((item) => SOLUTIONS_HREFS.has(item.href));
 const primaryDesktopNavItems = navItems.filter((item) => !SOLUTIONS_HREFS.has(item.href));
 const desktopNavItemClass = 'ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-[12px] font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[4px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[12px] xl:wide-nav:text-[14px]';
@@ -28,7 +27,6 @@ export default function Header(): JSX.Element {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
-  const [currentHash, setCurrentHash] = useState('');
   const [storyNavHidden, setStoryNavHidden] = useState(false);
   const [footerNavHidden, setFooterNavHidden] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
@@ -156,23 +154,13 @@ export default function Header(): JSX.Element {
   useEffect(() => {
     setMenuOpen(false);
     closeSolutionsMenu();
-    setCurrentHash(window.location.hash);
   }, [pathname, closeSolutionsMenu]);
-
-  useEffect(() => {
-    const syncHash = () => setCurrentHash(window.location.hash);
-    window.addEventListener('hashchange', syncHash);
-    return () => window.removeEventListener('hashchange', syncHash);
-  }, []);
 
   useEffect(() => () => {
     if (solutionsCloseTimerRef.current) window.clearTimeout(solutionsCloseTimerRef.current);
   }, []);
 
-  const isSolutionItemActive = useCallback((href: string) => {
-    if (href === REVENUE_IMPACT_HREF) return pathname === '/' && currentHash === '#revenue-impact';
-    return isActiveRoute(pathname, href);
-  }, [currentHash, pathname]);
+  const isSolutionItemActive = useCallback((href: string) => isActiveRoute(pathname, href), [pathname]);
   const solutionsActive = solutionNavItems.some((item) => isSolutionItemActive(item.href));
   const headerHidden = storyNavHidden || footerNavHidden;
 
@@ -410,18 +398,7 @@ export default function Header(): JSX.Element {
                           'shrink-0 transition-transform duration-150 motion-reduce:transition-none group-hover:translate-x-0.5',
                           active ? 'text-[var(--gold-300)]' : 'text-[var(--steel-600)] group-hover:text-[var(--gold-300)]'
                         );
-                        return solutionItem.href === REVENUE_IMPACT_HREF ? (
-                          <a
-                            key={solutionItem.href}
-                            href={solutionItem.href}
-                            aria-current={active ? 'page' : undefined}
-                            onClick={() => closeSolutionsMenu()}
-                            className={solutionClassName}
-                          >
-                            {solutionItem.label}
-                            <ArrowRight size={16} weight="regular" aria-hidden="true" className={activeArrowClassName} />
-                          </a>
-                        ) : (
+                        return (
                           <Link
                             key={solutionItem.href}
                             href={solutionItem.href}
@@ -542,18 +519,7 @@ export default function Header(): JSX.Element {
               menuOpen ? 'translate-x-0 opacity-100' : 'translate-x-5 opacity-0'
             );
             const style = { transitionDelay: menuOpen ? `${130 + index * 45}ms` : `${(navItems.length - index - 1) * 28}ms` };
-            return item.href === REVENUE_IMPACT_HREF ? (
-              <a
-                key={item.href}
-                href={item.href}
-                tabIndex={menuOpen ? 0 : -1}
-                onClick={closeMenu}
-                className={className}
-                style={style}
-              >
-                {item.label}
-              </a>
-            ) : (
+            return (
               <Link
                 key={item.href}
                 href={item.href}

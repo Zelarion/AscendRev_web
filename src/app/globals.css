@@ -461,19 +461,31 @@ main h2 {
   line-height: 1.1 !important;
 }
 
-@media (min-width: 64rem) {
-  main h2.ar-type-hiring-standard {
-    font-size: clamp(1.75rem, 2.2vw, 2rem) !important;
-    line-height: 1.2 !important;
-    white-space: nowrap;
-    text-wrap: nowrap;
-  }
-}
-
 main h3 {
   font-size: var(--type-card-heading) !important;
   line-height: 1.2 !important;
   letter-spacing: -0.015em !important;
+}
+
+/* Compact service and process-card headings opt out of the page-wide display scale. */
+main h3.ar-service-card-title,
+main h3.ar-blueprint-step-title {
+  font-family: var(--font-sans) !important;
+  font-size: clamp(0.8rem, 1vw, 0.9rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  letter-spacing: 0 !important;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+main h3.ar-blueprint-step-title {
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.05rem, 1.3vw, 1.25rem) !important;
+  font-weight: 500 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.02em !important;
+  text-wrap: balance;
 }
 
 /* Values titles remain semantic H2s while fitting the three-card desktop row

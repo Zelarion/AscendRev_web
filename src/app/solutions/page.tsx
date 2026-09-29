@@ -1,14 +1,14 @@
 import HiringStandard from '@/components/sections/solutions/HiringStandard';
 import Screening from '@/components/sections/solutions/Screening';
-import ServiceGrid from '@/components/sections/solutions/ServiceGrid';
 import SolutionsClosing from '@/components/sections/solutions/SolutionsClosing';
-import SolutionsHero from '@/components/sections/solutions/SolutionsHero';
+import IndustriesSection from '@/components/sections/home/IndustriesSection';
+import { home } from '@/content/home';
 import { solutions } from '@/content/solutions';
 import { createSeoMetadata } from '@/lib/seoMetadata';
 
 /**
- * `/solutions`, section order per SPEC.md §4.2: compact navy hero, the
- * nine-function grid, the team block, the screening block, closing band.
+ * `/solutions`: Revenue Impact leads, followed by team standards, screening,
+ * and the closing call to action.
  *
  * Title and description come from `solutions.meta` rather than being written
  * again here, so the page's copy has exactly one source. The title is rendered
@@ -23,8 +23,7 @@ export const metadata = createSeoMetadata({
 export default function SolutionsPage() {
   return (
     <>
-      <SolutionsHero />
-      <ServiceGrid />
+      <IndustriesSection content={home.revenueImpact} />
       <HiringStandard />
       <Screening />
       <SolutionsClosing />

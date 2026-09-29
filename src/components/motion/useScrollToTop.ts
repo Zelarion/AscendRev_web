@@ -3,9 +3,7 @@
 import { useEffect, useRef, type RefObject } from 'react';
 import { usePathname } from 'next/navigation';
 import type Lenis from 'lenis';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-const REVENUE_IMPACT_HASH = '#revenue-impact';
 const ANCHOR_SETTLE_TOLERANCE = 4;
 const MAX_ANCHOR_CORRECTIONS = 3;
 
@@ -27,10 +25,8 @@ function getTargetScrollTop(target: HTMLElement): number {
 }
 
 /**
- * Scroll to the element, then remeasure after the active ScrollTrigger pins
- * have had a chance to refresh. A pin may add substantial document height
- * while the first smooth scroll is already in flight, invalidating its initial
- * destination. A bounded correction lands on the element's final position.
+ * Scroll to the element, then remeasure after fonts and route content settle.
+ * A bounded correction lands on the element's final position.
  */
 function scrollToHashTarget(
   lenisRef: RefObject<Lenis | null>,
@@ -41,42 +37,8 @@ function scrollToHashTarget(
   let firstFrame = 0;
   let secondFrame = 0;
   let corrections = 0;
-  let pinNeedsRestore = false;
-
   const target = getHashTarget(hash);
   if (!target) return () => undefined;
-
-  const gallery = hash === REVENUE_IMPACT_HASH
-    ? document.getElementById('all-facilities-grid')
-    : null;
-  const facilitiesPin = gallery
-    ? ScrollTrigger.getAll().find((trigger) => trigger.trigger === gallery)
-    : undefined;
-  if (hash === REVENUE_IMPACT_HASH) {
-    window.dispatchEvent(new CustomEvent('ascendrev:anchor-navigation', {
-      detail: { hash, phase: 'start' },
-    }));
-  }
-  if (facilitiesPin) {
-    facilitiesPin.disable();
-    pinNeedsRestore = true;
-  }
-
-  const restorePin = (): boolean => {
-    if (!pinNeedsRestore || !facilitiesPin) return false;
-    pinNeedsRestore = false;
-    facilitiesPin.enable(false, false);
-    ScrollTrigger.refresh();
-    return true;
-  };
-
-  const finishAnchorNavigation = (): void => {
-    if (hash === REVENUE_IMPACT_HASH) {
-      window.dispatchEvent(new CustomEvent('ascendrev:anchor-navigation', {
-        detail: { hash, phase: 'end' },
-      }));
-    }
-  };
 
   const settleAfterLayout = (): void => {
     firstFrame = window.requestAnimationFrame(() => {
@@ -84,30 +46,13 @@ function scrollToHashTarget(
         if (cancelled) return;
 
         const target = getHashTarget(hash);
-        if (!target) {
-          restorePin();
-          finishAnchorNavigation();
-          return;
-        }
+        if (!target) return;
 
         const lenis = lenisRef.current;
         const currentScroll = lenis?.scroll ?? window.scrollY;
         const destination = getTargetScrollTop(target);
-        if (restorePin()) {
-          // Restoring the gallery's pin adds its runway back above this target.
-          // Measure again after refresh, then correct while the gallery's
-          // anchor-navigation bypass is still active.
-          settleAfterLayout();
-          return;
-        }
-        if (Math.abs(destination - currentScroll) <= ANCHOR_SETTLE_TOLERANCE) {
-          finishAnchorNavigation();
-          return;
-        }
-        if (corrections >= MAX_ANCHOR_CORRECTIONS) {
-          finishAnchorNavigation();
-          return;
-        }
+        if (Math.abs(destination - currentScroll) <= ANCHOR_SETTLE_TOLERANCE) return;
+        if (corrections >= MAX_ANCHOR_CORRECTIONS) return;
 
         corrections += 1;
         if (lenis) {
@@ -132,16 +77,13 @@ function scrollToHashTarget(
     });
   } else {
     window.scrollTo({ top: getTargetScrollTop(target), left: 0, behavior: 'auto' });
-    if (restorePin()) settleAfterLayout();
-    else finishAnchorNavigation();
+    settleAfterLayout();
   }
 
   return () => {
     cancelled = true;
     window.cancelAnimationFrame(firstFrame);
     window.cancelAnimationFrame(secondFrame);
-    restorePin();
-    finishAnchorNavigation();
   };
 }
 
@@ -199,18 +141,18 @@ export default function useScrollToTop(lenisRef: RefObject<Lenis | null>): void 
       if (
         targetUrl.origin !== currentUrl.origin
         || targetUrl.pathname !== currentUrl.pathname
-        || targetUrl.hash !== REVENUE_IMPACT_HASH
+        || targetUrl.search !== currentUrl.search
+        || !targetUrl.hash
       ) return;
 
-      const target = getHashTarget(REVENUE_IMPACT_HASH);
+      const target = getHashTarget(targetUrl.hash);
       if (!target) return;
 
-      // Keep this a same-document navigation: the header link intentionally
-      // avoids a route reload, and Lenis' built-in one-shot anchor scroll is
-      // disabled so this measured scroll is the only scroll owner.
+      // Keep same-page anchors under one scroll owner so Lenis does not race
+      // the browser's native fragment scroll.
       event.preventDefault();
       cancelPendingScroll();
-      if (window.location.hash !== REVENUE_IMPACT_HASH) {
+      if (window.location.hash !== targetUrl.hash) {
         const oldURL = window.location.href;
         window.history.pushState(null, '', `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`);
         window.dispatchEvent(new HashChangeEvent('hashchange', {
@@ -220,7 +162,7 @@ export default function useScrollToTop(lenisRef: RefObject<Lenis | null>): void 
         return;
       }
 
-      cancelPendingScroll = scrollToHashTarget(lenisRef, REVENUE_IMPACT_HASH);
+      cancelPendingScroll = scrollToHashTarget(lenisRef, targetUrl.hash);
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -294,7 +236,7 @@ export default function useScrollToTop(lenisRef: RefObject<Lenis | null>): void 
       secondFrame = window.requestAnimationFrame(() => {
         if (cancelled) return;
 
-        if (pathname === '/' && window.location.hash) {
+        if (window.location.hash && getHashTarget(window.location.hash)) {
           cancelAnchorScroll = scrollToHashTarget(lenisRef, window.location.hash);
           return;
         }

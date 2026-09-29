@@ -2,7 +2,6 @@ import {
   CareerStatsSection,
   ClosingBand,
   HeroSection,
-  IndustriesSection,
   PillarsSection,
 } from '@/components/sections/home';
 import OfficeFrameStory from '@/components/sections/home/OfficeFrameStory';
@@ -24,7 +23,6 @@ export default function HomePage() {
       <HeroSection content={home.hero} />
       <OfficeFrameStory />
       <PillarsSection content={home.pillars} />
-      <IndustriesSection content={home.industries} />
       <OperatingModelSection />
       <CareerStatsSection />
       <ClosingBand content={home.closing} />

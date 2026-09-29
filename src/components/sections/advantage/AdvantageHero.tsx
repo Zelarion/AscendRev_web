@@ -17,7 +17,7 @@ export default function AdvantageHero(): JSX.Element {
   return (
     <Section
       tone="light"
-      className="!pt-[calc(var(--header-height)+2.5rem)] !pb-[clamp(2rem,4vw,3rem)] lg:!pt-[calc(var(--header-height)+3rem)]"
+      className="!pt-[calc(var(--header-height)+1rem)] !pb-[clamp(1rem,2vw,1.5rem)]"
     >
       <Container>
         <h1 className="font-display text-h1 text-[var(--navy-900)] lg:whitespace-nowrap">{headline}</h1>

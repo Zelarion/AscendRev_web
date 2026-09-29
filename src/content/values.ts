@@ -7,11 +7,9 @@
  * em dashes inside `body` and `closing` are the client's, not a typo).
  * Nothing here is paraphrased, re-punctuated or re-cased.
  *
- * The "01 —", "02 —", "03 —" numbering is the client's own formatting for
- * the three values (an em dash, not a hyphen). `number` and `name` are kept
- * as separate fields rather than one pre-joined string so the page component
- * can style the numeral distinctly from the name, but the rendered result
- * reproduces the client's `${number} — ${name}` form unchanged.
+ * The two-digit number is retained as a separate field for the decorative
+ * corner marker on each card. The card heading uses the value name alone so
+ * the number is not repeated in the text.
  */
 
 import type { PageMeta } from './home';

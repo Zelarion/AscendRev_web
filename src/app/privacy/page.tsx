@@ -15,19 +15,20 @@ import { createSeoMetadata } from '@/lib/seoMetadata';
  *
  * Every statement here is checked against what the site actually does:
  *  - the field list matches `src/lib/enquirySchema.ts` exactly;
- *  - "no analytics, no advertising, no third-party tracking" is literally true,
- *    verified by searching the source for any such script;
- *  - the active site UI does not set cookies or read from or write to
- *    localStorage;
- *  - the IP statement matches `public/api/enquiry.php`, which stores a
- *    truncated SHA-256 hash and never the address itself.
+ *  - no analytics service, ad pixel, or social pixel is installed in the site
+ *    source; hosting-provider operational logs are disclosed separately;
+ *  - the theme switch persists a preference in localStorage and the page
+ *    loader keeps a short transition flag in sessionStorage;
+ *  - `public/api/enquiry.php` uses the request IP for rate limiting and writes
+ *    a truncated SHA-256 hash to each enquiry row. The value is described as
+ *    derived personal information, not as anonymous or impossible to reverse.
  *
  * If any of those change, this page changes with them. A privacy policy that
  * drifts from the system it describes is worse than none, because it is a
  * written claim that is no longer true.
  */
 
-const LAST_UPDATED = 'September 25, 2026';
+const LAST_UPDATED = 'September 29, 2026';
 
 export const metadata = createSeoMetadata({
   title: 'Privacy Policy',
@@ -81,9 +82,10 @@ export default function PrivacyPage() {
               What we collect
             </h2>
             <p className={bodyClass}>
-              We collect personal information in one place only: the enquiry form on our contact
-              page. If you do not submit that form, we do not collect personal information about
-              you. There is no account to create, nothing to subscribe to, and no newsletter.
+              The enquiry form on our contact page is the only place this site asks you to provide
+              personal information. Our web host may also process routine technical request data
+              to deliver and secure the site. There is no account to create, nothing to subscribe
+              to, and no newsletter.
             </p>
             <p className={bodyClass}>When you submit an enquiry, we receive:</p>
             <ul className={listClass}>
@@ -99,9 +101,11 @@ export default function PrivacyPage() {
               headcount ranges, or a budget in this form.
             </p>
             <p className={bodyClass}>
-              We also store a shortened one-way hash derived from your IP address, which lets us
-              stop the form being used for abuse. We do not store the address itself, and the
-              hash cannot be reversed to recover it.
+              To limit abuse, the enquiry handler uses your IP address to check a rate-limit file
+              and records a shortened hash derived from that address with a valid enquiry. The
+              enquiry record does not contain the raw IP address. A hash derived from a network
+              identifier may still be linkable to that identifier, so we treat it as personal
+              information.
             </p>
           </section>
 
@@ -110,14 +114,15 @@ export default function PrivacyPage() {
               What we do not collect
             </h2>
             <p className={bodyClass}>
-              This website runs no analytics, no advertising, no social media pixels and no
-              third-party tracking of any kind. We do not know how many people visit, which pages
-              they read, or where they came from. Nothing on this site follows you to another
-              website.
+              AscendRev does not use analytics services, advertising pixels or social media pixels
+              on this website. We do not use third-party tracking scripts to follow your activity
+              across other websites. Our web host may process routine technical request data in
+              server logs to deliver and secure the site; AscendRev does not use those logs to
+              build advertising profiles.
             </p>
             <p className={bodyClass}>
-              This is a deliberate choice rather than an oversight. A site that collects nothing
-              has nothing to leak and nothing to misuse.
+              We keep the site&apos;s own use of visitor information limited to the purposes described
+              in this policy.
             </p>
           </section>
 
@@ -126,9 +131,11 @@ export default function PrivacyPage() {
               Cookies and browser storage
             </h2>
             <p className={bodyClass}>
-              The active website interface does not set cookies or read from or write to
-              localStorage. It does not save a consent choice or appearance preference in your
-              browser.
+              This website does not set cookies. If you change the appearance theme, your browser
+              stores that preference in localStorage so the choice can be remembered. The page
+              loader also uses sessionStorage to remember that it has completed once during the
+              current browser session. These values stay in your browser and are not submitted
+              with the enquiry form.
             </p>
           </section>
 
@@ -152,9 +159,10 @@ export default function PrivacyPage() {
               Where it goes
             </h2>
             <p className={bodyClass}>
-              Your enquiry is emailed to AscendRev and recorded in a file on our own web hosting.
-              We do not route the form through a third-party form service, so your enquiry does
-              not sit in another company&apos;s database.
+              Your enquiry is emailed to AscendRev and recorded by the website handler in a
+              protected location on the web server. We do not route the form through a third-party
+              form service. Our web host and email provider process the request and message as
+              needed to operate the site and deliver the email.
             </p>
             <p className={bodyClass}>
               Our email is provided by our email host, and our website is provided by our web
@@ -174,7 +182,7 @@ export default function PrivacyPage() {
               that country, and may be accessible to its courts and public authorities.
             </p>
             <p className={bodyClass}>
-              We tell you this because you are entitled to know before you decide what to send
+              We tell you this so you can consider where information may be accessed before you decide what to send
               us, not because it changes how carefully we treat it.
             </p>
           </section>
@@ -195,14 +203,17 @@ export default function PrivacyPage() {
               How we protect it
             </h2>
             <p className={bodyClass}>
-              The enquiry form is submitted over an encrypted connection. Stored enquiries are
-              held outside the public area of our website, so they cannot be reached from a web
-              address. Access is limited to the people at AscendRev who need it to reply to you.
+              Enquiries sent through the HTTPS version of this site are encrypted in transit.
+              By default, the website handler stores accepted enquiries outside the public
+              website directory. The configured storage path and file permissions depend on the
+              hosting setup. We limit access to people at AscendRev who need the information to
+              reply to you.
             </p>
             <p className={bodyClass}>
               No method of transmission or storage is completely secure, and we will not claim
-              otherwise. If a breach ever creates a real risk of significant harm to you, we will
-              report it as Canadian law requires and tell you directly.
+              otherwise. If a personal data breach meets the notification threshold under
+              applicable law, we will notify the relevant regulator and affected people as that
+              law requires.
             </p>
           </section>
 
@@ -223,11 +234,14 @@ export default function PrivacyPage() {
                 {site.contactEmail}
               </a>
               . We may need to confirm who you are before we act, so that we do not disclose your
-              information to someone else. We will respond within thirty days.
+              information to someone else. We will respond within thirty days. If applicable law
+              allows an extension, we will tell you within that period why more time is needed and
+              when we expect to respond.
             </p>
             <p className={bodyClass}>
-              If you are not satisfied with how we have handled your request, you may complain to
-              the Office of the Privacy Commissioner of Canada.
+              If you are not satisfied with how we have handled your request, you may raise a
+              concern with the Office of the Privacy Commissioner of Canada or, where relevant,
+              the National Privacy Commission of the Philippines.
             </p>
           </section>
 

@@ -10,8 +10,8 @@ import { createSeoMetadata } from '@/lib/seoMetadata';
  * a summary and referred the reader to a fuller document that does not exist.
  *
  * Scope is deliberately narrow, because the site is narrow. There are no
- * accounts, no payments, no downloads and no user-generated content, so the
- * usual clauses covering those would describe a product nobody is using. What
+ * visitor accounts, checkout or user-generated content, so the usual clauses
+ * covering those would describe a product nobody is using. What
  * remains is what actually applies: the enquiry form is not a contract, the
  * content is informational, the brand and copy belong to AscendRev, and
  * disputes are governed by Alberta law.
@@ -20,7 +20,7 @@ import { createSeoMetadata } from '@/lib/seoMetadata';
  * should imply that a services contract lives on a website terms page.
  */
 
-const LAST_UPDATED = 'September 23, 2026';
+const LAST_UPDATED = 'September 29, 2026';
 
 export const metadata = createSeoMetadata({
   title: 'Terms of Use',
@@ -59,8 +59,8 @@ export default function TermsPage() {
             </h2>
             <p className={bodyClass}>
               This website describes the outsourcing and offshoring services offered by{' '}
-              {site.legalName}. It is informational. There are no accounts to create, nothing to
-              buy, nothing to download, and no way to publish content on it.
+              {site.legalName}. It is informational. There is no account area or checkout, and no
+              feature for visitors to publish content on it.
             </p>
           </section>
 
@@ -149,7 +149,7 @@ export default function TermsPage() {
               <a href={`mailto:${site.contactEmail}`} className={linkClass}>
                 {site.contactEmail}
               </a>{' '}
-              and nothing is lost.
+              and we can continue the conversation there.
             </p>
           </section>
 

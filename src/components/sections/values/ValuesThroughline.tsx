@@ -1,43 +1,27 @@
 import type { JSX } from 'react';
+import Image from 'next/image';
 import Container from '@/components/layout/Container';
 import RevealOnScroll from '@/components/sections/shared/RevealOnScroll';
+import type { CorporateValue } from '@/content/values';
 
-const principles = [
-  {
-    number: '01',
-    title: 'Commit clearly',
-    value: 'Accountability',
-    description:
-      'Be transparent about commitments and take responsibility for the outcome.',
-    icon: 'commit',
-  },
-  {
-    number: '02',
-    title: 'Work consistently',
-    value: 'Discipline',
-    description:
-      'Bring structure, focused activity, and continuous improvement to the work.',
-    icon: 'discipline',
-  },
-  {
-    number: '03',
-    title: 'Execute with context',
-    value: 'Partnership',
-    description:
-      'Understand the business, customers, processes, and objectives before executing.',
-    icon: 'partnership',
-  },
-] as const;
+interface ValuesThroughlineProps {
+  heading: string;
+  teamImage: {
+    src: string;
+    alt: string;
+  };
+  values: readonly CorporateValue[];
+}
 
-type PrincipleIconName = (typeof principles)[number]['icon'];
+const VALUE_ICONS = ['commit', 'discipline', 'partnership'] as const;
+type ValueIconName = (typeof VALUE_ICONS)[number];
 
-function PrincipleIcon({ name }: { name: PrincipleIconName }): JSX.Element {
+function PrincipleIcon({ name }: { name: ValueIconName }): JSX.Element {
   if (name === 'commit') {
     return (
       <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
         <path d="M32 7 51 14v15c0 13-8 22-19 28C21 51 13 42 13 29V14L32 7Z" />
-        <path d="m23 31 6 6 13-14" />
-        <path d="M22 16.5 32 13l10 3.5" />
+        <path d="m23 31 6 6 13-14M22 16.5 32 13l10 3.5" />
       </svg>
     );
   }
@@ -47,17 +31,14 @@ function PrincipleIcon({ name }: { name: PrincipleIconName }): JSX.Element {
       <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
         <circle cx="32" cy="32" r="21" />
         <circle cx="32" cy="32" r="12" />
-        <path d="M32 5v7M32 52v7M5 32h7M52 32h7M13 13l5 5M46 46l5 5M51 13l-5 5M18 46l-5 5" />
-        <path d="m32 25 5 7-5 7-5-7 5-7Z" />
+        <path d="M32 5v7M32 52v7M5 32h7M52 32h7M13 13l5 5M46 46l5 5M51 13l-5 5M18 46l-5 5m19-16 5-7-5-7-5 7 5 7Z" />
       </svg>
     );
   }
 
   return (
     <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
-      <path d="M25 23 21 19a9 9 0 0 0-13 13l8 8a9 9 0 0 0 13 0l5-5" />
-      <path d="m39 41 4 4a9 9 0 0 0 13-13l-8-8a9 9 0 0 0-13 0l-5 5" />
-      <path d="m24 40 16-16M25 32h14" />
+      <path d="M25 23 21 19a9 9 0 0 0-13 13l8 8a9 9 0 0 0 13 0l5-5m5 6 4 4a9 9 0 0 0 13-13l-8-8a9 9 0 0 0-13 0l-5 5m-6 11 16-16m-15 8h14" />
       <circle cx="13.5" cy="25.5" r="2" />
       <circle cx="50.5" cy="38.5" r="2" />
     </svg>
@@ -103,9 +84,7 @@ const motionStyles = `
     animation: valuesNodeGlow 4.8s ease-in-out infinite;
   }
   .values-route-node:nth-of-type(2) { animation-delay: 1.6s; }
-  .values-icon-ring {
-    animation: valuesRingBreathe 6.8s ease-in-out infinite;
-  }
+  .values-icon-ring { animation: valuesRingBreathe 6.8s ease-in-out infinite; }
   .values-card:nth-child(2) .values-icon-ring { animation-delay: 1.2s; }
   .values-card:nth-child(3) .values-icon-ring { animation-delay: 2.4s; }
   .values-card:hover .values-icon-ring,
@@ -140,10 +119,10 @@ const motionStyles = `
   }
 `;
 
-/** A visual throughline that connects the three existing corporate values. */
-export default function ValuesThroughline(): JSX.Element {
+/** The original corporate values, displayed once in the animated card design. */
+export default function ValuesThroughline({ heading, teamImage, values }: ValuesThroughlineProps): JSX.Element {
   return (
-    <section className="values-throughline relative isolate overflow-hidden border-y border-white/10 py-[clamp(3.5rem,7vw,6.5rem)] text-white">
+    <section className="values-throughline relative isolate overflow-hidden border-y border-white/10 pb-[clamp(3.5rem,7vw,6.5rem)] pt-[calc(var(--header-height)+clamp(1.5rem,4vw,3.5rem))] text-white">
       <style>{motionStyles}</style>
 
       <svg
@@ -155,35 +134,29 @@ export default function ValuesThroughline(): JSX.Element {
       >
         <path d="M-80 584C188 418 218 700 472 527S812 249 1074 381 1337 474 1510 264" stroke="white" strokeOpacity=".08" strokeWidth="1.2" />
         <path d="M-80 632C184 469 249 741 491 571S819 302 1084 425 1339 514 1510 318" stroke="#d8ad4a" strokeOpacity=".16" strokeWidth="1.4" />
-        <circle cx="472" cy="527" r="4" fill="#efc75c" fillOpacity=".72" />
+        <circle cx="472" cy="527" r="4" fill="#efc75d" fillOpacity=".72" />
         <circle cx="1074" cy="381" r="3" fill="#a9d0ed" fillOpacity=".7" />
       </svg>
 
       <Container className="relative z-10">
-        <RevealOnScroll className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
-          <div className="max-w-[760px]">
-            <p className="text-label font-semibold uppercase tracking-[0.2em] text-[#f0c75d]">
-              A connected standard
-            </p>
-            <h2 className="mt-3 max-w-[18ch] font-display text-h2 text-white">
-              From clear commitments to purposeful execution.
-            </h2>
-            <p className="mt-4 max-w-[62ch] text-body leading-relaxed text-slate-200/90">
-              Accountability sets the commitment. Discipline carries it through. Partnership keeps the work connected to your goals.
-            </p>
-          </div>
+        <div className="grid items-center gap-7 sm:gap-9 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12">
+          <figure className="relative m-0 aspect-[3/2] w-full overflow-hidden rounded-[10px] border border-white/15 bg-white/5 shadow-[0_18px_46px_rgba(0,0,0,0.24)]">
+            <Image
+              src={teamImage.src}
+              alt={teamImage.alt}
+              width={1081}
+              height={723}
+              sizes="(min-width: 1024px) 52vw, 100vw"
+              className="block h-full w-full object-cover"
+            />
+          </figure>
+          <header className="text-left lg:pl-2">
+            <h1 className="max-w-[18ch] font-display text-h1 text-white">{heading}</h1>
+            <span aria-hidden="true" className="mt-6 block h-px w-16 bg-[#e0aa37] sm:mt-8" />
+          </header>
+        </div>
 
-          <div aria-hidden="true" className="hidden shrink-0 items-center gap-2 pb-2 lg:flex">
-            {[0, 1, 2].map((item) => (
-              <span key={item} className="relative grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-white/[0.07] shadow-[0_0_22px_rgba(84,151,205,0.16)]">
-                <span className={`h-2.5 w-2.5 rounded-full ${item === 0 ? 'bg-[#e0aa37]' : item === 1 ? 'bg-[#64b5e5]' : 'bg-[#43b99a]'}`} />
-              </span>
-            ))}
-            <span className="ml-1 h-px w-12 bg-gradient-to-r from-[#e0aa37] via-[#64b5e5] to-[#43b99a]" />
-          </div>
-        </RevealOnScroll>
-
-        <div className="relative mt-9 sm:mt-12">
+        <div className="relative mt-[clamp(2.5rem,5vw,4rem)]">
           <svg
             aria-hidden="true"
             className="values-route pointer-events-none absolute left-0 top-[3.15rem] z-0 hidden h-20 w-full overflow-visible lg:block"
@@ -199,34 +172,34 @@ export default function ValuesThroughline(): JSX.Element {
           </svg>
 
           <RevealOnScroll stagger className="relative z-10 grid gap-4 lg:grid-cols-3 lg:gap-5">
-            {principles.map((item, index) => (
+            {values.map((value, index) => (
               <article
-                key={item.number}
-                className={`values-card group relative isolate flex min-h-[17rem] flex-col overflow-hidden rounded-[1.05rem] border border-white/60 bg-[linear-gradient(145deg,rgba(255,255,255,0.99),rgba(242,247,252,0.97))] p-5 text-[var(--ink)] shadow-[0_18px_46px_rgba(0,0,0,0.2)] transition-[transform,border-color,box-shadow] duration-500 ease-out hover:-translate-y-1.5 hover:border-white hover:shadow-[0_25px_56px_rgba(0,0,0,0.3)] motion-reduce:transform-none motion-reduce:transition-none sm:p-6 ${index === 0 ? '[--principle-accent:#bd861d] [--principle-halo:rgba(224,170,55,0.2)]' : index === 1 ? '[--principle-accent:#286ca8] [--principle-halo:rgba(83,164,224,0.2)]' : '[--principle-accent:#087f68] [--principle-halo:rgba(49,173,145,0.19)]'}`}
+                key={value.number}
+                className={`values-card group relative isolate flex min-h-[30rem] flex-col overflow-hidden rounded-[1.05rem] border border-white/60 bg-[linear-gradient(145deg,rgba(255,255,255,0.99),rgba(242,247,252,0.97))] p-5 text-[var(--ink)] shadow-[0_18px_46px_rgba(0,0,0,0.2)] transition-[transform,border-color,box-shadow] duration-500 ease-out hover:-translate-y-1.5 hover:border-white hover:shadow-[0_25px_56px_rgba(0,0,0,0.3)] motion-reduce:transform-none motion-reduce:transition-none sm:p-6 ${index === 0 ? '[--principle-accent:#bd861d] [--principle-halo:rgba(224,170,55,0.2)]' : index === 1 ? '[--principle-accent:#286ca8] [--principle-halo:rgba(83,164,224,0.2)]' : '[--principle-accent:#087f68] [--principle-halo:rgba(49,173,145,0.19)]'}`}
               >
                 <span aria-hidden="true" className="absolute -right-6 -top-12 z-0 h-44 w-44 rounded-full bg-[radial-gradient(circle,var(--principle-halo),transparent_68%)]" />
                 <div className="relative z-10 flex items-start justify-between gap-4">
                   <div className="values-card-icon relative grid h-[5.8rem] w-[5.8rem] shrink-0 place-items-center rounded-full bg-[radial-gradient(circle,#fff_0_57%,transparent_59%),linear-gradient(145deg,rgba(255,255,255,.86),var(--principle-halo))] text-[var(--principle-accent)] drop-shadow-[0_8px_12px_rgba(15,33,56,0.12)] transition-transform duration-500 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.04] motion-reduce:transform-none motion-reduce:transition-none">
                     <span className="values-icon-ring absolute inset-0 rounded-full border border-[var(--principle-accent)]/35" />
                     <span className="absolute inset-[0.42rem] rounded-full border border-[var(--principle-accent)]/15" />
-                    <PrincipleIcon name={item.icon} />
+                    <PrincipleIcon name={VALUE_ICONS[index] ?? 'commit'} />
                   </div>
                   <span aria-hidden="true" className="font-display text-[2.7rem] leading-none tracking-[-0.06em] text-[#19385e]/10">
-                    {item.number}
+                    {value.number}
                   </span>
                 </div>
 
-                <div className="relative z-10 mt-5 flex items-center gap-3">
-                  <span className="h-[2px] w-10 bg-gradient-to-r from-[var(--principle-accent)] to-transparent" />
-                  <span className="text-[0.67rem] font-bold uppercase tracking-[0.14em] text-[var(--principle-accent)]">
-                    {item.value}
-                  </span>
-                </div>
-                <h3 className="relative z-10 mt-3 font-display text-h3 text-[var(--navy-900)]">
-                  {item.title}
-                </h3>
-                <p className="relative z-10 mt-2 max-w-[38ch] text-small leading-relaxed text-[var(--ink-muted)]">
-                  {item.description}
+                <h2 className="relative z-10 mt-5 font-display text-h3 text-[var(--navy-900)]">
+                  {value.name}
+                </h2>
+                <p className="relative z-10 mt-3 font-display text-body-lg italic text-[var(--ink)]">
+                  {value.principle}
+                </p>
+                <p className="relative z-10 mt-3 text-body leading-relaxed text-[var(--ink-muted)]">
+                  {value.body}
+                </p>
+                <p className="relative z-10 mt-4 text-body font-semibold leading-relaxed text-[var(--ink)]">
+                  {value.closing}
                 </p>
               </article>
             ))}

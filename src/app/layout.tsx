@@ -97,41 +97,48 @@ export default function RootLayout({
             observer.observe(loaderRoot, {
               subtree: true,
               childList: true,
-              attributes: true,
-              attributeFilter: ['class', 'style', 'href', 'rel', 'media', 'disabled'],
             });
 
+            // Mirrors PageLoader.tsx: literals only, this is an inline bootstrap
+            // string and cannot import BOOT_STABILITY_MS (80) / BOOT_MAX_MS (1200).
+            const release = () => {
+              released = true;
+              observer.disconnect();
+              window.clearInterval(poll);
+              loaderRoot.dataset.ascendrevLoader = 'expired';
+              delete loaderRoot.dataset.ascendrevLoaderStartedAt;
+            };
+
             const poll = window.setInterval(() => {
-              if (released || checkingLayout || document.readyState === 'loading') return;
+              if (released) return;
+              // Hard cap: release unconditionally so a running animation
+              // (Lenis, framer-motion) can never stall the boot cover forever.
+              if (performance.now() - startedAt >= 1200) {
+                release();
+                return;
+              }
+              if (checkingLayout || document.readyState === 'loading') return;
               const main = document.getElementById('main');
               if (!main) return;
               const stylesPending = Array.from(document.querySelectorAll('link[rel~="stylesheet"]'))
                 .some((link) => !link.disabled && link.sheet === null);
-              if (
-                stylesPending
-                || performance.now() - lastDomChangeAt < 180
-                || performance.now() - startedAt < 10000
-              ) return;
+              if (stylesPending || performance.now() - lastDomChangeAt < 80) return;
 
               checkingLayout = true;
               window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
                 checkingLayout = false;
+                if (released) return;
                 const currentMain = document.getElementById('main');
                 const currentStylesPending = Array.from(document.querySelectorAll('link[rel~="stylesheet"]'))
                   .some((link) => !link.disabled && link.sheet === null);
                 if (
                   !currentMain
                   || currentStylesPending
-                  || performance.now() - lastDomChangeAt < 180
-                  || performance.now() - startedAt < 10000
+                  || performance.now() - lastDomChangeAt < 80
                 ) return;
 
                 currentMain.getBoundingClientRect();
-                released = true;
-                observer.disconnect();
-                window.clearInterval(poll);
-                loaderRoot.dataset.ascendrevLoader = 'expired';
-                delete loaderRoot.dataset.ascendrevLoaderStartedAt;
+                release();
               }));
             }, 40);
 
@@ -140,6 +147,8 @@ export default function RootLayout({
             }, { once: true });
           })();`}
         </Script>
+        {/* Loader and header both paint this logo first; fetch it with the HTML. */}
+        <link rel="preload" as="image" href="/ascendrev-loader-logo-transparent.webp" fetchPriority="high" />
         <noscript><style>{`.page-loader-boot { display: none !important; }`}</style></noscript>
       </head>
       <body>

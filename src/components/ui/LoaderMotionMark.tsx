@@ -33,7 +33,7 @@ export default function LoaderMotionMark(): JSX.Element {
       <circle className="loader-route-node loader-route-node-three" cx="237" cy="91" r="2.4" />
 
       <image
-        href="/ascendrev-loader-logo-transparent.png"
+        href="/ascendrev-loader-logo-transparent.webp"
         x="29"
         y="3"
         width="262"

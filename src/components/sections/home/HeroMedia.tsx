@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type JSX } from 'react';
 import { prefersReducedMotion } from '@/lib/motion';
 import { HERO_PARALLAX_MULTIPLIER } from '@/components/sections/shared/motionTokens';
 
-const POSTER_SRC = '/video/hero-poster.jpg';
+const POSTER_SRC = '/video/hero-poster.webp';
 const MOBILE_VIDEO_SRC = '/video/hero-1280.mp4';
 const DESKTOP_VIDEO_SRC = '/video/hero-1920.mp4';
 const PARALLAX_LAYER_HEIGHT = '126%';

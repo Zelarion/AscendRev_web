@@ -94,7 +94,7 @@ export const solutions: SolutionsContent = {
     intro:
       'Core aspects where we do well. Your partnership investment is backed by premium talents where ownership, discipline, performance consistency, and winning are the way of life.',
     salesDashboardImage: {
-      src: '/images/ascendrev-sales-dashboard-team.png',
+      src: '/images/ascendrev-sales-dashboard-team.webp',
       alt: 'AscendRev team members collaborating around a sales performance dashboard.',
     },
     // Client revision, 2026-09-24: descriptions removed, icon + label only.
@@ -154,7 +154,7 @@ export const solutions: SolutionsContent = {
     // client's brief.
     heading: 'How we screen our Team members',
     interviewImage: {
-      src: '/images/ascendrev-screening-interview.png',
+      src: '/images/ascendrev-screening-interview.webp',
       alt: 'A candidate taking part in an in-person interview with an AscendRev team member.',
     },
     items: [

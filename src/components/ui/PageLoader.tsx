@@ -6,18 +6,25 @@ import LoaderMotionMark from '@/components/ui/LoaderMotionMark';
 
 type LoaderPhase = 'boot' | 'entering' | 'leaving';
 
-const MINIMUM_DISPLAY_MS = 10_000;
-const BOOT_DOM_STABILITY_MS = 180;
-const ROUTE_DOM_STABILITY_MS = 120;
+const BOOT_STABILITY_MS = 80;
+const ROUTE_STABILITY_MS = 60;
+const BOOT_MAX_MS = 1200;
+const ROUTE_SHOW_DELAY_MS = 200;
+const ROUTE_MAX_MS = 1500;
 
 /**
  * Wait for the requested route's React commit, parsed HTML, loaded stylesheets,
  * and a rendered/stable DOM. Images are intentionally excluded: the browser
- * continues loading them after visitors can start reading the page.
+ * continues loading them after visitors can start reading the page. `deadline`
+ * is an absolute performance.now() time: once reached we release unconditionally,
+ * so a running animation (Lenis, framer-motion) that keeps mutating attributes
+ * can never stall readiness forever. Only childList mutations count toward
+ * stability for the same reason — attribute churn from those animations must
+ * not keep resetting the stability clock.
  */
 function waitForPageReady(
   stabilityMs: number,
-  earliestReadyAt: number,
+  deadline: number,
   signal: AbortSignal
 ): Promise<boolean> {
   return new Promise((resolve) => {
@@ -45,6 +52,10 @@ function waitForPageReady(
         finish(false);
         return;
       }
+      if (performance.now() >= deadline) {
+        finish(true);
+        return;
+      }
 
       if (document.readyState === 'loading' || checkingLayout) return;
       const main = document.querySelector<HTMLElement>('main#main');
@@ -56,7 +67,6 @@ function waitForPageReady(
       if (
         stylesPending
         || performance.now() - lastDomChangeAt < stabilityMs
-        || performance.now() < earliestReadyAt
       ) return;
 
       checkingLayout = true;
@@ -70,7 +80,6 @@ function waitForPageReady(
           !currentMain
           || currentStylesPending
           || performance.now() - lastDomChangeAt < stabilityMs
-          || performance.now() < earliestReadyAt
         ) return;
 
         currentMain.getBoundingClientRect();
@@ -81,8 +90,6 @@ function waitForPageReady(
     observer.observe(document.documentElement, {
       subtree: true,
       childList: true,
-      attributes: true,
-      attributeFilter: ['class', 'style', 'href', 'rel', 'media', 'disabled'],
     });
     signal.addEventListener('abort', abort, { once: true });
     intervalId = window.setInterval(check, 40);
@@ -102,6 +109,8 @@ export default function PageLoader(): JSX.Element | null {
   const readinessController = useRef<AbortController | null>(null);
   const queryPollTimer = useRef<number | null>(null);
   const leaveTimer = useRef<number | null>(null);
+  const showTimer = useRef<number | null>(null);
+  const coverShown = useRef(false);
   const isBootTransition = useRef(true);
   const [phase, setPhase] = useState<LoaderPhase | null>('boot');
 
@@ -110,16 +119,29 @@ export default function PageLoader(): JSX.Element | null {
     readinessController.current = null;
     if (queryPollTimer.current !== null) window.clearInterval(queryPollTimer.current);
     if (leaveTimer.current !== null) window.clearTimeout(leaveTimer.current);
+    if (showTimer.current !== null) window.clearTimeout(showTimer.current);
     queryPollTimer.current = null;
     leaveTimer.current = null;
+    showTimer.current = null;
   }, []);
 
   const finishTransition = useCallback((id: number) => {
     if (transitionId.current !== id) return;
+    if (showTimer.current !== null) {
+      window.clearTimeout(showTimer.current);
+      showTimer.current = null;
+    }
     leaveTimer.current = null;
     readinessWaitStartedFor.current = null;
     targetPathname.current = null;
     targetUrl.current = null;
+
+    // Destination was ready before ROUTE_SHOW_DELAY_MS elapsed: the cover
+    // never appeared, so there is nothing to animate away — just reset.
+    if (!coverShown.current) {
+      setPhase(null);
+      return;
+    }
 
     setPhase((current) => (current ? 'leaving' : null));
     leaveTimer.current = window.setTimeout(() => {
@@ -136,8 +158,16 @@ export default function PageLoader(): JSX.Element | null {
     transitionStartedAt.current = performance.now();
     readinessWaitStartedFor.current = null;
     isBootTransition.current = false;
+    coverShown.current = false;
     const id = transitionId.current;
-    setPhase('entering');
+    // Don't flash the cover for fast navigations: only show it once the
+    // destination is still not ready after ROUTE_SHOW_DELAY_MS.
+    showTimer.current = window.setTimeout(() => {
+      showTimer.current = null;
+      if (transitionId.current !== id) return;
+      coverShown.current = true;
+      setPhase('entering');
+    }, ROUTE_SHOW_DELAY_MS);
     return id;
   }, [clearPendingTimers]);
 
@@ -148,12 +178,13 @@ export default function PageLoader(): JSX.Element | null {
     const controller = new AbortController();
     readinessController.current = controller;
     const stabilityMs = isBootTransition.current
-      ? BOOT_DOM_STABILITY_MS
-      : ROUTE_DOM_STABILITY_MS;
+      ? BOOT_STABILITY_MS
+      : ROUTE_STABILITY_MS;
+    const maxMs = isBootTransition.current ? BOOT_MAX_MS : ROUTE_MAX_MS;
 
     void waitForPageReady(
       stabilityMs,
-      transitionStartedAt.current + MINIMUM_DISPLAY_MS,
+      transitionStartedAt.current + maxMs,
       controller.signal
     ).then((ready) => {
       if (!ready || transitionId.current !== id) return;
@@ -171,6 +202,7 @@ export default function PageLoader(): JSX.Element | null {
 
     transitionId.current += 1;
     isBootTransition.current = true;
+    coverShown.current = true;
     const id = transitionId.current;
     const bootStartedAt = Number(loaderRoot.dataset.ascendrevLoaderStartedAt);
     transitionStartedAt.current = Number.isFinite(bootStartedAt)

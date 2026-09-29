@@ -9,7 +9,7 @@ export default function CapabilityApproach() {
     >
       <figure className="relative m-0 aspect-[3/2] min-w-0 overflow-hidden rounded-lg bg-[#edf5fb]">
         <Image
-          src="/images/ascendrev-ai-enabled-human-led.png"
+          src="/images/ascendrev-ai-enabled-human-led.webp"
           alt="AI-enabled, human-led customer service team with holographic workflow and performance dashboards."
           fill
           sizes="(min-width: 768px) 50vw, 100vw"

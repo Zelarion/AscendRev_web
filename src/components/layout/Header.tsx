@@ -268,7 +268,7 @@ export default function Header(): JSX.Element {
             so the logo remains proportional instead of scaling with the full banner. */}
         {/* eslint-disable-next-line @next/next/no-img-element -- transparent client-supplied logo lockup overlays the desktop art. */}
         <img
-          src="/ascendrev-loader-logo-transparent.png"
+          src="/ascendrev-loader-logo-transparent.webp"
           alt=""
           aria-hidden="true"
           width={2172}

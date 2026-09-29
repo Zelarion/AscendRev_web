@@ -73,7 +73,7 @@
   inset: auto 0 0 auto;
   width: min(74vw, 54rem);
   height: min(100%, 42rem);
-  background-image: url('/images/ascendrev-route-accent.png');
+  background-image: url('/images/ascendrev-route-accent.webp');
   background-position: right bottom;
   background-repeat: no-repeat;
   background-size: contain;

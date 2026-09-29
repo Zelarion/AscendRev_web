@@ -204,7 +204,7 @@ export default function LeadershipBlock(): JSX.Element {
               <div className="mt-4 border-t border-[var(--border)] pt-4">
                 {/* eslint-disable-next-line @next/next/no-img-element -- static export keeps this local portrait asset simple. */}
                 <img
-                  src="/images/rio-vidal-portrait.jpg"
+                  src="/images/rio-vidal-portrait.webp"
                   alt="Rio Vidal, Co-Founder and President of AscendRev"
                   width={781}
                   height={721}

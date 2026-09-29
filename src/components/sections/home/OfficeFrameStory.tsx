@@ -21,12 +21,12 @@ import styles from './OfficeFrameStory.module.css';
 
 const FACILITIES: ReadonlyArray<{ label: string; src: string; alt: string; mobileSrc?: string }> = [
   { label: 'AscendRev Campus', src: '/images/ascendrev-campus.webp', alt: 'Exterior of the AscendRev campus with its icon on the building sign.' },
-  { label: 'Hallway', src: '/images/hallway-gallery-wide.webp', mobileSrc: '/images/hallway1.jpg', alt: 'Interior hallway at the AscendRev campus.' },
-  { label: 'Training Room', src: '/images/ascendrev-training-room.jpg', alt: 'An empty training room with rows of desks and chairs.' },
-  { label: 'Boardroom', src: '/images/boardroom-gallery-wide.webp', mobileSrc: '/images/ascendrev-boardroom.png', alt: 'A conference boardroom with a long table, black chairs, and a wall-mounted screen.' },
-  { label: 'Full-Scale Operations', src: '/images/office4.jpg', alt: 'Rows of workstations and cubicles on an operations floor.' },
-  { label: 'Flexible Operations', src: '/images/ascendrev-flexible-operations.jpg', alt: 'An open operations floor with rows of workstations, blue partitions, and computer stations.' },
-  { label: 'Secure Personal Storage', src: '/images/secure-storage-gallery-wide.webp', mobileSrc: '/images/ascendrev-secure-personal-storage.jpg', alt: 'A hallway with secure personal storage lockers outside the offices.' },
+  { label: 'Hallway', src: '/images/hallway-gallery-wide.webp', mobileSrc: '/images/hallway1.webp', alt: 'Interior hallway at the AscendRev campus.' },
+  { label: 'Training Room', src: '/images/ascendrev-training-room.webp', alt: 'An empty training room with rows of desks and chairs.' },
+  { label: 'Boardroom', src: '/images/boardroom-gallery-wide.webp', mobileSrc: '/images/ascendrev-boardroom.webp', alt: 'A conference boardroom with a long table, black chairs, and a wall-mounted screen.' },
+  { label: 'Full-Scale Operations', src: '/images/office4.webp', alt: 'Rows of workstations and cubicles on an operations floor.' },
+  { label: 'Flexible Operations', src: '/images/ascendrev-flexible-operations.webp', alt: 'An open operations floor with rows of workstations, blue partitions, and computer stations.' },
+  { label: 'Secure Personal Storage', src: '/images/secure-storage-gallery-wide.webp', mobileSrc: '/images/ascendrev-secure-personal-storage.webp', alt: 'A hallway with secure personal storage lockers outside the offices.' },
 ];
 
 /**

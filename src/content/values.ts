@@ -55,7 +55,7 @@ export const values: ValuesContent = {
   heading: 'Our Corporate Values',
 
   teamImage: {
-    src: '/images/ascendrev-corporate-values-team.png',
+    src: '/images/ascendrev-corporate-values-team.webp',
     alt: 'AscendRev colleagues collaborating around a conference table in a modern office.',
   },
 

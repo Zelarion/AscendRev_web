@@ -67,7 +67,7 @@ export default function ContactPage() {
 
             <figure className="relative isolate m-0 hidden aspect-[16/10] min-h-[17rem] w-full min-w-0 overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--navy-900)] lg:block">
               <Image
-                src="/images/ascendrev-home-hero-team.png"
+                src="/images/ascendrev-home-hero-team.webp"
                 alt=""
                 fill
                 priority

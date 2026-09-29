@@ -289,7 +289,7 @@ export default function InfrastructureBlock(): JSX.Element {
                         ? '/images/ascendrev-location-card.webp'
                         : moment.id === 'workplace'
                           ? '/images/ascendrev-workplace-card.webp'
-                          : '/images/hallway2.jpg'
+                          : '/images/hallway2.webp'
                     }
                     alt={
                       moment.id === 'location'

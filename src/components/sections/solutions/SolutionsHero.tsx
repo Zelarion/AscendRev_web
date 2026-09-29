@@ -24,7 +24,7 @@ export default function SolutionsHero(): JSX.Element {
           </p>
           <figure className="mx-auto mt-7 w-full max-w-[420px] overflow-hidden rounded-[10px] border border-[var(--border)] bg-[#07111d] sm:mt-9">
             <Image
-              src="/images/solutions-revenue-funnel.png"
+              src="/images/solutions-revenue-funnel.webp"
               alt="Illustrated sales funnel surrounded by lead conversion and revenue analytics dashboards"
               width={726}
               height={754}

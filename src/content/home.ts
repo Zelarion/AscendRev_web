@@ -236,7 +236,7 @@ export const home: HomeContent = {
         heading: 'Proven Revenue Engine',
         body: 'Built on real-world market experience, frontline sales leadership, and proven systems, AscendRev brings a disciplined, structured, and accountable approach to every engagement—backed by more than CAD $1B in generated sales revenue.',
         image: {
-          src: '/images/ascendrev-sales-dashboard-team.png',
+          src: '/images/ascendrev-sales-dashboard-team.webp',
           alt: 'A sales team reviewing performance metrics together around a conference table.',
         },
       },

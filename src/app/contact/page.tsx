@@ -77,7 +77,7 @@ export default function ContactPage() {
             */}
             <figure className="relative m-0 hidden aspect-[1570/1002] w-full min-w-0 overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface-raised)] lg:block">
               <Image
-                src="/images/contact-direct-rio-vidal-v2.webp"
+                src="/images/contact-direct-rio-vidal-v3.webp"
                 alt={`Direct contact: Rio Vidal, ${site.phone}, ${site.contactEmail}, Head Office: Calgary, AB, Canada.`}
                 fill
                 priority

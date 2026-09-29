@@ -1,20 +1,24 @@
+/** Box copy supplied by Rio Vidal, 30 Sep 2026. */
 const prompts = [
   {
     number: '01',
-    label: 'Workflow',
-    question: 'What work needs attention, and how does it happen today?',
+    label: 'The work',
+    question: 'What needs to get done?',
+    detail: 'We understand the work, how it happens today, and what your team is responsible for delivering.',
     icon: 'workflow',
   },
   {
     number: '02',
-    label: 'Context',
-    question: 'Who is involved, and where does the process slow down?',
+    label: 'The opportunity',
+    question: 'Where can we create more capacity?',
+    detail: 'We identify where work slows down, gets missed, or pulls your team away from higher-value priorities.',
     icon: 'context',
   },
   {
     number: '03',
-    label: 'Desired outcome',
-    question: 'What would a better result look like for your team?',
+    label: 'The solution',
+    question: 'What would better look like?',
+    detail: 'We define the desired outcome, then build the right workflow and dedicated team around the work to deliver it.',
     icon: 'outcome',
   },
 ] as const;
@@ -143,23 +147,18 @@ export default function CapabilityJourney() {
       </svg>
 
       <div className="relative mx-auto w-full max-w-[1200px]">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.48fr)] lg:items-end lg:gap-12">
-          <header className="max-w-[760px]">
-            <p className="inline-flex items-center gap-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#f0c75d]">
-              A clear starting point
-              <span aria-hidden="true" className="h-px w-9 bg-gradient-to-r from-[#edc45b] to-transparent" />
-            </p>
-            <h2
-              id="capability-enquiry-title"
-              className="mt-3 max-w-[17ch] font-display text-[clamp(2rem,4.4vw,3.7rem)] font-medium leading-[1.04] tracking-[-0.035em] text-white"
-            >
-              Frame the work before the conversation.
-            </h2>
-          </header>
-          <p className="max-w-[46ch] text-sm leading-relaxed text-slate-200/90 sm:text-base lg:justify-self-end">
-            Use these prompts to describe the workflow, surrounding context, and result you need.
+        <header className="max-w-[760px]">
+          <p className="inline-flex items-center gap-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#f0c75d]">
+            A clear starting point
+            <span aria-hidden="true" className="h-px w-9 bg-gradient-to-r from-[#edc45b] to-transparent" />
           </p>
-        </div>
+          <h2
+            id="capability-enquiry-title"
+            className="mt-3 max-w-[17ch] font-display text-[clamp(2rem,4.4vw,3.7rem)] font-medium leading-[1.04] tracking-[-0.035em] text-white"
+          >
+            Frame the work before the conversation.
+          </h2>
+        </header>
 
         <div className="relative mt-8 sm:mt-11">
           <svg
@@ -199,8 +198,11 @@ export default function CapabilityJourney() {
                       {prompt.number} / {prompt.label}
                     </span>
                   </div>
-                  <p className="relative z-10 mt-3 max-w-[34ch] font-display text-[1.2rem] leading-snug text-[var(--navy-900)] sm:text-[1.3rem]">
+                  <h3 className="relative z-10 mt-3 max-w-[34ch] font-display text-[1.2rem] font-semibold leading-snug text-[var(--navy-900)] sm:text-[1.3rem]">
                     {prompt.question}
+                  </h3>
+                  <p className="relative z-10 mt-3 max-w-[40ch] text-[0.95rem] leading-relaxed text-[var(--ink-muted)]">
+                    {prompt.detail}
                   </p>
                 </article>
               </li>
@@ -220,16 +222,16 @@ export default function CapabilityJourney() {
               </svg>
             </span>
             <div>
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#f0c75d]">
-                A useful first example
+              <p className="font-display text-lg font-semibold leading-snug text-[#f0c75d] sm:text-xl">
+                Start With the Work That Matters
               </p>
-              <p className="mt-1.5 max-w-[39ch] font-display text-lg leading-snug text-white sm:text-xl">
-                A handoff that waits. A task that keeps coming back.
+              <p className="mt-1.5 max-w-[42ch] text-sm leading-relaxed text-white sm:text-[0.95rem]">
+                A process that slows down. An opportunity that goes untouched. Work that keeps pulling your team back in.
               </p>
             </div>
           </div>
           <p className="border-l border-[#edc85f]/55 pl-4 text-sm leading-relaxed text-slate-200 sm:justify-self-end sm:pl-5 sm:text-[0.95rem]">
-            One specific moment gives the conversation something real to examine—and a clearer place to begin.
+            Bring us one real example. We&apos;ll examine what&apos;s happening today, where the opportunity lies, and what a better outcome could look like.
           </p>
         </div>
       </div>

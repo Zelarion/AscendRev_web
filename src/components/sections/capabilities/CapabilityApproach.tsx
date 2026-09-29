@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-/** Approved AI-enabled, human-led capability copy supplied by Rio Vidal. */
+/** Approved AI-enabled, human-led capability copy supplied by Rio Vidal. The image carries the supporting paragraph. */
 export default function CapabilityApproach() {
   return (
     <section
@@ -27,11 +27,6 @@ export default function CapabilityApproach() {
         >
           Smarter workflows. Better execution. Measurable results.
         </h2>
-        <p className="mt-5 text-base leading-relaxed text-[var(--ink-muted)] sm:text-lg">
-          AscendRev integrates AI-powered tools across prospecting, research, customer engagement,
-          workflow automation, and performance management—helping our teams work faster, make
-          better decisions, and create more opportunities for your business.
-        </p>
       </div>
     </section>
   );

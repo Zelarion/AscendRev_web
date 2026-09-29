@@ -78,7 +78,7 @@ export default function BlueprintStory({ content }: BlueprintStoryProps): JSX.El
   return (
     <div ref={scope}>
       <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
-        THE 15-MINUTE BLUEPRINT
+        {content.eyebrow}
       </p>
       <h2
         id="what-to-expect-heading"
@@ -126,7 +126,7 @@ export default function BlueprintStory({ content }: BlueprintStoryProps): JSX.El
                 >
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
-                      Stage {String(index + 1).padStart(2, '0')}
+                      Stage {String(index + 1).padStart(2, '0')} — {step.stage}
                     </p>
                     <span
                       aria-hidden="true"
@@ -148,10 +148,8 @@ export default function BlueprintStory({ content }: BlueprintStoryProps): JSX.El
 
       <div className="mt-5 rounded-[10px] bg-[var(--navy-900)] px-4 py-4 text-white sm:px-5">
         <div>
-          <p className="font-display text-[17px] leading-tight">Your Growth. Our Mission.</p>
-          <p className="mt-1 text-xs leading-5 text-white/75">
-            A clear starting point for the capacity your operation needs.
-          </p>
+          <p className="font-display text-[17px] leading-tight">{content.closing.title}</p>
+          <p className="mt-1 text-xs leading-5 text-white/75">{content.closing.detail}</p>
         </div>
       </div>
     </div>

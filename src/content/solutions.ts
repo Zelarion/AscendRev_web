@@ -43,6 +43,8 @@ export interface ServiceGridContent {
 export interface TeamCapabilityContent {
   heading: string;
   intro: string;
+  /** Emphasised closing line under the intro. */
+  result: string;
   items: readonly {
     title: string;
     detail: string;
@@ -117,8 +119,8 @@ export const solutions: SolutionsContent = {
   },
 
   hiring: {
-    // Client revision, 2026-09-24: exact replacement heading.
-    heading: 'We employ Premium and Experienced Career Professionals, Not Clock-Punchers.',
+    // Client revision, 2026-09-29: exact replacement heading, intro and result.
+    heading: 'Premium Career Professionals. Built Around Performance.',
     // Client revision, 2026-09-24: the prior intro paragraph ("AscendRev is a
     // new company, so the first hires set the standard...") is deleted per
     // the client's instruction, not replaced. This block is now heading +
@@ -126,7 +128,9 @@ export const solutions: SolutionsContent = {
     capability: {
       heading: 'Team Capability',
       intro:
-        'Each role starts with the work to be done and the standards needed to carry it through.',
+        'We employ experienced, career-minded professionals who take pride in the work they do—not people simply filling a seat. Every role begins with the work to be done, the standards required, and the outcomes expected.',
+      result:
+        'The result: capable professionals, clear accountability, and performance built around your business.',
       items: [
         {
           title: 'Years of relevant industry experience',

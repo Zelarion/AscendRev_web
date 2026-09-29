@@ -35,6 +35,9 @@ export default function ContactPage() {
               <h1 className="mt-3 max-w-[15ch] font-display text-h1 text-[var(--navy-900)]">
                 {hero.headline}
               </h1>
+              <p className="mt-3 max-w-[56ch] text-body-lg font-semibold text-[var(--navy-900)]">
+                {hero.tagline}
+              </p>
               <p className="mt-4 max-w-[56ch] text-body-lg leading-relaxed text-[var(--ink-muted)]">
                 {hero.description}
               </p>
@@ -65,46 +68,22 @@ export default function ContactPage() {
               </a>
             </div>
 
-            <figure className="relative isolate m-0 hidden aspect-[16/10] min-h-[17rem] w-full min-w-0 overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--navy-900)] lg:block">
+            {/*
+              The contact details are part of the artwork itself (client
+              supplied), so it renders at its native aspect with no cropping:
+              object-cover or a min-height would cut the printed details off.
+              Below lg the coded <address> above carries the same details as
+              tap-to-call / mailto links.
+            */}
+            <figure className="relative m-0 hidden aspect-[1570/1002] w-full min-w-0 overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--surface-raised)] lg:block">
               <Image
-                src="/images/ascendrev-home-hero-team.webp"
-                alt=""
+                src="/images/contact-direct-rio-vidal.webp"
+                alt={`Direct contact: Rio Vidal, ${site.phone}, ${site.contactEmail}, Head Office: Calgary, AB, Canada.`}
                 fill
                 priority
                 sizes="(min-width: 1024px) 46vw, 100vw"
-                className="object-cover"
+                className="object-contain"
               />
-              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#071a34]/40 via-transparent to-[#071a34]/5" />
-              <address className="absolute inset-x-3 bottom-3 not-italic rounded-[9px] border border-white/80 bg-white/[0.96] p-4 shadow-[0_16px_40px_rgba(7,26,52,0.2)] backdrop-blur-md sm:inset-auto sm:left-1/2 sm:top-1/2 sm:w-[88%] sm:max-w-[29rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:p-5">
-                <p className="text-label font-semibold uppercase tracking-[0.2em] text-[var(--steel-600)]">
-                  DIRECT CONTACT
-                </p>
-                <h2 className="mt-2 font-display text-h2 text-[var(--navy-900)]">Rio Vidal</h2>
-                <ul className="mt-3 grid gap-2.5 text-small text-[var(--navy-900)]">
-                  <li className="flex min-w-0 items-center gap-3">
-                    <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--surface-band-raised)] text-[var(--steel-600)]">
-                      <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h3l2 5-2 1.5a14 14 0 0 0 5.5 5.5L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" /></svg>
-                    </span>
-                    <a href={`tel:${site.phone.replace(/[^+\d]/g, '')}`} className="min-w-0 [overflow-wrap:anywhere] underline decoration-[var(--border)] underline-offset-4 hover:text-[var(--steel-600)]">
-                      {site.phone}
-                    </a>
-                  </li>
-                  <li className="flex min-w-0 items-center gap-3">
-                    <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--surface-band-raised)] text-[var(--steel-600)]">
-                      <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg>
-                    </span>
-                    <a href={`mailto:${site.contactEmail}`} className="min-w-0 [overflow-wrap:anywhere] underline decoration-[var(--border)] underline-offset-4 hover:text-[var(--steel-600)]">
-                      {site.contactEmail}
-                    </a>
-                  </li>
-                  <li className="flex min-w-0 items-center gap-3">
-                    <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--surface-band-raised)] text-[var(--steel-600)]">
-                      <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
-                    </span>
-                    <span className="min-w-0 [overflow-wrap:anywhere]">Head Office: {site.address}</span>
-                  </li>
-                </ul>
-              </address>
             </figure>
           </div>
         </Container>

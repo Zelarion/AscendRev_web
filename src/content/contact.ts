@@ -16,6 +16,8 @@ import type { PageMeta } from './home';
 
 export interface ContactHeroContent {
   headline: string;
+  /** Short line directly under the headline. */
+  tagline: string;
   subheadline: string;
   description: string;
 }
@@ -23,14 +25,21 @@ export interface ContactHeroContent {
 /* Section: what to expect. */
 
 export interface ExpectStep {
+  /** One-word stage name shown after the stage number, e.g. "Discover". */
+  stage: string;
   title: string;
   detail: string;
 }
 
 export interface WhatToExpectContent {
+  eyebrow: string;
   heading: string;
   description: string;
   steps: readonly ExpectStep[];
+  closing: {
+    title: string;
+    detail: string;
+  };
 }
 
 /* Section: the enquiry form. */
@@ -101,33 +110,45 @@ export const contact: ContactContent = {
       'Tell AscendRev where your operation stands today and where you need help. A reply from a person within eight business hours on Calgary time.',
   },
 
+  // Client revision, 2026-09-29: exact replacement copy.
   hero: {
-    headline: "Let's Engineer Your Scaled Support Infrastructure.",
-    subheadline:
-      'Go from strategic sign-off to a fully operational, elite dedicated team in 30-60 days.',
+    headline: 'Scale Your Capacity. Keep Your Standards.',
+    tagline: 'Define the work. Identify the gaps. Build the right team.',
+    subheadline: 'From strategy to operational capacity in 30–60 days.',
     description:
-      'Start with the work to be covered, the people it serves, and where the operation needs more capacity. We will shape a solution blueprint around the right dedicated team.',
+      'AscendRev designs dedicated teams around your specific requirements, processes, and performance standards—giving you the capacity to do more without compromising how your business operates.',
   },
 
   whatToExpect: {
-    // En dash, per the client's copy.
-    heading: 'From Discovery to Deployment — In 3 Simple Steps.',
+    // Client revision, 2026-09-29: exact replacement copy for the whole block.
+    eyebrow: 'THE ASCENDREV BLUEPRINT',
+    heading: 'From Opportunity to Execution — In Three Focused Steps.',
     description:
-      'A focused 15-minute conversation to identify the work, agree the team, and define a practical path to launch.',
+      'A simple, structured approach to identify the opportunity, design the right solution, and build the team around the work.',
     steps: [
       {
-        title: 'Revenue gaps and cost efficiency',
-        detail: 'Review the operation, identify gaps, and surface opportunities to improve performance.',
+        stage: 'Discover',
+        title: 'Understand the Opportunity',
+        detail:
+          'We assess your operation, identify gaps, and uncover opportunities to improve revenue, capacity, customer coverage, or efficiency.',
       },
       {
-        title: 'Scope and the right dedicated team',
-        detail: 'Agree the work, responsibilities, and team structure before launch.',
+        stage: 'Design',
+        title: 'Build Around the Work',
+        detail:
+          'We define the scope, responsibilities, workflows, standards, and dedicated team required to deliver the desired outcomes.',
       },
       {
-        title: 'Go live',
-        detail: 'Prepare the team and begin delivery against the agreed scope.',
+        stage: 'Launch',
+        title: 'Put the Team to Work',
+        detail:
+          'We prepare the team, align the operation, establish accountability, and begin execution against clearly defined expectations.',
       },
     ],
+    closing: {
+      title: 'The Right Team. The Right Structure. The Right Execution.',
+      detail: 'Purpose-built support designed around the work your business needs to move forward.',
+    },
   },
 
   form: {

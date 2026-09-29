@@ -20,24 +20,29 @@ function FacilityImage({
   src,
   alt,
   label,
-  aspect = 'aspect-[3/4]',
   annotations,
   registerTiltTarget,
 }: {
   src: string;
   alt: string;
   label?: string;
-  aspect?: string;
   annotations?: readonly string[];
   registerTiltTarget?: (node: HTMLElement | null) => void;
 }): JSX.Element {
   return (
-    <div className="mx-auto w-full max-w-[34rem] [perspective:720px]">
+    // Width is derived from viewport height so the whole 3:4 photo fits on
+    // screen below the fixed header, including 720px-tall laptops. 11rem covers
+    // the header plus breathing room; the 15rem floor keeps landscape phones
+    // from shrinking it to a thumbnail.
+    <div
+      className="mx-auto w-full [perspective:720px]"
+      style={{ maxWidth: 'max(15rem, min(34rem, calc((100svh - 11rem) * 0.75)))' }}
+    >
       <figure
         ref={registerTiltTarget}
         className={cn(
           'relative overflow-hidden rounded-[18px] border border-[var(--border)] bg-[#e8edf2] shadow-[0_22px_54px_rgba(15,27,51,0.16)] transition-transform duration-150 ease-out [transform-style:preserve-3d] will-change-transform motion-reduce:transform-none motion-reduce:transition-none',
-          aspect
+          'aspect-[3/4]'
         )}
       >
         <Image
@@ -298,7 +303,6 @@ export default function InfrastructureBlock(): JSX.Element {
                           ? 'Client supplied view of a furnished meeting room with a conference table and chairs.'
                           : 'Client supplied view of an office corridor with multiple doors and lockers.'
                     }
-                    aspect="aspect-[3/4]"
                     annotations={infrastructure ? moment.meta : undefined}
                     registerTiltTarget={(node) => {
                       tiltTargets.current[index] = node;

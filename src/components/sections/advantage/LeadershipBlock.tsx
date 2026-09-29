@@ -208,7 +208,7 @@ export default function LeadershipBlock(): JSX.Element {
                   alt="Rio Vidal, Co-Founder and President of AscendRev"
                   width={781}
                   height={721}
-                  className="mb-3 block h-[clamp(10rem,19vh,13.5rem)] w-full max-w-[17rem] rounded-[8px] object-cover object-center"
+                  className="mb-3 block aspect-[781/721] h-auto w-full max-w-[17rem] rounded-[8px] object-contain"
                 />
 
                 <p className="text-[13px] font-semibold tracking-[0.16em] text-[var(--navy-900)]">RIO VIDAL</p>

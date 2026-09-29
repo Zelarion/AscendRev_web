@@ -10,13 +10,13 @@ const SERVICE_AREAS = [
   {
     heading: 'Sales & Revenue',
     serviceSummary:
-      'Lead generation and data support outbound sales; appointment setting and inbound conversion move prospects forward. Follow-up and sales development carry through to account management, reactivation, and cross-sell.',
+      'Lead generation, data support, outbound sales, appointment setting and inbound sales that move the deals forward. Follow-up and sales development carry through to account management, reactivation, and cross-sell.',
     icon: 'revenue',
   },
   {
     heading: 'Customer Experience',
     serviceSummary:
-      'Customer care is available through email and chat, with technical support for questions that need a closer look.',
+      'Customer care is available through calls, email, chat and technical help desk.',
     icon: 'experience',
   },
   {

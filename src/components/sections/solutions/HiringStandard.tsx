@@ -4,8 +4,8 @@ import Stagger from '@/components/ui/Stagger';
 import { solutions } from '@/content/solutions';
 
 /**
- * "We employ Premium and Experienced Career Professionals, Not
- * Clock-Punchers." (SPEC.md §4.2, item 3).
+ * "Premium Career Professionals. Built Around Performance." (SPEC.md §4.2,
+ * item 3; client revision 2026-09-29).
  *
  * The heading, capability details and screening sequence share a left edge.
  * The page keeps candidate standards distinct from the screening steps below.
@@ -26,6 +26,9 @@ export default function HiringStandard(): JSX.Element {
         </h2>
         <p className="mt-4 max-w-[68ch] text-left text-body-lg text-[var(--ink-muted)]">
           {capability.intro}
+        </p>
+        <p className="mt-3 max-w-[68ch] text-left text-body-lg font-semibold text-[var(--ink)]">
+          {capability.result}
         </p>
 
         <div className="mt-8 border-t border-[var(--border)] pt-5 sm:mt-10 sm:pt-6">

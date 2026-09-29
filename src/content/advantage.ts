@@ -103,8 +103,6 @@ export interface CommitmentItem extends PendingApproval {
 
 export interface InfrastructureContent {
   heading: string;
-  /** Where the operation actually stands today, stated before anything is promised. */
-  status: string;
   intro: string;
   image: ImageSlot;
   commitmentsHeading: string;
@@ -244,8 +242,6 @@ export const advantage: AdvantageContent = {
     // so the section states where things stand and then commits, in future
     // tense, to what will be true before a client's team sits down.
     heading: 'What the Philippine Operation Is Today.',
-    status:
-      'AscendRev was registered on 11 September 2026 and the Philippine operation is being set up now. Nothing in this section describes a facility that exists today.',
     intro:
       'The honest version is more use to you than a photograph would be. Here is what we are committing to before anyone sits down on your account, and how you will know it happened.',
     image: {

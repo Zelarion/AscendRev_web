@@ -14,7 +14,7 @@ interface StoryStep {
   label: string;
   title: string;
   body?: string;
-  kind?: 'career' | 'commercial' | 'operations' | 'operating';
+  kind?: 'career' | 'commercial' | 'operating';
 }
 
 /** Cycles the four stat-card glyphs through gold, blue and green so the grid
@@ -104,16 +104,8 @@ export default function LeadershipBlock(): JSX.Element {
       kind: 'commercial',
     },
     {
-      id: 'state-of-the-art-operations',
-      number: '03',
-      label: 'STATE-OF-THE-ART OPERATIONS',
-      title: 'The standard we are building toward.',
-      body: advantage.infrastructure.status,
-      kind: 'operations',
-    },
-    {
       id: 'operating-model',
-      number: '04',
+      number: '03',
       label: 'OPERATING MODEL',
       title: 'Experience converted into execution.',
       body: leadership.commitment,
@@ -330,21 +322,6 @@ export default function LeadershipBlock(): JSX.Element {
                               </div>
                             ))}
                           </div>
-                        </div>
-                      ) : step.kind === 'operations' ? (
-                        <div className="mt-7 max-w-[840px]">
-                          <h3 className="max-w-[42ch] font-display text-h3 text-[var(--navy-900)]">
-                            {step.title}
-                          </h3>
-                          <p className="mt-5 max-w-[62ch] text-body-lg text-[var(--ink-muted)]">
-                            {step.body}
-                          </p>
-                          <a
-                            href="#infrastructure"
-                            className="mt-5 inline-flex min-h-10 items-center text-sm font-semibold text-[var(--steel-600)] underline decoration-[var(--gold-text)] underline-offset-4"
-                          >
-                            Review the operating commitments
-                          </a>
                         </div>
                       ) : step.kind === 'operating' ? (
                         <div className="mt-7 max-w-[840px]">

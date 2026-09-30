@@ -59,13 +59,19 @@ export default function Footer(): JSX.Element {
 
       <div className="footer-rise-content relative z-10 h-[clamp(12rem,18vw,20rem)] w-full overflow-hidden bg-[#001c41]">
         <div className="relative h-full w-full">
+          {/*
+            The logo sits near the left edge of this 3:1 artwork. On a phone the box is
+            about 2:1, so object-cover crops the sides: centred, it cut off the logo mark
+            and the "A" of ASCENDREV. Below sm the picture is left-anchored so the whole
+            logo shows (the crop then only trims the empty right side).
+          */}
           {/* eslint-disable-next-line @next/next/no-img-element -- supplied white-gradient brand banner blends into the light footer. */}
           <img
             src="/images/ascendrev-footer-artwork.webp"
             alt=""
             width={2172}
             height={724}
-            className="block h-full w-full object-cover object-[50%_60%]"
+            className="block h-full w-full object-cover object-[0%_60%] sm:object-[50%_60%]"
           />
           <Link
             href="/"

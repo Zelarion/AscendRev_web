@@ -38,7 +38,7 @@ export default function CareerStatsSection() {
               <CountUp value={1} prefix="CAD $" suffix="B+" />
             </p>
             <h3 className="mt-4 min-h-[2.6em] font-display text-h3 leading-tight text-white sm:mt-5">
-              Revenue generated
+              Revenue Generated
             </h3>
           </article>
 

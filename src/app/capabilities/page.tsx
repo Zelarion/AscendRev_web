@@ -1,12 +1,11 @@
 import Link from 'next/link';
 import {
   ArrowRight,
-  ArrowUpRight,
-  ArrowsClockwise,
-  ChatsCircle,
-  CurrencyCircleDollar,
+  ChartLineUp,
+  Coins,
   FunnelSimple,
-  Target,
+  Headset,
+  Megaphone,
 } from '@phosphor-icons/react/dist/ssr';
 import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
 import CapabilityApproach from '@/components/sections/capabilities/CapabilityApproach';
@@ -22,12 +21,14 @@ export const metadata = createSeoMetadata({
   canonicalPath: '/capabilities/',
 });
 
+// One icon per capability, in `capabilities.groups` order, chosen to read as the
+// heading beside it (client revision, 2026-09-30: larger, bolder, matched icons).
 const CAPABILITY_ICONS = [
-  { Icon: Target, color: 'text-[var(--green-600)]', upward: false },
-  { Icon: FunnelSimple, color: 'text-[var(--steel-600)]', upward: true },
-  { Icon: ChatsCircle, color: 'text-[var(--gold-500)]', upward: false },
-  { Icon: ArrowsClockwise, color: 'text-[var(--green-600)]', upward: false },
-  { Icon: CurrencyCircleDollar, color: 'text-[var(--steel-600)]', upward: false },
+  { Icon: Megaphone, color: 'text-[var(--green-600)]' }, // Generate Demand
+  { Icon: FunnelSimple, color: 'text-[var(--steel-600)]' }, // Convert More Opportunities
+  { Icon: Headset, color: 'text-[var(--gold-500)]' }, // Serve More Customers
+  { Icon: ChartLineUp, color: 'text-[var(--green-600)]' }, // Grow Existing Revenue
+  { Icon: Coins, color: 'text-[var(--steel-600)]' }, // Strengthen Cash Flow
 ] as const;
 
 export default function CapabilitiesPage() {
@@ -45,7 +46,7 @@ export default function CapabilitiesPage() {
 
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-6">
             {capabilities.groups.map((group, index) => {
-              const { Icon, color, upward } = CAPABILITY_ICONS[index];
+              const { Icon, color } = CAPABILITY_ICONS[index];
 
               return (
                 <article
@@ -59,16 +60,9 @@ export default function CapabilitiesPage() {
                     <div className="flex items-center gap-3">
                       <span
                         aria-hidden="true"
-                        className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] ${color}`}
+                        className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)] ${color}`}
                       >
-                        <Icon size={19} weight="regular" />
-                        {upward && (
-                          <ArrowUpRight
-                            size={11}
-                            weight="bold"
-                            className="absolute right-1 top-1 rounded-sm bg-[var(--surface)]"
-                          />
-                        )}
+                        <Icon size={30} weight="bold" />
                       </span>
                       <h2 className="font-display text-h3 font-medium leading-tight text-[var(--navy-900)]">
                         {group.heading}

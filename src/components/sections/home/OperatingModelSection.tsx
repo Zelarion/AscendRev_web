@@ -171,9 +171,9 @@ export default function OperatingModelSection(): JSX.Element {
 
           <div className={styles.operatingPoints} aria-label="Operating model highlights">
             {([
-              ['teams', 'Dedicated teams'],
-              ['execution', 'Managed execution'],
-              ['capacity', 'Measurable capacity'],
+              ['teams', 'Dedicated Teams'],
+              ['execution', 'Managed Execution'],
+              ['capacity', 'Measurable Capacity'],
             ] as const).map(([kind, label]) => (
               <div key={kind} className={styles.operatingPoint}>
                 <OperatingIcon kind={kind} />
@@ -240,7 +240,7 @@ export default function OperatingModelSection(): JSX.Element {
               </div>
               <div className={styles.closingHeading}>
                 <p>A more capable, connected operation</p>
-                <h3>Aligned teams. Stronger outcomes.</h3>
+                <h3>Aligned Teams. Stronger Outcomes.</h3>
               </div>
             </div>
             <div className={styles.closingAction}>

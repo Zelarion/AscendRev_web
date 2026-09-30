@@ -28,16 +28,27 @@ export interface ContentImage {
 export interface IconLabelItem {
   /** Stable key for React, and the grid's stagger order. */
   id: string;
-  /** Literal glyph character(s) rendered inside the icon container. */
-  glyph: string;
   label: string;
 }
+
+/** The nine services. ServiceGrid maps each id to its icon, so adding a service
+ * here without an icon is a type error. */
+export type ServiceId =
+  | 'lead-generation-data'
+  | 'outbound-sales'
+  | 'inbound-conversion'
+  | 'appointment-setting'
+  | 'customer-care'
+  | 'help-desk'
+  | 'account-management'
+  | 'after-hours'
+  | 'receivables-collections';
 
 export interface ServiceGridContent {
   heading: string;
   intro: string;
   salesDashboardImage: ContentImage;
-  items: readonly IconLabelItem[];
+  items: readonly (IconLabelItem & { id: ServiceId })[];
 }
 
 export interface TeamCapabilityContent {
@@ -100,21 +111,20 @@ export const solutions: SolutionsContent = {
       alt: 'AscendRev team members collaborating around a sales performance dashboard.',
     },
     // Client revision, 2026-09-24: descriptions removed, icon + label only.
-    // Order, glyphs and labels are the client's own, verbatim.
+    // Order and labels are the client's own, verbatim. Icons live in ServiceGrid.
     items: [
-      { id: 'lead-generation-data', glyph: '◈', label: 'Lead Generation and Data Entry' },
-      { id: 'outbound-sales', glyph: '↗', label: 'Outbound Sales & Cold Acquisition' },
-      { id: 'inbound-conversion', glyph: '◉', label: 'Inbound Lead Conversion' },
-      { id: 'appointment-setting', glyph: '◫', label: 'High-Yield Appointment Setting' },
-      { id: 'customer-care', glyph: '◎', label: 'Omnichannel Customer Care' },
-      { id: 'help-desk', glyph: '⌁', label: 'Technical Help Desk' },
+      { id: 'lead-generation-data', label: 'Lead Generation and Data Entry' },
+      { id: 'outbound-sales', label: 'Outbound Sales & Cold Acquisition' },
+      { id: 'inbound-conversion', label: 'Inbound Lead Conversion' },
+      { id: 'appointment-setting', label: 'High-Yield Appointment Setting' },
+      { id: 'customer-care', label: 'Omnichannel Customer Care' },
+      { id: 'help-desk', label: 'Technical Help Desk' },
       {
         id: 'account-management',
-        glyph: '◇',
         label: 'Strategic Account Management & Reactivation',
       },
-      { id: 'after-hours', glyph: '∞', label: '24/7/365 After-Hours Coverage' },
-      { id: 'receivables-collections', glyph: '$', label: 'Accounts Receivable & Collections' },
+      { id: 'after-hours', label: '24/7/365 After-Hours Coverage' },
+      { id: 'receivables-collections', label: 'Accounts Receivable & Collections' },
     ],
   },
 
@@ -162,12 +172,12 @@ export const solutions: SolutionsContent = {
       alt: 'A candidate taking part in an in-person interview with an AscendRev team member.',
     },
     items: [
-      { id: 'resume-screening', glyph: '▤✓', label: 'Resume Screening' },
-      { id: 'phone-interview', glyph: '☎◉', label: 'Phone Interview' },
-      { id: 'face-to-face-screening', glyph: '◉◉', label: 'Face-to-Face Screening' },
-      { id: 'skills-technical-assessment', glyph: '◇✓', label: 'Skills & Technical Assessment' },
-      { id: 'client-partner-final-interview', glyph: '◉◆', label: 'Client / Partner Final Interview' },
-      { id: 'background-check-clearance', glyph: '⛨✓', label: 'Background Check & Clearance' },
+      { id: 'resume-screening', label: 'Resume Screening' },
+      { id: 'phone-interview', label: 'Phone Interview' },
+      { id: 'face-to-face-screening', label: 'Face-to-Face Screening' },
+      { id: 'skills-technical-assessment', label: 'Skills & Technical Assessment' },
+      { id: 'client-partner-final-interview', label: 'Client / Partner Final Interview' },
+      { id: 'background-check-clearance', label: 'Background Check & Clearance' },
     ],
   },
 

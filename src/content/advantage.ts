@@ -34,8 +34,12 @@ import type {
 } from './home';
 
 export interface AdvantageHeroContent {
+  eyebrow: string;
   headline: string;
+  /** Rendered as the bold tagline directly under the headline. */
   subheadline: string;
+  description: string;
+  closingLine: string;
 }
 
 /** One row of the founder's career record, rendered as a labelled list. */
@@ -128,8 +132,16 @@ export const advantage: AdvantageContent = {
 
   hero: {
     // Client revision, 2026-09-24: title and strapline verbatim, no full stop after "Impact".
+    // Client revision, 2026-09-30: laid out like the contact hero (eyebrow, headline,
+    // bold tagline, description, closing line). The eyebrow, description and closing
+    // line are new drafting built only from facts already on this page; pending
+    // Rio's approval.
+    eyebrow: 'LEADERSHIP, TALENT & OPERATING DISCIPLINE',
     headline: 'The AscendRev Difference',
     subheadline: 'Right Talent. Purposely-Built Teams. Disciplined Execution. Measurable Impact',
+    description:
+      'AscendRev pairs decades of frontline sales leadership with a Philippine operation built around reliability, security, talent, and sustainability—so every dedicated team is led, equipped, and held to the standard your business sets.',
+    closingLine: 'Process, scope, and playbook co-created with you.',
   },
 
   leadership: {
@@ -156,13 +168,13 @@ export const advantage: AdvantageContent = {
     // career record, not AscendRev company results.
     narrative: [
       'AscendRev was built on decades of frontline sales leadership, revenue generation and executive client engagement.',
-      'Rio brings decades of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated CAD1B+ in sales revenue, managed commercial opportunities and deal sizes from 10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
+      'Rio brings decades of B2B sales and leadership experience, with a career spanning enterprise sales, business development, account management, partnerships, sales leadership, and outsourced operations. He has generated CAD1B+ in sales revenue, managed commercial opportunities and deal sizes from $10K to $35M, partnered with C-suite decision-makers, and built and coached high-performing teams across diverse industries. That experience shaped the foundation of AscendRev:',
       "Growth requires more than strategy. It requires the capacity to execute. AscendRev provides dedicated professionals and purpose-built teams that extend your organization's sales, customer, and operational capabilities—allowing your internal leaders to focus on strategy, relationships, and growth.",
     ],
     // The client's own line, from the source brief, quoted as written.
     commitment:
       'Process workflow, scope of work and execution playbook is co-created and customized between AscendRev and our Partners.',
-    recordHeading: 'Career record',
+    recordHeading: 'Career Record',
     // Keep these career facts aligned with the current live-site wording.
     facts: [
       {

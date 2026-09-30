@@ -1,13 +1,40 @@
 import type { JSX } from 'react';
 import Image from 'next/image';
+import {
+  CalendarCheck,
+  ClockCountdown,
+  CurrencyCircleDollar,
+  FunnelSimple,
+  Handshake,
+  Headset,
+  Lifebuoy,
+  PhoneOutgoing,
+  UserPlus,
+} from '@phosphor-icons/react/dist/ssr';
+import type { Icon } from '@phosphor-icons/react';
 import Container from '@/components/layout/Container';
 import Section from '@/components/layout/Section';
 import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
 import { WordReveal } from '@/components/motion';
 import Stagger from '@/components/ui/Stagger';
-import { solutions } from '@/content/solutions';
+import { solutions, type ServiceId } from '@/content/solutions';
 import { stateTransitionStyle } from '@/lib/motion';
 import GlyphIcon, { GLYPH_ACCENT_CYCLE } from './GlyphIcon';
+
+// Keyed by `solutions.services.items[].id`. Client revision, 2026-09-30: the thin
+// text glyphs were too faint to see, so each service gets a bold icon that matches
+// its label. A missing id is a type error, not a blank tile.
+const SERVICE_ICONS: Record<ServiceId, Icon> = {
+  'lead-generation-data': UserPlus,
+  'outbound-sales': PhoneOutgoing,
+  'inbound-conversion': FunnelSimple,
+  'appointment-setting': CalendarCheck,
+  'customer-care': Headset,
+  'help-desk': Lifebuoy,
+  'account-management': Handshake,
+  'after-hours': ClockCountdown,
+  'receivables-collections': CurrencyCircleDollar,
+};
 
 /** Capability overview and nine-function service list for `/capabilities`. */
 export default function ServiceGrid(): JSX.Element {
@@ -50,9 +77,8 @@ export default function ServiceGrid(): JSX.Element {
                   style={stateTransitionStyle}
                 >
                   <GlyphIcon
-                    glyph={item.glyph}
+                    icon={SERVICE_ICONS[item.id]}
                     accent={GLYPH_ACCENT_CYCLE[index % GLYPH_ACCENT_CYCLE.length]}
-                    className="h-8 w-8 shrink-0 text-sm"
                   />
                   <h3 className="ar-service-card-title min-w-0 flex-1 text-left [overflow-wrap:anywhere]">
                     {item.label}

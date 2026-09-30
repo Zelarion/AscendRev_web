@@ -10,7 +10,6 @@ import { site } from '@/content/site';
 
 interface StoryStep {
   id: string;
-  number: string;
   label: string;
   title: string;
   body?: string;
@@ -91,21 +90,18 @@ export default function LeadershipBlock(): JSX.Element {
   const steps: StoryStep[] = [
     {
       id: 'career-experience',
-      number: '01',
       label: leadership.sectionLabel,
       title: leadership.heading,
       kind: 'career',
     },
     {
       id: 'commercial-experience',
-      number: '02',
       label: leadership.commercialHeading,
       title: leadership.commercialHeading,
       kind: 'commercial',
     },
     {
       id: 'operating-model',
-      number: '03',
       label: 'OPERATING MODEL',
       title: 'Experience converted into execution.',
       body: leadership.commitment,
@@ -168,11 +164,21 @@ export default function LeadershipBlock(): JSX.Element {
       */}
       <div className="relative z-[1] mx-auto grid w-full max-w-[1540px] gap-9 sm:gap-11 lg:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)] lg:gap-x-20 lg:gap-y-0 xl:gap-x-24">
         <header className="order-2 text-left lg:col-start-2 lg:row-start-1 lg:order-none">
-          <h1 className="max-w-[24ch] font-display text-h1 text-[var(--navy-900)]">
+          {/* Same structure and type scale as the contact hero, by the client's request. */}
+          <p className="text-label font-semibold uppercase tracking-[0.18em] text-[var(--steel-600)] sm:tracking-[0.22em]">
+            {advantage.hero.eyebrow}
+          </p>
+          <h1 className="mt-3 max-w-[24ch] font-display text-h1 text-[var(--navy-900)]">
             {advantage.hero.headline}
           </h1>
-          <p className="mt-3 max-w-[64ch] text-body-lg text-[var(--steel-600)] sm:mt-4">
+          <p className="mt-3 max-w-[64ch] text-body-lg font-semibold text-[var(--navy-900)]">
             {advantage.hero.subheadline}
+          </p>
+          <p className="mt-4 max-w-[56ch] text-body-lg leading-relaxed text-[var(--ink-muted)]">
+            {advantage.hero.description}
+          </p>
+          <p className="mt-3 max-w-[56ch] text-body leading-relaxed text-[var(--ink-muted)]">
+            {advantage.hero.closingLine}
           </p>
         </header>
 
@@ -186,7 +192,7 @@ export default function LeadershipBlock(): JSX.Element {
             </div>
             <div className="relative z-[1]">
               <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
-                THE ASCENDREV ADVANTAGE / 01
+                THE ASCENDREV ADVANTAGE
               </p>
 
               <h2 className="mt-3 max-w-[32ch] font-display text-h2 text-[var(--navy-900)]">
@@ -278,7 +284,7 @@ export default function LeadershipBlock(): JSX.Element {
                     <div className="border-t border-[var(--border)] pt-6 sm:pt-7">
                       <div className="flex items-center gap-3">
                         <span className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">
-                          {step.number} / {step.label}
+                          {step.label}
                         </span>
                         <span
                           aria-hidden="true"
@@ -366,11 +372,6 @@ export default function LeadershipBlock(): JSX.Element {
             })}
           </div>
 
-          <div className="ml-16 border-t border-[var(--border)] pt-7 sm:ml-20">
-            <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-text)]">
-              Next / Operating Commitments
-            </p>
-          </div>
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import type { Icon } from '@phosphor-icons/react';
 import { cn } from '@/lib/cn';
 
 /**
@@ -19,31 +20,30 @@ const ACCENT_TEXT_COLOR: Record<GlyphAccent, string> = {
 export const GLYPH_ACCENT_CYCLE: readonly GlyphAccent[] = ['green', 'blue', 'gold'];
 
 interface GlyphIconProps {
-  glyph: string;
+  icon: Icon;
   accent: GlyphAccent;
   className?: string;
 }
 
 /**
- * A subtle line-glyph inside a small geometric container: 1px hairline
- * border, muted fill, the glyph itself carrying the only colour. Used for
- * both the nine-service grid and the six screening steps, the two places on
- * this page that need "icon plus label, nothing else."
+ * A bold icon inside a small geometric container: 1px hairline border, muted
+ * fill, the icon itself carrying the only colour. Used for the service list,
+ * where each entry is "icon plus label, nothing else."
  *
- * `aria-hidden`: the glyph is decorative. The sibling label text is the
- * accessible name for the entry, same as before this icon existed.
+ * `aria-hidden`: the icon is decorative. The sibling label text is the
+ * accessible name for the entry.
  */
-export default function GlyphIcon({ glyph, accent, className }: GlyphIconProps): JSX.Element {
+export default function GlyphIcon({ icon: IconComponent, accent, className }: GlyphIconProps): JSX.Element {
   return (
     <span
       aria-hidden="true"
       className={cn(
-        'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] text-base leading-none',
+        'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)]',
         ACCENT_TEXT_COLOR[accent],
         className
       )}
     >
-      {glyph}
+      <IconComponent size={22} weight="bold" />
     </span>
   );
 }

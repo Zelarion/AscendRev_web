@@ -9,7 +9,6 @@ type ProofKind = 'location' | 'infrastructure' | 'workplace';
 
 interface ProofMoment {
   id: ProofKind;
-  number: string;
   label: string;
   headline: string;
   body: string;
@@ -113,27 +112,24 @@ export default function InfrastructureBlock(): JSX.Element {
   const proofMoments: ProofMoment[] = [
     {
       id: 'location',
-      number: '01',
       label: 'LOCATION',
-      headline: 'A location built around talent access.',
+      headline: 'Built Around Talent Access',
       body:
         'Located at the heart of Alabang Town Centre Metro Manila, Philippines, our working environment is strategically positioned to attract, keep and grow premium talents in the Region with work from home capability, if required and when agreed.',
       meta: ['Talent Access', 'Professional Environment', 'Alabang, Muntinlupa'],
     },
     {
       id: 'infrastructure',
-      number: '02',
       label: 'INFRASTRUCTURE',
-      headline: 'Built for continuity.',
+      headline: 'Built for Continuity',
       body:
         'The operating standard calls for controlled access, company-issued equipment, backup power, and a secondary connectivity path before client teams go live.',
       meta: ['Access Control', 'Backup Power', 'Secondary Connectivity'],
     },
     {
       id: 'workplace',
-      number: '03',
       label: 'WORKPLACE',
-      headline: 'Built for focus.',
+      headline: 'Built for Focus',
       body:
         'The workspace is secured, PII, PPI, PCI compliant to support safe and focused service delivery.',
       meta: ['Focused Workspaces', 'Direct Supervision', 'Professional Environment'],
@@ -209,7 +205,7 @@ export default function InfrastructureBlock(): JSX.Element {
       <div className="mx-auto w-full max-w-[1540px]">
         <header>
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--gold-text)] sm:text-[11px]">
-            THE ASCENDREV ADVANTAGE / 02
+            THE ASCENDREV ADVANTAGE
           </p>
           <h2 className="mt-5 font-display text-h2 text-[var(--navy-900)]">
             The commitments behind the operating standard.
@@ -243,7 +239,7 @@ export default function InfrastructureBlock(): JSX.Element {
                   <div className="max-w-[620px]">
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-[10px] font-medium tracking-[0.22em] text-[var(--gold-text)]">
-                        {moment.number} / {moment.label}
+                        {moment.label}
                       </span>
                       <span className="h-px w-10 bg-[var(--gold-text)]/55" />
                     </div>
@@ -317,7 +313,9 @@ export default function InfrastructureBlock(): JSX.Element {
         <div className="mx-auto mt-[clamp(3rem,5vw,4rem)] max-w-[760px] text-center">
           <span aria-hidden="true" className="mx-auto block h-px w-16 bg-[var(--gold-text)]" />
           <p className="mt-6 text-body-lg text-[var(--navy-900)]">
-            Built for reliability. Designed for performance.
+            Built for Reliability.
+            <br />
+            Designed for Performance.
           </p>
           <p className="mx-auto mt-5 max-w-[68ch] text-xs leading-[1.7] text-[var(--ink-muted)]">{note}</p>
         </div>

@@ -122,7 +122,7 @@ export default function PillarsSection({ content }: PillarsSectionProps): JSX.El
                   </p>
                   {index === 1 && (
                     <p className="mt-1 text-xs font-medium tracking-[0.08em] text-[var(--text-muted)]">
-                      Revenue generated
+                      Revenue Generated
                     </p>
                   )}
 

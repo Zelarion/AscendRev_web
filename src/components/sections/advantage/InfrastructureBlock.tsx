@@ -215,7 +215,7 @@ export default function InfrastructureBlock(): JSX.Element {
             The commitments behind the operating standard.
           </h2>
           <p className="mt-6 text-body-lg text-[var(--ink-muted)]">
-            The Philippine operation is being set up around reliability, security, talent, and continuity.
+            The Philippine operation is set up around reliability, security, talent, and sustainability.
           </p>
 
         </header>

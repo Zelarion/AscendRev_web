@@ -12,10 +12,12 @@ interface BlueprintStoryProps {
 }
 
 /**
- * The enquiry blueprint keeps native page scroll intact. On laptop and desktop
- * widths, each stage updates the active rail as it crosses the reader's
- * reading line. The complete stage copy is always rendered so the story still
- * works with JavaScript off and for readers who prefer reduced motion.
+ * The enquiry blueprint keeps native page scroll intact. At every width, each
+ * stage updates the active rail as it crosses the reader's reading line; the
+ * gold line grows and the numbered marker fills. It only observes scrolling (no
+ * pinning or scrubbing), so touch scroll stays entirely under the reader's
+ * control. The complete stage copy is always rendered so the story still works
+ * with JavaScript off and for readers who prefer reduced motion.
  */
 export default function BlueprintStory({ content }: BlueprintStoryProps): JSX.Element {
   const scope = useRef<HTMLDivElement>(null);
@@ -31,46 +33,33 @@ export default function BlueprintStory({ content }: BlueprintStoryProps): JSX.El
       const stages = gsap.utils.toArray<HTMLElement>('[data-blueprint-stage]', element);
       if (!stages.length) return;
 
-      // The animation is an enhancement for laptop/desktop readers. Smaller
-      // viewports keep their ordinary, fully expanded document flow so touch
-      // scroll remains entirely under the reader's control.
-      const media = gsap.matchMedia();
-      media.add('(min-width: 1024px)', () => {
-        setActiveIndex(0);
-        const triggers = stages.map((stage, index) => {
-          const card = stage.querySelector<HTMLElement>('[data-blueprint-card]');
-          if (!card) return null;
+      // `useGSAP` reverts these timelines and their ScrollTriggers on unmount.
+      setActiveIndex(0);
+      stages.forEach((stage, index) => {
+        const card = stage.querySelector<HTMLElement>('[data-blueprint-card]');
+        if (!card) return;
 
-          return gsap.fromTo(
-            card,
-            { y: 20, opacity: 0.78 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.65,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: stage,
-                start: 'top 70%',
-                end: 'bottom 36%',
-                invalidateOnRefresh: true,
-                onEnter: () => setActiveIndex(index),
-                onEnterBack: () => setActiveIndex(index),
-                onLeave: () => setActiveIndex(Math.min(index + 1, stages.length - 1)),
-                onLeaveBack: () => setActiveIndex(Math.max(index - 1, 0)),
-              },
-            }
-          );
-        });
-
-        // `useGSAP` cleans up the timelines and their ScrollTriggers. This
-        // closure only releases the breakpoint context when it changes.
-        return () => {
-          triggers.forEach((trigger) => trigger?.kill());
-        };
+        gsap.fromTo(
+          card,
+          { y: 20, opacity: 0.78 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.65,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: stage,
+              start: 'top 70%',
+              end: 'bottom 36%',
+              invalidateOnRefresh: true,
+              onEnter: () => setActiveIndex(index),
+              onEnterBack: () => setActiveIndex(index),
+              onLeave: () => setActiveIndex(Math.min(index + 1, stages.length - 1)),
+              onLeaveBack: () => setActiveIndex(Math.max(index - 1, 0)),
+            },
+          }
+        );
       });
-
-      return () => media.revert();
     },
     { scope, dependencies: [content.steps.length] }
   );

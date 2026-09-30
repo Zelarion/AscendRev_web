@@ -57,22 +57,25 @@ export default function Footer(): JSX.Element {
         ASCENDREV
       </div>
 
-      <div className="footer-rise-content relative z-10 h-[clamp(12rem,18vw,20rem)] w-full overflow-hidden bg-[#001c41]">
-        <div className="relative h-full w-full">
+      <div className="footer-rise-content relative z-10 h-[clamp(12rem,18vw,20rem)] w-full overflow-hidden bg-[#001c41] max-[480px]:h-auto max-[480px]:aspect-[810/544]">
+        <div className="absolute inset-0">
           {/*
-            The logo sits near the left edge of this 3:1 artwork. On a phone the box is
-            about 2:1, so object-cover crops the sides: centred, it cut off the logo mark
-            and the "A" of ASCENDREV. Below sm the picture is left-anchored so the whole
-            logo shows (the crop then only trims the empty right side).
+            The full artwork is 3:1 with the logo in its left third. Squeezed into a phone
+            it was cropped (the logo mark and the "A" were cut off) and, once fitted, the
+            tagline was too small to read. Phones therefore get a tighter crop of the same
+            artwork (810x544) in which the logo fills the width. From 480px the wide
+            artwork is used, left-anchored below sm so the logo is never clipped.
           */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- supplied white-gradient brand banner blends into the light footer. */}
-          <img
-            src="/images/ascendrev-footer-artwork.webp"
-            alt=""
-            width={2172}
-            height={724}
-            className="block h-full w-full object-cover object-[0%_60%] sm:object-[50%_60%]"
-          />
+          <picture>
+            <source media="(max-width: 479.98px)" srcSet="/images/ascendrev-footer-artwork-mobile.webp" width={810} height={544} />
+            <img
+              src="/images/ascendrev-footer-artwork.webp"
+              alt=""
+              width={2172}
+              height={724}
+              className="block h-full w-full object-cover object-[0%_60%] sm:object-[50%_60%]"
+            />
+          </picture>
           <Link
             href="/"
             aria-label="AscendRev home"

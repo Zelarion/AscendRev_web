@@ -180,9 +180,14 @@ export interface HomeContent {
 
 export const home: HomeContent = {
   meta: {
-    title: 'Offshore Teams for North American Companies',
+    // Search and browser-tab wording, Canada-first. Not shown in the page body.
+    // Founder approved on 2026-10-03 as a non-visible change (see
+    // CONTENT-CHANGE-BLOCKER.md); visible copy is untouched.
+    // The one title that leads with the brand; app/page.tsx passes
+    // titleIncludesBrand so "| AscendRev" is not appended again.
+    title: 'AscendRev | Calgary-Led Offshore Sales and Support Teams',
     description:
-      'AscendRev builds and runs dedicated sales, support and back office teams in the Philippines for North American companies. Calgary head office, founder led, one monthly rate per seat.',
+      'Calgary-based AscendRev builds dedicated sales, support and back office teams in the Philippines for Canadian companies. Founder led, one monthly rate per seat.',
   },
 
   hero: {

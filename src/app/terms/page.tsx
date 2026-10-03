@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import Section from '@/components/layout/Section';
 import { site } from '@/content/site';
-import { createSeoMetadata } from '@/lib/seoMetadata';
+import PageJsonLd from '@/components/seo/PageJsonLd';
+import { createSeoMetadata, type SeoMetadataInput } from '@/lib/seoMetadata';
 
 /**
  * The website terms, stated in full rather than summarised.
@@ -22,12 +23,14 @@ import { createSeoMetadata } from '@/lib/seoMetadata';
 
 const LAST_UPDATED = 'September 29, 2026';
 
-export const metadata = createSeoMetadata({
+const seo: SeoMetadataInput = {
   title: 'Terms of Use',
   description:
     'The terms that apply to visitors of the AscendRev Outsourcing Services Corp. website, including enquiries, content ownership and governing law.',
   canonicalPath: '/terms/',
-});
+};
+
+export const metadata = createSeoMetadata(seo);
 
 const headingClass = 'text-h2 font-display font-medium tracking-[-0.02em] text-[var(--ink)]';
 const bodyClass = 'mt-3 text-body text-[var(--ink-muted)]';
@@ -37,6 +40,7 @@ const linkClass = 'text-[var(--steel-600)] underline underline-offset-2 outline-
 export default function TermsPage() {
   return (
     <Section size="large">
+      <PageJsonLd {...seo} />
       <div className="mx-auto w-full max-w-[1200px] px-[var(--site-gutter,clamp(1.25rem,5vw,4rem))]">
         <div className="max-w-[68ch]">
           <h1 className="text-h1 font-display font-medium tracking-[-0.025em] text-[var(--ink)]">

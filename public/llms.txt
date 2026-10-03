@@ -1,6 +1,29 @@
 # AscendRev
 
-> AscendRev is a Canadian-based provider of dedicated sales, customer experience, and business operations teams for North American businesses, with delivery from the Philippines.
+> AscendRev Outsourcing Services Corp. is a Calgary-based provider of dedicated sales, customer experience, and business operations teams for Canadian and North American businesses, with delivery from Alabang, Philippines.
+
+## Key facts
+
+- Legal name: AscendRev Outsourcing Services Corp.
+- Head office: Calgary, Alberta, Canada.
+- Delivery office: Alabang Town Centre, Ayala Alabang, Philippines.
+- Registered in Canada: 11 September 2026.
+- Founder: Rio Vidal, based in Calgary, with a B2B sales and leadership career across Canada and Australia.
+- Pricing model: one monthly rate per seat.
+- Enquiries: a person replies within eight business hours, Calgary time. Phone +1 (403) 903-2912.
+- Not to be confused with similarly named companies; AscendRev's only website is https://ascend-rev.ca/.
+
+## Functions staffed
+
+- Lead Generation and Data Entry
+- Outbound Sales & Cold Acquisition
+- Inbound Lead Conversion
+- High-Yield Appointment Setting
+- Omnichannel Customer Care
+- Technical Help Desk
+- Strategic Account Management & Reactivation
+- 24/7/365 After-Hours Coverage
+- Accounts Receivable & Collections
 
 ## Pages
 
@@ -13,5 +36,9 @@
 - [Contact](https://ascend-rev.ca/contact/): Enquiries and contact options.
 - [Privacy Policy](https://ascend-rev.ca/privacy/): How website enquiry information is handled.
 - [Terms of Use](https://ascend-rev.ca/terms/): Terms for visitors using this website.
+
+## Profiles
+
+- LinkedIn: https://www.linkedin.com/company/ascendrev-outsourcing-services-corp/
 
 Format note: `llms.txt` is an open proposal; publishing this file does not guarantee AI search visibility, inclusion, or ranking.

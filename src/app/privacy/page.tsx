@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import Section from '@/components/layout/Section';
 import { site } from '@/content/site';
-import { createSeoMetadata } from '@/lib/seoMetadata';
+import PageJsonLd from '@/components/seo/PageJsonLd';
+import { createSeoMetadata, type SeoMetadataInput } from '@/lib/seoMetadata';
 
 /**
  * The privacy policy, stated in full rather than summarised.
@@ -30,12 +31,14 @@ import { createSeoMetadata } from '@/lib/seoMetadata';
 
 const LAST_UPDATED = 'September 29, 2026';
 
-export const metadata = createSeoMetadata({
+const seo: SeoMetadataInput = {
   title: 'Privacy Policy',
   description:
     'How AscendRev Outsourcing Services Corp. collects, uses, stores and protects personal information submitted through this website.',
   canonicalPath: '/privacy/',
-});
+};
+
+export const metadata = createSeoMetadata(seo);
 
 const headingClass = 'text-h2 font-display font-medium tracking-[-0.02em] text-[var(--ink)]';
 const bodyClass = 'mt-3 text-body text-[var(--ink-muted)]';
@@ -46,6 +49,7 @@ const linkClass =
 export default function PrivacyPage() {
   return (
     <Section size="large">
+      <PageJsonLd {...seo} />
       <div className="mx-auto w-full max-w-[1200px] px-[var(--site-gutter,clamp(1.25rem,5vw,4rem))]">
         <div className="max-w-[68ch]">
           <h1 className="text-h1 font-display font-medium tracking-[-0.025em] text-[var(--ink)]">

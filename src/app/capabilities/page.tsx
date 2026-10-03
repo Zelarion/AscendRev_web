@@ -12,14 +12,16 @@ import CapabilityApproach from '@/components/sections/capabilities/CapabilityApp
 import CapabilityJourney from '@/components/sections/capabilities/CapabilityJourney';
 import ServiceGrid from '@/components/sections/solutions/ServiceGrid';
 import { capabilities } from '@/content/capabilities';
-import { createSeoMetadata } from '@/lib/seoMetadata';
+import PageJsonLd from '@/components/seo/PageJsonLd';
+import { createSeoMetadata, type SeoMetadataInput } from '@/lib/seoMetadata';
 
-export const metadata = createSeoMetadata({
-  title: capabilities.title,
-  description:
-    'Dedicated sales, customer experience and business operations teams shaped around the capacity your business needs.',
+const seo: SeoMetadataInput = {
+  title: capabilities.meta.title,
+  description: capabilities.meta.description,
   canonicalPath: '/capabilities/',
-});
+};
+
+export const metadata = createSeoMetadata(seo);
 
 // One icon per capability, in `capabilities.groups` order, chosen to read as the
 // heading beside it (client revision, 2026-09-30: larger, bolder, matched icons).
@@ -34,6 +36,7 @@ const CAPABILITY_ICONS = [
 export default function CapabilitiesPage() {
   return (
     <>
+      <PageJsonLd {...seo} />
       <section className="relative isolate overflow-hidden bg-[var(--surface-page)] px-[var(--site-gutter,clamp(1.25rem,5vw,5.5rem))] pb-12 pt-[calc(var(--header-height)_+_2rem)] text-[var(--ink)] sm:pb-14 sm:pt-[calc(var(--header-height)_+_2.5rem)] lg:pb-16">
         <AtmosphereLayer variant="light-network" />
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(ellipse_at_top,rgba(197,151,49,0.11),transparent_68%)]" />

@@ -26,6 +26,8 @@ export interface Site {
   domain: string;
   url: string;
   tagline: string;
+  /** Default search and social description, reused by metadata, manifest and JSON-LD. */
+  description: string;
   phone: string;
   /**
    * Single-line formatted address, safe to render directly as text
@@ -40,11 +42,19 @@ export interface Site {
   philippinesOfficeAddress: string;
   philippinesOfficeAddressParts: PostalAddress;
   /**
-   * No LinkedIn URL appears in PRODUCT.md, DESIGN.md, or SPEC.md. Left
-   * unset rather than guessed, `Footer.tsx` already treats this as
-   * optional and skips the icon entirely when it's absent.
+   * Rio Vidal's personal LinkedIn profile, linked beside his bio on the
+   * Advantage page. It is a person, so JSON-LD lists it on the founder's
+   * Person node, never on the Organization.
    */
   linkedinUrl?: string;
+  /**
+   * The company's own LinkedIn page. Organization `sameAs` uses this so search
+   * engines tie ascend-rev.ca to this company and not to similarly named ones
+   * (Google's AI Overview mixed AscendRev up with another firm, Oct 2026).
+   */
+  companyLinkedinUrl?: string;
+  /** Canadian registration date, ISO 8601. Stated on the Advantage page. */
+  foundingDate: string;
   /** Optional Facebook page linked from the site footer. */
   facebookUrl?: string;
   /**
@@ -91,6 +101,8 @@ export const site: Site = {
   domain: 'ascend-rev.ca',
   url: 'https://ascend-rev.ca',
   tagline: 'Dedicated Team. Targeted Solutions. Accelerated Revenue.',
+  description:
+    'AscendRev builds dedicated sales, customer experience, and business operations teams for North American companies, delivered from the Philippines.',
   phone: '+1 (403) 903-2912',
   address: 'Calgary, AB, Canada',
   addressParts,
@@ -99,5 +111,7 @@ export const site: Site = {
   contactEmail: 'rio.vidal@ascend-rev.ca',
   enquiryEmailSecondary: 'ralph.tomines@ascend-rev.ca',
   linkedinUrl: 'https://www.linkedin.com/in/rio-mendoza-vidal-56900210b/',
+  companyLinkedinUrl: 'https://www.linkedin.com/company/ascendrev-outsourcing-services-corp/',
+  foundingDate: '2026-09-11',
   facebookUrl: 'https://www.facebook.com/profile.php?id=61594055567709',
 };

@@ -23,14 +23,20 @@ export const metadata: Metadata = {
     default: `${site.name} | ${site.tagline}`,
     template: `%s | ${site.name}`,
   },
-  description:
-    'AscendRev builds dedicated sales, customer experience, and business operations teams for North American companies, delivered from the Philippines.',
+  description: site.description,
   applicationName: site.name,
   authors: [{ name: site.legalName }],
+  // Google's result favicon wants a square icon in a multiple of 48px, and some
+  // crawlers only ever try /favicon.ico, so the same mark ships in every form.
   icons: {
-    icon: [{ url: '/favicon.png', type: 'image/png' }],
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/favicon.png', sizes: '96x96', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   openGraph: {
     type: 'website',
@@ -38,8 +44,7 @@ export const metadata: Metadata = {
     locale: 'en_CA',
     url: site.url,
     title: `${site.name} | ${site.tagline}`,
-    description:
-      'AscendRev builds dedicated sales, customer experience, and business operations teams for North American companies, delivered from the Philippines.',
+    description: site.description,
     images: [
       {
         url: '/ascendrev-og-preview.jpg',
@@ -53,8 +58,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: `${site.name} | ${site.tagline}`,
-    description:
-      'AscendRev builds dedicated sales, customer experience, and business operations teams for North American companies, delivered from the Philippines.',
+    description: site.description,
     images: ['/ascendrev-og-preview.jpg'],
   },
   robots: {

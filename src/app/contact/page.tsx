@@ -7,19 +7,23 @@ import AtmosphereLayer from '@/components/sections/shared/AtmosphereLayer';
 import RevealOnScroll from '@/components/sections/shared/RevealOnScroll';
 import { contact } from '@/content/contact';
 import { site } from '@/content/site';
-import { createSeoMetadata } from '@/lib/seoMetadata';
+import PageJsonLd from '@/components/seo/PageJsonLd';
+import { createSeoMetadata, type SeoMetadataInput } from '@/lib/seoMetadata';
 
-export const metadata = createSeoMetadata({
+const seo: SeoMetadataInput = {
   title: contact.meta.title,
   description: contact.meta.description,
   canonicalPath: '/contact/',
-});
+};
+
+export const metadata = createSeoMetadata(seo);
 
 export default function ContactPage() {
   const { hero, whatToExpect, form } = contact;
 
   return (
     <>
+      <PageJsonLd {...seo} />
       <Section
         tone="light"
         className="relative isolate overflow-hidden border-b border-[var(--line-on-band)] !pt-[calc(var(--header-height)_+_1.25rem)] !pb-[clamp(2rem,4vw,3rem)]"

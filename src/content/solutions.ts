@@ -87,9 +87,12 @@ export interface SolutionsContent {
 
 export const solutions: SolutionsContent = {
   meta: {
-    title: 'Outsourced Sales, Support and Help Desk Teams',
+    // Search and browser-tab wording, Canada-first. Not shown in the page body.
+    // Founder approved on 2026-10-03 as a non-visible change (see
+    // CONTENT-CHANGE-BLOCKER.md); visible copy is untouched.
+    title: 'Outsourced Sales and Help Desk Teams for Canada',
     description:
-      'The nine functions AscendRev staffs from the Philippines: outbound sales, inbound conversion, appointment setting, customer care, help desk, account management, after hours cover, lead data and collections.',
+      'Nine functions AscendRev staffs from the Philippines for Canadian firms: outbound sales, appointment setting, customer care, help desk, collections and more.',
   },
 
   hero: {

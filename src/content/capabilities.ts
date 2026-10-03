@@ -4,7 +4,16 @@ export interface CapabilityGroup {
 }
 
 export const capabilities = {
+  /** Visible page heading (the H1). Not used for search; see `meta`. */
   title: 'Capabilities Built Around Your Business',
+  meta: {
+    // Search and browser-tab wording, Canada-first. Not shown in the page body.
+    // Founder approved on 2026-10-03 as a non-visible change (see
+    // CONTENT-CHANGE-BLOCKER.md); visible copy is untouched.
+    title: 'Offshore Sales, CX and Back Office Teams',
+    description:
+      'Dedicated sales, customer experience and back office teams from the Philippines, shaped around the capacity your Canadian business needs.',
+  },
   groups: [
     {
       heading: 'Generate Demand',

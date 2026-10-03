@@ -10,6 +10,18 @@ Treat the website's current copy, content, imagery, typography, and page structu
 - Sir Rio specifically approved a sitewide heading/body type hierarchy pass and spacing fixes on the reviewed pages on 2026-09-26. Preserve all existing website copy; this approval covers presentation only.
 - If a proposed edit reaches beyond Sir Rio's explicit request, stop that edit, record it here under **Blocked pending confirmation**, and ask for Sir Rio's specific approval before proceeding.
 
+## Non-visible search metadata (founder-approved 2026-10-03)
+
+Zelarion's founder approved changing search and sharing metadata without a
+separate client sign-off, because it is SEO work Zelarion is responsible for
+and no visible page copy changes. This covers page titles (browser tab, Google
+result, link previews), meta descriptions, JSON-LD structured data, icons,
+`llms.txt`, and the www-to-bare-domain redirect.
+
+It does not cover any text a visitor reads on the page. Headings, body copy,
+buttons, alt text and labels stay locked. Rio's displayed role ("Founder") and
+adding Ralph to the site are visible changes and still need Sir Rio's approval.
+
 ## Blocked pending confirmation
 
 - Other meeting-note action items without a matching direct request from Sir Rio.

@@ -105,9 +105,12 @@ export interface ContactContent {
 
 export const contact: ContactContent = {
   meta: {
-    title: 'Request for Solution Blueprint',
+    // Search and browser-tab wording, Canada-first. Not shown in the page body.
+    // Founder approved on 2026-10-03 as a non-visible change (see
+    // CONTENT-CHANGE-BLOCKER.md); visible copy is untouched.
+    title: 'Request for Solution Blueprint, Calgary',
     description:
-      'Tell AscendRev where your operation stands today and where you need help. A reply from a person within eight business hours on Calgary time.',
+      'Tell AscendRev where your operation stands and where you need help. A person replies within eight business hours, Calgary time. Call +1 (403) 903-2912.',
   },
 
   // Client revision, 2026-09-29: exact replacement copy.

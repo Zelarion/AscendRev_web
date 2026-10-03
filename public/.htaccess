@@ -11,10 +11,17 @@
 # ---------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteCond %{HTTPS} !=on
-  RewriteCond %{HTTP_HOST} ^(?:www\.)?ascend-rev\.ca$ [NC]
+  # One public host. Without this, www served a full duplicate of the site and
+  # split ranking signals between two hostnames. www goes straight to the
+  # HTTPS bare domain in a single hop, whatever scheme it arrived on.
+  RewriteCond %{HTTP_HOST} ^www\.ascend-rev\.ca$ [NC]
   RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge(?:/|$) [NC]
-  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+  RewriteRule ^ https://ascend-rev.ca%{REQUEST_URI} [R=301,L]
+
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP_HOST} ^ascend-rev\.ca$ [NC]
+  RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge(?:/|$) [NC]
+  RewriteRule ^ https://ascend-rev.ca%{REQUEST_URI} [R=301,L]
 </IfModule>
 
 # ---------------------------------------------------------------------------

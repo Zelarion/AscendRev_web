@@ -124,10 +124,15 @@ export interface AdvantageContent {
 
 export const advantage: AdvantageContent = {
   meta: {
-    // Client revision, 2026-09-24: page retitled "The AscendRev Difference".
-    title: 'The AscendRev Difference',
+    // Search and browser-tab wording, Canada-first. Not shown in the page body.
+    // Founder approved on 2026-10-03 as a non-visible change (see
+    // CONTENT-CHANGE-BLOCKER.md); visible copy is untouched.
+    // Was "The AscendRev Difference" (client revision, 2026-09-24), which the
+    // title template rendered as "The AscendRev Difference | AscendRev". The
+    // visible page heading is hero.headline and is unchanged.
+    title: 'Our Difference: Founder Rio Vidal',
     description:
-      "Rio Vidal's career record, what stands behind AscendRev, and what the Philippine operation actually is right now. Registered in Canada on 11 September 2026.",
+      "Calgary founder Rio Vidal's career record, what stands behind AscendRev, and what the Philippine operation is today. Registered in Canada on 11 September 2026.",
   },
 
   hero: {

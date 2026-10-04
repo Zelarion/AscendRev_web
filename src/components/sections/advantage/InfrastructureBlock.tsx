@@ -115,7 +115,7 @@ export default function InfrastructureBlock(): JSX.Element {
       label: 'LOCATION',
       headline: 'Built Around Talent Access',
       body:
-        'Located at the heart of Alabang Town Centre Metro Manila, Philippines, our working environment is strategically positioned to attract, keep and grow premium talents in the Region with work from home capability, if required and when agreed.',
+        'Located at the heart of Alabang Town Centre Metro Manila, Philippines, our working environment is strategically positioned to attract, keep and grow talents including but not limited to engineers, nurses, teachers, accountants, legal consultants, marketing experts, underwriters, hospitality and property professionals, and managers.',
       meta: ['Talent Access', 'Professional Environment', 'Alabang, Muntinlupa'],
     },
     {

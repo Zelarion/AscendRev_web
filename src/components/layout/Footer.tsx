@@ -125,7 +125,7 @@ export default function Footer(): JSX.Element {
 
                 <div className="flex max-w-[620px] items-start gap-3">
                   <MapPin size={19} weight="regular" aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--ink-muted)]" />
-                  <span>Alabang Office: {site.philippinesOfficeAddress}</span>
+                  <span>{site.philippinesOfficesLine}</span>
                 </div>
               </div>
             </div>

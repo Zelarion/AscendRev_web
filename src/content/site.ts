@@ -39,7 +39,7 @@ export interface Site {
   address: string;
   addressParts: PostalAddress;
   /** Confirmed Philippines office location, provided as display text and structured fields. */
-  philippinesOfficeAddress: string;
+  philippinesOfficesLine: string;
   philippinesOfficeAddressParts: PostalAddress;
   /**
    * Rio Vidal's personal LinkedIn profile, linked beside his bio on the
@@ -106,7 +106,7 @@ export const site: Site = {
   phone: '+1 (403) 903-2912',
   address: 'Calgary, AB, Canada',
   addressParts,
-  philippinesOfficeAddress: `${philippinesOfficeAddressParts.street}, ${philippinesOfficeAddressParts.city}, ${philippinesOfficeAddressParts.region} ${philippinesOfficeAddressParts.country}`,
+  philippinesOfficesLine: 'Office locations in Alabang, Cebu and Pampanga Philippines',
   philippinesOfficeAddressParts,
   contactEmail: 'rio.vidal@ascend-rev.ca',
   enquiryEmailSecondary: 'ralph.tomines@ascend-rev.ca',

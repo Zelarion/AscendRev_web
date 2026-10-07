@@ -8,6 +8,7 @@ Treat the website's current copy, content, imagery, typography, and page structu
 - Meeting notes and their action items are reference material, not authorization to implement every listed task.
 - Do not infer new copy, rewrite adjacent content, swap imagery, remove social links, or reflow other sections from general guidance alone.
 - Sir Rio specifically approved a sitewide heading/body type hierarchy pass and spacing fixes on the reviewed pages on 2026-09-26. Preserve all existing website copy; this approval covers presentation only.
+- Sir Rio's team asked on 2026-10-07 to change the footer office line from "Alabang Office: Alabang Town Centre, Ayala Alabang, Manila Philippines" to "Office locations in Alabang, Cebu and Pampanga Philippines". Only that footer line changed (`site.philippinesOfficesLine`). Not changed, pending confirmation: the Alabang Town Centre sentence in `InfrastructureBlock.tsx`, and JSON-LD still lists only the Alabang office because no Cebu or Pampanga address has been provided.
 - If a proposed edit reaches beyond Sir Rio's explicit request, stop that edit, record it here under **Blocked pending confirmation**, and ask for Sir Rio's specific approval before proceeding.
 
 ## Non-visible search metadata (founder-approved 2026-10-03)

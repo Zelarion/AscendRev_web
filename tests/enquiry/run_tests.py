@@ -3,6 +3,7 @@
 Each case builds a throwaway "account" that mirrors the cPanel layout:
 
     <tmp>/public_html/api/enquiry.php      copy of the handler under test
+    <tmp>/public_html/api/lib/             the shared core it requires
     <tmp>/public_html/email-header.jpg
     <tmp>/ascendrev-enquiry.config.php     ABOVE the docroot, like production
     <tmp>/ascendrev-enquiries/             storage, created by the handler
@@ -86,6 +87,7 @@ class Account:
         os.makedirs(os.path.join(self.docroot, "api"))
         self.handler = os.path.join(self.docroot, "api", "enquiry.php")
         shutil.copy(HANDLER, self.handler)
+        shutil.copytree(os.path.join(WEB, "public", "api", "lib"), os.path.join(self.docroot, "api", "lib"))
         shutil.copy(HEADER_IMAGE, os.path.join(self.docroot, "email-header.jpg"))
 
         self.smtp_port = free_port()

@@ -14,6 +14,17 @@ const SCROLL_FLOAT_EXIT_PX = 90;
 const SOLUTIONS_HREFS = new Set(['/solutions/', '/capabilities/']);
 const solutionNavItems = navItems.filter((item) => SOLUTIONS_HREFS.has(item.href));
 const primaryDesktopNavItems = navItems.filter((item) => !SOLUTIONS_HREFS.has(item.href));
+
+/*
+ * CAREERS joins the desktop row only where it fits. Measured on 11 Oct 2026:
+ * beside the 255px CTA the row overflows by 35px at 1088px and again at 1280px
+ * (where the labels step up to 14px), and clears with the full 16px margin from
+ * 1320px. Below that it stays in the menu sheet and the footer.
+ */
+const CAREERS_HREF = '/careers/';
+// A width-scoped hide, because the base class already sets inline-flex and a plain
+// `hidden` loses to it in the generated stylesheet.
+const careersDesktopVisibility = 'max-[82.5rem]:hidden';
 const desktopNavItemClass = 'ar-nav-item relative inline-flex min-h-11 items-center whitespace-nowrap px-1 text-[12px] font-medium text-white/95 outline-none transition-colors after:absolute after:bottom-[4px] after:left-1/2 after:h-px after:w-0 after:bg-[var(--gold-400)] after:transition-all after:duration-300 hover:text-[var(--gold-300)] hover:after:left-0 hover:after:w-full wide-nav:text-[12px] xl:wide-nav:text-[14px]';
 
 function isActiveRoute(pathname: string, href: string): boolean {
@@ -297,7 +308,7 @@ export default function Header(): JSX.Element {
                 href={item.href}
                 onClick={item.href === '/' ? handleHomeLinkClick : undefined}
                 aria-current={isActiveRoute(pathname, item.href) ? 'page' : undefined}
-                className={desktopNavItemClass}
+                className={item.href === CAREERS_HREF ? `${desktopNavItemClass} ${careersDesktopVisibility}` : desktopNavItemClass}
                 style={{ ...hoverTransitionStyle, animationDelay: `${160 + index * 70}ms` }}
               >
                 {item.label}

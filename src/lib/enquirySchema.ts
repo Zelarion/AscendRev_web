@@ -105,9 +105,9 @@ function domainOf(email: string): string {
  * Garcia-Lopez, Muller and O'Brien as readily as it rejects a bot, and this
  * form is aimed at a country where all three are ordinary names.
  */
-const FORBIDDEN_NAME_CHARACTERS = '0123456789@<>{}[]\\/|_=+*#$%^~`';
+export const FORBIDDEN_NAME_CHARACTERS = '0123456789@<>{}[]\\/|_=+*#$%^~`';
 
-function hasForbiddenNameCharacter(value: string): boolean {
+export function hasForbiddenNameCharacter(value: string): boolean {
   return [...value].some((character) =>
     FORBIDDEN_NAME_CHARACTERS.includes(character)
   );
@@ -119,7 +119,7 @@ function hasForbiddenNameCharacter(value: string): boolean {
  * because a phone number's alphabet is genuinely that small — no digit
  * grouping convention anywhere needs a letter.
  */
-const PHONE_CHARACTERS_PATTERN = /^[0-9 ()+.-]+$/;
+export const PHONE_CHARACTERS_PATTERN = /^[0-9 ()+.-]+$/;
 
 /**
  * A missing value and a wrong-typed value get the same message, because the

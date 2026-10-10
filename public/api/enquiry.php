@@ -27,6 +27,16 @@
 
 declare(strict_types=1);
 
+/** Names this handler's log file. Must be defined before the shared core loads. */
+const HANDLER_LOG_FILE = 'enquiry.log';
+
+/*
+ * Config lookup, response helpers, the request gates, the SMTP client, delivery
+ * state and the cron sweep live in the shared core so careers.php runs on the
+ * same, already-tested machinery.
+ */
+require_once __DIR__ . '/lib/handler-core.php';
+
 /* ---------------------------------------------------------------------------
  * Configuration
  *
@@ -35,43 +45,6 @@ declare(strict_types=1);
  * or in a config file placed ABOVE public_html, which is why the fallback path
  * climbs out of the document root rather than sitting beside this file.
  * ------------------------------------------------------------------------ */
-
-/**
- * The directory that holds private runtime files: one level above public_html.
- * A web request gets it from the document root. The cron retry has no document
- * root, so it derives the same place from this file's own location
- * (public_html/api/enquiry.php).
- */
-function accountRoot(): string
-{
-    $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
-    return $documentRoot !== '' ? dirname($documentRoot) : dirname(__DIR__, 2);
-}
-
-/** Reads an env var, falling back to a value from an out-of-root config file. */
-function config(string $key, string $default = ''): string
-{
-    $fromEnv = getenv($key);
-    if (is_string($fromEnv) && $fromEnv !== '') {
-        return $fromEnv;
-    }
-
-    static $file = null;
-    if ($file === null) {
-        $file = [];
-        // One level above the document root, so it is never web-reachable even
-        // if .htaccess is lost. See DEPLOY.md.
-        $path = accountRoot() . '/ascendrev-enquiry.config.php';
-        if (is_readable($path)) {
-            $loaded = require $path;
-            if (is_array($loaded)) {
-                $file = $loaded;
-            }
-        }
-    }
-
-    return isset($file[$key]) && is_string($file[$key]) ? $file[$key] : $default;
-}
 
 /**
  * At least two recipients, so no lead depends on a single mailbox
@@ -94,35 +67,14 @@ $STORAGE_DIR = config(
     accountRoot() . '/ascendrev-enquiries'
 );
 
-/**
- * Google Workspace SMTP transport.
- *
- * cPanel must submit through the configured Google Workspace account; do not
- * fall back to the host MTA when authenticated SMTP is unavailable.
- *
- * The password is read from the environment or the out-of-root config file and
- * is never written to a log, never returned in a response, and never placed in
- * a header.
- */
-$SMTP = [
-    'host' => config('ASCENDREV_SMTP_HOST', 'smtp.gmail.com'),
-    'port' => (int) (config('ASCENDREV_SMTP_PORT', '587') ?: 587),
-    'user' => config('ASCENDREV_SMTP_USER', ''),
-    'pass' => config('ASCENDREV_SMTP_PASS', ''),
-    // Test harness only: a private CA to trust instead of the system store, so
-    // the delivery tests can talk STARTTLS to a local fake server with full
-    // certificate verification. Unset in production.
-    'cafile' => config('ASCENDREV_SMTP_CAFILE', ''),
-];
+/** Google Workspace SMTP transport; see smtpSettings() in the shared core. */
+$SMTP = smtpSettings();
 
 /** Envelope sender. Defaults to the authenticated Google Workspace identity. */
 $MAIL_FROM = config('ASCENDREV_ENQUIRY_FROM', $SMTP['user']);
 
 /** Hosts allowed to submit. Origin/Referer must match one of these. */
-$ALLOWED_HOSTS = array_values(array_filter(array_map(
-    'trim',
-    explode(',', config('ASCENDREV_ALLOWED_HOSTS', 'ascend-rev.ca,www.ascend-rev.ca,localhost'))
-)));
+$ALLOWED_HOSTS = allowedHosts();
 
 /**
  * Rate limit: submissions per IP per window.
@@ -135,20 +87,9 @@ $ALLOWED_HOSTS = array_values(array_filter(array_map(
  * the default is unchanged and deployment should not set it.
  */
 $RATE_LIMIT_MAX = max(1, (int) (config('ASCENDREV_RATE_LIMIT_MAX', '5') ?: 5));
-const RATE_LIMIT_WINDOW_SECONDS = 3600;
 
 /** How long an identical submission is treated as a duplicate, not a new lead. */
 const DEDUPE_WINDOW_SECONDS = 900;
-
-/**
- * Delivery attempts (the web request counts as the first) before a submission is
- * given up on. Bounded so a permanently rejected recipient cannot be retried
- * forever; the CSV row still holds the lead for a human to follow up.
- */
-const MAX_DELIVERY_ATTEMPTS = 8;
-
-/** Retry backoff is 60s doubled per attempt, capped here. */
-const RETRY_BACKOFF_CAP_SECONDS = 3600;
 
 const CSV_HEADER = [
     'submitted_at_utc', 'individual_name', 'business_email', 'entity_name',
@@ -170,17 +111,6 @@ const FREE_MAILBOX_DOMAINS = [
     'zoho.com',
 ];
 
-/** Must match DISPOSABLE_MAILBOX_DOMAINS in src/lib/enquirySchema.ts. */
-const DISPOSABLE_MAILBOX_DOMAINS = [
-    '10minutemail.com', 'dispostable.com', 'guerrillamail.com', 'mailinator.com',
-    'sharklasers.com', 'temp-mail.org', 'throwawaymail.com', 'trashmail.com', 'yopmail.com',
-];
-
-/** Characters that cannot belong in a name. Mirrors the client rule exactly. */
-const FORBIDDEN_NAME_CHARACTERS = '0123456789@<>{}[]\\/|_=+*#$%^~`';
-
-/** Characters a phone number may contain. Mirrors PHONE_CHARACTERS_PATTERN in src/lib/enquirySchema.ts. */
-const PHONE_ALLOWED_PATTERN = '/^[0-9 ()+.-]+$/';
 const PHONE_REQUIRED_MESSAGE = 'Enter the best number to call so we can reach you directly.';
 const PHONE_TOO_LONG_MESSAGE = 'That is longer than 32 characters. Check it for a paste that went wrong.';
 const PHONE_CHARACTERS_MESSAGE = 'A phone number can only contain digits, spaces, and + ( ) - . Remove any letters or other characters.';
@@ -193,55 +123,6 @@ const ALLOWED_FIELDS = [
 ];
 
 /* ---------------------------------------------------------------------------
- * Response helpers
- * ------------------------------------------------------------------------ */
-
-/**
- * Emits a JSON response without ending the script, so the caller can hand the
- * response to the browser and keep working. No submitted value is ever placed
- * in the body, so there is nothing for a caller to reflect back into a page.
- */
-function sendJson(int $status, array $body): void
-{
-    http_response_code($status);
-    header('Cache-Control: no-store');
-    header('X-Content-Type-Options: nosniff');
-
-    // 204 means "no content", so it must not carry one. Sending a body with it
-    // makes some clients treat the response as malformed.
-    if ($status === 204) {
-        return;
-    }
-
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($body, JSON_UNESCAPED_SLASHES);
-}
-
-/** Ends the request with JSON. */
-function respond(int $status, array $body): never
-{
-    sendJson($status, $body);
-    exit;
-}
-
-/**
- * Operational logging only. Never the submission body — an address and a
- * reason are enough to diagnose a problem and are not a copy of someone's
- * personal data sitting in a log file.
- */
-function logLine(string $storageDir, string $message): void
-{
-    if (!is_dir($storageDir)) {
-        return;
-    }
-    @file_put_contents(
-        $storageDir . '/enquiry.log',
-        sprintf("%s  %s\n", gmdate('c'), $message),
-        FILE_APPEND | LOCK_EX
-    );
-}
-
-/* ---------------------------------------------------------------------------
  * Outbox retry (cron).
  *
  * `php enquiry.php retry` re-attempts deliveries a web request could not finish.
@@ -251,162 +132,30 @@ function logLine(string $storageDir, string $message): void
  * the CLI binary (DEPLOY.md, "Delivery retry cron").
  * ------------------------------------------------------------------------ */
 
+
 if (PHP_SAPI === 'cli' && ($_SERVER['argv'][1] ?? '') === 'retry') {
-    exit(runRetrySweep($STORAGE_DIR, $RECIPIENTS, $SMTP, $MAIL_FROM));
+    exit(runRetrySweep($STORAGE_DIR, $RECIPIENTS, 2, $SMTP, $MAIL_FROM, enquiryRetryLoader($STORAGE_DIR)));
 }
 
 /* ---------------------------------------------------------------------------
- * Gate 1 — origin.
+ * Gates, in this order: origin (with CORS and the OPTIONS preflight), method,
+ * rate limit, unknown fields, honeypot. Each one answers and ends the request
+ * when it refuses; see lib/handler-core.php for the reasoning behind each.
  *
- * Checked before the method, because a cross-origin browser request may arrive
- * as an OPTIONS preflight that must be answered rather than refused.
- *
- * A static export cannot issue a per-session CSRF token, because there is no
- * server to issue one at page render. Checking that the request came from our
- * own origin is the strongest control available here, and it is checked
- * strictly: a missing Origin AND a missing Referer is a rejection, not a pass.
+ * `referralSource` is the honeypot: rendered visually hidden, so only a bot
+ * fills it in.
  * ------------------------------------------------------------------------ */
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$referer = $_SERVER['HTTP_REFERER'] ?? '';
-$sourceHost = '';
-
-if ($origin !== '') {
-    $sourceHost = (string) parse_url($origin, PHP_URL_HOST);
-} elseif ($referer !== '') {
-    $sourceHost = (string) parse_url($referer, PHP_URL_HOST);
-}
-
-$originAllowed = $sourceHost !== ''
-    && in_array(strtolower($sourceHost), array_map('strtolower', $ALLOWED_HOSTS), true);
-
-/**
- * Cross-origin support, for the split deployment where the pages are served
- * from one host and this handler from another.
- *
- * The allow-list is reused rather than duplicated, and the header echoes the
- * one origin that passed it. A wildcard is never sent: this endpoint receives
- * names, work addresses and business detail, and `*` would let any site on the
- * internet post to it from a visitor's browser.
- *
- * `Vary: Origin` is not optional. Without it a shared cache can serve one
- * origin's allow header to a different origin.
- */
-if ($origin !== '' && $originAllowed) {
-    header('Access-Control-Allow-Origin: ' . $origin);
-    header('Vary: Origin');
-}
-
-/**
- * Preflight. The form posts FormData with only safelisted headers, so most
- * browsers treat it as a simple request and never send OPTIONS. This is here
- * so that adding a custom header later does not silently break submissions
- * from the browser while continuing to work from curl.
- */
-if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
-    if (!$originAllowed) {
-        respond(403, ['ok' => false, 'error' => 'forbidden_origin']);
-    }
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Accept, Content-Type');
-    header('Access-Control-Max-Age: 600');
-    respond(204, []);
-}
-
-if (!$originAllowed) {
-    respond(403, ['ok' => false, 'error' => 'forbidden_origin']);
-}
-
-/* ---------------------------------------------------------------------------
- * Gate 2 — method. Fail closed: anything that is not POST is refused.
- * ------------------------------------------------------------------------ */
-
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-    header('Allow: POST, OPTIONS');
-    respond(405, ['ok' => false, 'error' => 'method_not_allowed']);
-}
-
-/* ---------------------------------------------------------------------------
- * Gate 3 — rate limit, per IP.
- * ------------------------------------------------------------------------ */
-
-if (!is_dir($STORAGE_DIR)) {
-    @mkdir($STORAGE_DIR, 0750, true);
-}
-
-$clientIp = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-$rateFile = $STORAGE_DIR . '/rate-' . hash('sha256', $clientIp) . '.json';
-
-$now = time();
-$hits = [];
-if (is_readable($rateFile)) {
-    $decoded = json_decode((string) @file_get_contents($rateFile), true);
-    if (is_array($decoded)) {
-        $hits = array_values(array_filter(
-            $decoded,
-            static fn($t): bool => is_int($t) && ($now - $t) < RATE_LIMIT_WINDOW_SECONDS
-        ));
-    }
-}
-
-if (count($hits) >= $RATE_LIMIT_MAX) {
-    logLine($STORAGE_DIR, 'rate_limited');
-    header('Retry-After: ' . RATE_LIMIT_WINDOW_SECONDS);
-    respond(429, ['ok' => false, 'error' => 'rate_limited']);
-}
-
-/* ---------------------------------------------------------------------------
- * Gate 4 — unknown fields.
- *
- * Rejected rather than ignored (SPEC.md §6). Silently dropping an unexpected
- * field hides both a client bug and a probe.
- * ------------------------------------------------------------------------ */
-
-foreach (array_keys($_POST) as $key) {
-    if (!in_array($key, ALLOWED_FIELDS, true)) {
-        respond(422, ['ok' => false, 'error' => 'unknown_field']);
-    }
-}
-
-/* ---------------------------------------------------------------------------
- * Gate 5 — honeypot.
- *
- * `referralSource` is rendered visually hidden with tabindex="-1" and
- * autocomplete="off". A person never fills it in. A bot filling every input
- * always does. Answered with 200 on purpose: a bot that is told it failed
- * learns something, a bot that is thanked does not.
- * ------------------------------------------------------------------------ */
-
-if (trim((string) ($_POST['referralSource'] ?? '')) !== '') {
-    logLine($STORAGE_DIR, 'honeypot_tripped');
-    respond(200, ['ok' => true]);
-}
+gateOrigin($ALLOWED_HOSTS);
+gateMethod();
+$rate = gateRateLimit($STORAGE_DIR, $RATE_LIMIT_MAX);
+$clientIp = clientIp();
+gateUnknownFields(ALLOWED_FIELDS);
+gateHoneypot($STORAGE_DIR, 'referralSource');
 
 /* ---------------------------------------------------------------------------
  * Validation
  * ------------------------------------------------------------------------ */
-
-/** Reads a scalar field as a trimmed string, whatever the browser sent. */
-function field(string $name): string
-{
-    $raw = $_POST[$name] ?? '';
-    return is_string($raw) ? trim($raw) : '';
-}
-
-/** Names are checked for characters that cannot belong in one, not against a
- *  whitelist of letters — a whitelist rejects Garcia-Lopez and O'Brien too. */
-function nameIsValid(string $value): bool
-{
-    if ($value === '' || mb_strlen($value) > 120) {
-        return false;
-    }
-    foreach (str_split(FORBIDDEN_NAME_CHARACTERS) as $character) {
-        if (str_contains($value, $character)) {
-            return false;
-        }
-    }
-    return true;
-}
 
 /** Returns the same field message as the zod schema, or null when valid. */
 function phoneValidationMessage(string $value): ?string
@@ -496,30 +245,13 @@ if ($errors !== []) {
  * can resume from the durable CSV row and per-recipient delivery checkpoints.
  * ------------------------------------------------------------------------ */
 
-/**
- * The browser generates an idempotency key once per intent to send, and keeps
- * it across retries. When it is present it is authoritative, because it
- * survives the case a content hash cannot: a visitor who edits one word and
- * resends after a timeout is retrying the same intent, not filing a new lead.
- *
- * Length- and charset-constrained before use, because it becomes part of a
- * filename. Anything unexpected falls back to the content hash rather than
- * being trusted.
- */
-$clientKey = field('idempotencyKey');
-$useClientKey = $clientKey !== ''
-    && strlen($clientKey) <= 64
-    && preg_match('/^[A-Za-z0-9._-]+$/', $clientKey) === 1;
-
-$submissionKey = $useClientKey
-    ? hash('sha256', 'client:' . $clientKey)
-    : hash('sha256', implode("\x1f", [
-        strtolower($businessEmail),
-        $individualName,
-        $entityName,
-        $bestNumberToCall,
-        $comments,
-    ]));
+$submissionKey = clientSubmissionKey() ?? hash('sha256', implode("\x1f", [
+    strtolower($businessEmail),
+    $individualName,
+    $entityName,
+    $bestNumberToCall,
+    $comments,
+]));
 
 /* ---------------------------------------------------------------------------
  * Durable row and delivery state.
@@ -528,15 +260,6 @@ $submissionKey = $useClientKey
  * submission_key makes retries idempotent; the state file stores only hashes
  * and SMTP-250 checkpoints, never submission fields or recipient addresses.
  * ------------------------------------------------------------------------ */
-
-/** Releases the per-submission lock before any response path exits. */
-function releaseSubmissionLock($handle): void
-{
-    if (is_resource($handle)) {
-        @flock($handle, LOCK_UN);
-        fclose($handle);
-    }
-}
 
 $submissionLockPath = $STORAGE_DIR . '/submission-' . $submissionKey . '.lock';
 $submissionLock = @fopen($submissionLockPath, 'c');
@@ -548,139 +271,6 @@ if ($submissionLock === false || !flock($submissionLock, LOCK_EX)) {
 
 $csvPath = $STORAGE_DIR . '/enquiries.csv';
 $deliveryStatePath = $STORAGE_DIR . '/delivery-' . $submissionKey . '.json';
-
-/** Writes bytes to a same-directory temporary file, then atomically replaces the target. */
-function atomicWriteFile(string $path, string $contents): bool
-{
-    $temporaryPath = $path . '.' . bin2hex(random_bytes(8)) . '.tmp';
-    $handle = @fopen($temporaryPath, 'xb');
-    if ($handle === false) {
-        return false;
-    }
-    @chmod($temporaryPath, 0600);
-
-    $offset = 0;
-    $length = strlen($contents);
-    $ok = true;
-    while ($offset < $length) {
-        $written = @fwrite($handle, substr($contents, $offset));
-        if ($written === false || $written === 0) {
-            $ok = false;
-            break;
-        }
-        $offset += $written;
-    }
-    if ($ok) {
-        $ok = @fflush($handle);
-        if ($ok && function_exists('fsync')) {
-            $ok = @fsync($handle);
-        }
-    }
-    fclose($handle);
-
-    if (!$ok || !@rename($temporaryPath, $path)) {
-        @unlink($temporaryPath);
-        return false;
-    }
-    return true;
-}
-
-/** True when the file has the schema this handler writes. */
-function csvHeaderMatches(string $path, array $expectedHeader): bool
-{
-    if (!file_exists($path) || @filesize($path) === 0) {
-        return true;
-    }
-    $handle = @fopen($path, 'r');
-    if ($handle === false) {
-        return false;
-    }
-    $firstLine = fgetcsv($handle);
-    fclose($handle);
-    return is_array($firstLine) && $firstLine === $expectedHeader;
-}
-
-/** Preserves an old-schema CSV instead of silently mixing rows with different columns. */
-function rotateStaleCsv(string $path, string $storageDir): bool
-{
-    $modifiedAt = @filemtime($path);
-    $stamp = gmdate('Y-m-d\THis\Z', $modifiedAt !== false ? $modifiedAt : time());
-    $archivePath = $storageDir . '/enquiries-' . $stamp . '.csv';
-    $suffix = 2;
-    while (file_exists($archivePath)) {
-        $archivePath = $storageDir . '/enquiries-' . $stamp . '-' . $suffix . '.csv';
-        $suffix++;
-    }
-    return @rename($path, $archivePath);
-}
-
-/** Flushes a CSV file, syncing file contents when the PHP runtime supports it. */
-function syncFile($handle): bool
-{
-    return @fflush($handle) && (!function_exists('fsync') || @fsync($handle));
-}
-
-/**
- * Ensures one row exists for this submission key and returns the persisted row.
- * Caller holds enquiries.csv.lock. Rewriting through a temporary file means a
- * process death cannot leave a partially appended lead that a retry duplicates.
- */
-function persistCsvRow(string $path, string $storageDir, array $header, array $newRow, string $submissionKey): array
-{
-    if (!csvHeaderMatches($path, $header) && !rotateStaleCsv($path, $storageDir)) {
-        return ['ok' => false, 'row' => null];
-    }
-
-    $rows = [];
-    if (file_exists($path) && @filesize($path) > 0) {
-        $input = @fopen($path, 'r');
-        if ($input === false || fgetcsv($input) !== $header) {
-            if ($input !== false) {
-                fclose($input);
-            }
-            return ['ok' => false, 'row' => null];
-        }
-        while (($existingRow = fgetcsv($input)) !== false) {
-            if (count($existingRow) !== count($header)) {
-                fclose($input);
-                return ['ok' => false, 'row' => null];
-            }
-            if (($existingRow[7] ?? null) === $submissionKey) {
-                fclose($input);
-                return ['ok' => true, 'row' => $existingRow];
-            }
-            $rows[] = $existingRow;
-        }
-        fclose($input);
-    }
-
-    $temporaryPath = $path . '.' . bin2hex(random_bytes(8)) . '.tmp';
-    $output = @fopen($temporaryPath, 'xb');
-    if ($output === false) {
-        return ['ok' => false, 'row' => null];
-    }
-    @chmod($temporaryPath, 0600);
-    $ok = fputcsv($output, $header) !== false;
-    foreach ($rows as $existingRow) {
-        if (!$ok || fputcsv($output, $existingRow) === false) {
-            $ok = false;
-            break;
-        }
-    }
-    if ($ok && fputcsv($output, $newRow) === false) {
-        $ok = false;
-    }
-    if ($ok) {
-        $ok = syncFile($output);
-    }
-    fclose($output);
-
-    if (!$ok || !@rename($temporaryPath, $path)) {
-        @unlink($temporaryPath);
-        return ['ok' => false, 'row' => null];
-    }
-    return ['ok' => true, 'row' => $newRow];
-}
 
 /** Stable hash of the fields whose exact contents will be sent to recipients. */
 function enquiryPayloadHash(array $values): string
@@ -705,7 +295,7 @@ if ($csvLock !== false && flock($csvLock, LOCK_EX)) {
         substr(hash('sha256', $clientIp), 0, 16),
         $submissionKey,
     ];
-    $csvResult = persistCsvRow($csvPath, $STORAGE_DIR, CSV_HEADER, $row, $submissionKey);
+    $csvResult = persistCsvRow($csvPath, $STORAGE_DIR, CSV_HEADER, $row, $submissionKey, 7);
     $csvWritten = $csvResult['ok'];
     $persistedRow = $csvResult['row'];
     flock($csvLock, LOCK_UN);
@@ -794,126 +384,6 @@ if ($deliveryState === null) {
     $deliveryState = $checked['state'];
 }
 
-/* ---------------------------------------------------------------------------
- * Delivery state.
- *
- * One JSON file per submission, written only by code holding that submission's
- * lock. `version` stays 1: readers ignore keys they do not know, so files
- * written before the retry fields existed still load, with attempts read as 0.
- *
- *   accepted         recipient ids the server has acknowledged with a 250
- *   attempts         delivery attempts made, the web request being the first
- *   last_attempt_at  unix time of the latest attempt, for retry backoff
- *   terminal         absent, or 'abandoned' once attempts ran out
- * ------------------------------------------------------------------------ */
-
-/** Writes the delivery state atomically, so a crash never leaves half a file. */
-function writeDeliveryState(string $path, array $state): bool
-{
-    $json = json_encode($state, JSON_UNESCAPED_SLASHES);
-    return is_string($json) && atomicWriteFile($path, $json);
-}
-
-/**
- * At least two recipients, so no lead depends on a single mailbox. Returns the
- * header-safe list, or null when the configuration cannot be trusted.
- */
-function validateRecipients(array $recipients): ?array
-{
-    $validated = array_map('headerSafe', $recipients);
-    if (
-        count($validated) < 2
-        || count(array_unique(array_map('strtolower', $validated))) !== count($validated)
-        || in_array('', $validated, true)
-    ) {
-        return null;
-    }
-    foreach ($validated as $recipient) {
-        if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
-            return null;
-        }
-    }
-    return $validated;
-}
-
-/**
- * Recipients are identified in state by a hash of the address, so the state file
- * holds no address. Ids stay parallel to the recipient list.
- */
-function recipientIds(array $recipients): array
-{
-    return array_map(
-        static fn(string $recipient): string => hash('sha256', strtolower($recipient)),
-        $recipients
-    );
-}
-
-/** How many of the required recipients the server has acknowledged. */
-function acceptedCount(array $state, array $requiredIds): int
-{
-    return count(array_intersect($requiredIds, $state['accepted']));
-}
-
-/**
- * Validates a loaded state file against this payload and the configured
- * recipients. Returns the normalised state, or a problem: 'invalid' for a file
- * that cannot be trusted, 'recipients_changed' when the configured recipients no
- * longer match the ones the state was created for.
- *
- * @return array{problem: ?string, state: ?array}
- */
-function checkDeliveryState(array $state, string $payloadHash, array $requiredIds): array
-{
-    $invalid = ['problem' => 'invalid', 'state' => null];
-    $storedRequired = $state['required'] ?? null;
-    $storedAccepted = $state['accepted'] ?? null;
-
-    if (
-        ($state['version'] ?? null) !== 1
-        || !is_string($state['payload_hash'] ?? null)
-        || !hash_equals($payloadHash, $state['payload_hash'])
-        || !is_array($storedRequired)
-        || count($storedRequired) !== count($requiredIds)
-        || !is_array($storedAccepted)
-    ) {
-        return $invalid;
-    }
-    // Absent is fine (older files); present must be exactly what this handler
-    // writes, so an unrecognised value fails closed rather than passing.
-    foreach (['attempts', 'last_attempt_at'] as $counter) {
-        if (array_key_exists($counter, $state) && (!is_int($state[$counter]) || $state[$counter] < 0)) {
-            return $invalid;
-        }
-    }
-    if (array_key_exists('terminal', $state) && $state['terminal'] !== 'abandoned') {
-        return $invalid;
-    }
-    foreach ($storedRequired as $requiredId) {
-        if (!is_string($requiredId) || preg_match('/^[a-f0-9]{64}$/', $requiredId) !== 1) {
-            return $invalid;
-        }
-    }
-    $storedRequired = array_values($storedRequired);
-    $sortedRequired = $requiredIds;
-    sort($storedRequired, SORT_STRING);
-    sort($sortedRequired, SORT_STRING);
-    if ($storedRequired !== $sortedRequired) {
-        return ['problem' => 'recipients_changed', 'state' => null];
-    }
-    foreach ($storedAccepted as $acceptedId) {
-        if (
-            !is_string($acceptedId)
-            || preg_match('/^[a-f0-9]{64}$/', $acceptedId) !== 1
-            || !in_array($acceptedId, $requiredIds, true)
-        ) {
-            return $invalid;
-        }
-    }
-
-    $state['required'] = $requiredIds;
-    $state['accepted'] = array_values(array_unique($storedAccepted));
-    return ['problem' => null, 'state' => $state];
-}
 
 /* ---------------------------------------------------------------------------
  * Mail.
@@ -922,36 +392,6 @@ function checkDeliveryState(array $state, string $payloadHash, array $requiredId
  * values are re-checked for CR and LF even so, because a header injection is
  * the one mistake in this file that would matter beyond this site.
  * ------------------------------------------------------------------------ */
-
-/** Strips anything that could break out of a header value. */
-function headerSafe(string $value): string
-{
-    return trim(str_replace(["\r", "\n", "\0"], '', $value));
-}
-
-/** Escapes for HTML output. */
-function e(string $value): string
-{
-    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
-
-/** One label/value row. Empty values render as a muted placeholder. */
-function row(string $label, string $value, bool $isLink = false): string
-{
-    $shown = $value !== ''
-        ? ($isLink
-            ? '<a href="' . e($value) . '" style="color:#0F1B33;text-decoration:underline;">' . e($value) . '</a>'
-            : e($value))
-        : '<span style="color:#9aa3b2;">Not provided</span>';
-
-    return '<tr>'
-        . '<td style="padding:11px 0;border-bottom:1px solid #e9ecf1;font:600 12px/16px Arial,Helvetica,sans-serif;'
-        . 'color:#6b7484;text-transform:uppercase;letter-spacing:.05em;width:150px;vertical-align:top;">'
-        . e($label) . '</td>'
-        . '<td style="padding:11px 0;border-bottom:1px solid #e9ecf1;font:400 15px/22px Arial,Helvetica,sans-serif;'
-        . 'color:#111827;vertical-align:top;">' . $shown . '</td>'
-        . '</tr>';
-}
 
 /**
  * Builds the subject, MIME body and headers for one enquiry.
@@ -1142,472 +582,25 @@ function buildEnquiryMessage(array $values, string $submittedAt, bool $csvWritte
 }
 
 /**
- * The three-digit SMTP reply code, or 'none' when the server said nothing
- * (connection dropped or timed out), which is itself a diagnosis.
+ * The enquiry-specific half of a cron retry: finds the persisted row and says how
+ * to rebuild its message. Everything else about a retry is shared.
+ *
+ * @return callable(string): ?array{payload_hash: string, build: callable(string): array}
  */
-function smtpReplyCode(string $reply): string
+function enquiryRetryLoader(string $storageDir): callable
 {
-    return preg_match('/^(\d{3})[ -]/', $reply, $match) === 1 ? $match[1] : 'none';
-}
-
-/** The RFC 3463 enhanced status (x.y.z) from a reply, or 'none' when absent. */
-function smtpEnhancedCode(string $reply): string
-{
-    // A multiline reply repeats the enhanced code on every line; the last is the verdict.
-    return preg_match_all('/^\d{3}[ -](\d\.\d{1,3}\.\d{1,3})(?=\s|$)/m', $reply, $matches) > 0
-        ? end($matches[1])
-        : 'none';
-}
-
-/**
- * Logs where an SMTP conversation failed. Stage and codes only: the reply text
- * can quote the recipient or the account, so it is never written to the log.
- */
-function logSmtpFailure(string $storageDir, string $stage, string $reply, ?int $errno = null): void
-{
-    logLine($storageDir, sprintf(
-        'smtp_failed stage=%s code=%s enhanced=%s%s',
-        $stage,
-        smtpReplyCode($reply),
-        smtpEnhancedCode($reply),
-        $errno === null ? '' : ' errno=' . $errno
-    ));
-}
-
-/**
- * Minimal SMTP submission over STARTTLS with AUTH LOGIN.
- *
- * Deliberately dependency-free: the site ships no Composer vendor tree, and
- * pulling one in for a single send would be a new supply chain on the client's
- * host.
- *
- * One session serves every pending recipient. Connecting, STARTTLS and AUTH
- * cost several round trips each, so paying them once per recipient is what made
- * a submission take over ten seconds. Each recipient still gets its own message
- * and its own transaction, so a rejected address cannot block another.
- *
- * $onAccepted runs immediately after the server's 250 to the final dot, with
- * the recipient id, so the checkpoint is durable before the next recipient is
- * attempted. It returns false to stop the session (checkpoint could not be
- * written). A recipient counts as delivered only through that callback, never
- * from a partial conversation.
- *
- * @param array<string,string> $pending recipient id => address
- */
-function smtpDeliver(
-    array $smtp,
-    string $storageDir,
-    string $from,
-    array $pending,
-    string $subject,
-    string $body,
-    string $headers,
-    callable $onAccepted
-): void {
-    if ($smtp['host'] === '' || $smtp['user'] === '' || $smtp['pass'] === '' || $from === '' || $pending === []) {
-        logLine($storageDir, 'smtp_config_incomplete');
-        return;
-    }
-
-    // Verification is never relaxed. A cafile only swaps which roots are trusted.
-    $context = $smtp['cafile'] === ''
-        ? null
-        : stream_context_create(['ssl' => [
-            'cafile' => $smtp['cafile'],
-            'peer_name' => $smtp['host'],
-            'verify_peer' => true,
-            'verify_peer_name' => true,
-        ]]);
-
-    $socket = @stream_socket_client(
-        sprintf('tcp://%s:%d', $smtp['host'], $smtp['port']),
-        $errno,
-        $errstr,
-        20,
-        STREAM_CLIENT_CONNECT,
-        $context
-    );
-    if ($socket === false) {
-        logSmtpFailure($storageDir, 'connect', '', $errno);
-        return;
-    }
-    stream_set_timeout($socket, 20);
-
-    /** Reads a full multiline reply. A line matching "NNN " ends it; "NNN-" continues. */
-    $read = static function () use ($socket): string {
-        $out = '';
-        while (($line = fgets($socket, 1024)) !== false) {
-            $out .= $line;
-            if (preg_match('/^\d{3} /', $line) === 1) {
-                break;
-            }
+    return static function (string $submissionKey) use ($storageDir): ?array {
+        $row = findCsvRow($storageDir . '/enquiries.csv', CSV_HEADER, 7, $submissionKey);
+        if ($row === null) {
+            logLine($storageDir, 'retry_row_missing');
+            return null;
         }
-        return $out;
+        $values = [(string) $row[1], (string) $row[2], (string) $row[3], (string) $row[4], (string) $row[5]];
+        return [
+            'payload_hash' => enquiryPayloadHash($values),
+            'build' => static fn(string $from): array => buildEnquiryMessage($values, (string) $row[0], true, $from),
+        ];
     };
-    $write = static function (string $line) use ($socket): void {
-        @fwrite($socket, $line . "\r\n");
-    };
-
-    // No reply at all means the connection is gone; there is nothing to RSET.
-    $connectionLost = false;
-    $step = static function (string $stage, string $code) use ($read, $storageDir, &$connectionLost): bool {
-        $reply = $read();
-        if (str_starts_with(trim($reply), $code)) {
-            return true;
-        }
-        logSmtpFailure($storageDir, $stage, $reply);
-        $connectionLost = smtpReplyCode($reply) === 'none';
-        return false;
-    };
-
-    $ready = $step('greeting', '220');
-    if ($ready) {
-        $write('EHLO ascend-rev.ca');
-        $ready = $step('ehlo', '250');
-    }
-    if ($ready) {
-        $write('STARTTLS');
-        $ready = $step('starttls', '220');
-    }
-    if ($ready && !@stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
-        logSmtpFailure($storageDir, 'tls', '');
-        $ready = false;
-    }
-    if ($ready) {
-        // EHLO again: the capability list before and after TLS are different
-        // sessions as far as the server is concerned.
-        $write('EHLO ascend-rev.ca');
-        $ready = $step('ehlo_tls', '250');
-    }
-    if ($ready) {
-        $write('AUTH LOGIN');
-        $ready = $step('auth', '334');
-    }
-    if ($ready) {
-        $write(base64_encode($smtp['user']));
-        $ready = $step('auth', '334');
-    }
-    if ($ready) {
-        $write(base64_encode($smtp['pass']));
-        $ready = $step('auth', '235');
-    }
-
-    if ($ready) {
-        // Normalise to CRLF exactly once. The body may already be CRLF
-        // (MIME) or LF (plain text); collapsing first makes both safe.
-        $normalised = preg_replace("/\r\n?|\n/", "\n", $body) ?? $body;
-        // Dot-stuffing: a line of a single "." would end the message early.
-        $payload = preg_replace('/^\./m', '..', $normalised) ?? $normalised;
-        $payload = str_replace("\n", "\r\n", $payload);
-
-        foreach ($pending as $recipientId => $recipient) {
-            $write('MAIL FROM:<' . $from . '>');
-            $sent = $step('mail_from', '250');
-            if ($sent) {
-                $write('RCPT TO:<' . $recipient . '>');
-                $sent = $step('rcpt', '250');
-            }
-            if ($sent) {
-                $write('DATA');
-                $sent = $step('data', '354');
-            }
-            if ($sent) {
-                $write(
-                    $headers . "\r\n"
-                    . 'To: ' . $recipient . "\r\n"
-                    . 'Subject: ' . $subject . "\r\n"
-                    . 'Date: ' . gmdate('r') . "\r\n"
-                    . "\r\n"
-                    . $payload . "\r\n."
-                );
-                $sent = $step('body', '250');
-            }
-
-            if ($sent) {
-                if (!$onAccepted((string) $recipientId)) {
-                    break;
-                }
-                continue;
-            }
-            if ($connectionLost) {
-                break;
-            }
-            // Abandon the failed transaction so the next recipient starts clean.
-            $write('RSET');
-            if (!$step('rset', '250')) {
-                break;
-            }
-        }
-    }
-
-    $write('QUIT');
-    fclose($socket);
-}
-
-/**
- * One delivery attempt for every recipient not yet acknowledged, over a single
- * SMTP session. Returns true when every required recipient is acknowledged and
- * checkpointed. Caller holds the submission lock.
- *
- * @param array<string,string> $recipientsById recipient id => address
- * @param array{0:string,1:string,2:string,3:string,4:string} $values persisted CSV values
- * @param 'background'|'sync'|'retry' $mode where the attempt ran, for the log
- */
-function runDeliveryAttempt(
-    array $smtp,
-    string $storageDir,
-    string $statePath,
-    array $state,
-    array $recipientsById,
-    array $values,
-    string $submittedAt,
-    string $from,
-    string $mode
-): bool {
-    $started = microtime(true);
-    $requiredIds = array_keys($recipientsById);
-
-    // Counted and stored before sending, so an attempt that dies mid-session
-    // still spends its share of the budget and cannot be retried forever.
-    $state['attempts'] = (int) ($state['attempts'] ?? 0) + 1;
-    $state['last_attempt_at'] = time();
-    if (!writeDeliveryState($statePath, $state)) {
-        logLine($storageDir, 'delivery_state_write_failed');
-        return false;
-    }
-
-    $pending = array_diff_key($recipientsById, array_flip($state['accepted']));
-    $checkpointFailed = false;
-
-    // SMTP and local state cannot commit atomically: a crash after remote 250 but
-    // before this checkpoint can make a retry send that recipient again.
-    if ($pending !== [] && filter_var($from, FILTER_VALIDATE_EMAIL)) {
-        $message = buildEnquiryMessage($values, $submittedAt, true, $from);
-        smtpDeliver(
-            $smtp,
-            $storageDir,
-            $from,
-            $pending,
-            $message['subject'],
-            $message['mime'],
-            $message['headers'],
-            static function (string $recipientId) use (&$state, $statePath, &$checkpointFailed): bool {
-                $state['accepted'][] = $recipientId;
-                $state['accepted'] = array_values(array_unique($state['accepted']));
-                if (!writeDeliveryState($statePath, $state)) {
-                    $checkpointFailed = true;
-                    return false;
-                }
-                return true;
-            }
-        );
-    }
-
-    $accepted = acceptedCount($state, $requiredIds);
-    $complete = !$checkpointFailed && $accepted === count($requiredIds);
-
-    logLine($storageDir, sprintf(
-        'delivery_attempt accepted=%d required=%d mode=%s ms=%d%s',
-        $accepted,
-        count($requiredIds),
-        $mode,
-        (int) round((microtime(true) - $started) * 1000),
-        $checkpointFailed ? ' checkpoint=failed' : ''
-    ));
-
-    if (!$complete && $state['attempts'] >= MAX_DELIVERY_ATTEMPTS) {
-        // The CSV row still holds the lead; this only stops the automatic retries.
-        $state['terminal'] = 'abandoned';
-        writeDeliveryState($statePath, $state);
-        logLine($storageDir, 'delivery_abandoned attempts=' . $state['attempts']);
-    }
-
-    return $complete;
-}
-
-/**
- * The function that hands a finished response to the web server and frees the
- * visitor's connection while PHP keeps running, or null where there is none
- * (php -S, CLI). LiteSpeed's LSAPI is the production case; FastCGI covers hosts
- * that run PHP-FPM instead.
- */
-function finishRequestFunction(): ?string
-{
-    foreach (['litespeed_finish_request', 'fastcgi_finish_request'] as $function) {
-        if (function_exists($function)) {
-            return $function;
-        }
-    }
-    return null;
-}
-
-/** Records one submission against this IP's hourly budget. */
-function recordRateHit(string $rateFile, array $hits, int $now): void
-{
-    $hits[] = $now;
-    @file_put_contents($rateFile, json_encode($hits), LOCK_EX);
-}
-
-/* ---------------------------------------------------------------------------
- * Outbox retry.
- *
- * The delivery-state files are the outbox: a submission with accepted recipients
- * short of the required set and no terminal marker is unfinished work. The sweep
- * claims each one with the same per-submission lock a web request holds, without
- * waiting, so it never contends with a request that is mid-delivery.
- * ------------------------------------------------------------------------ */
-
-/** Seconds to wait after the given number of attempts: 60s doubling, capped. */
-function retryBackoffSeconds(int $attempts): int
-{
-    return min(60 * (2 ** $attempts), RETRY_BACKOFF_CAP_SECONDS);
-}
-
-/** True when the state's accepted set already covers everything required. */
-function stateIsComplete(array $state): bool
-{
-    $required = $state['required'] ?? null;
-    $accepted = $state['accepted'] ?? null;
-    return is_array($required) && $required !== [] && is_array($accepted)
-        && array_diff($required, $accepted) === [];
-}
-
-/** The persisted CSV row for a submission key, or null when it cannot be read. */
-function findCsvRow(string $path, string $submissionKey): ?array
-{
-    $input = @fopen($path, 'r');
-    if ($input === false) {
-        return null;
-    }
-    $found = null;
-    if (fgetcsv($input) === CSV_HEADER) {
-        while (($row = fgetcsv($input)) !== false) {
-            if (count($row) === count(CSV_HEADER) && $row[7] === $submissionKey) {
-                $found = $row;
-                break;
-            }
-        }
-    }
-    fclose($input);
-    return $found;
-}
-
-/**
- * One submission's retry, run while its lock is held.
- *
- * @param array<string,string> $recipientsById
- * @return string 'attempted' or 'skipped'
- */
-function retryLocked(
-    string $storageDir,
-    string $submissionKey,
-    array $recipientsById,
-    array $smtp,
-    string $from,
-    ?int $minAgeOverride
-): string {
-    $statePath = $storageDir . '/delivery-' . $submissionKey . '.json';
-    $state = json_decode((string) @file_get_contents($statePath), true);
-    if (!is_array($state)) {
-        logLine($storageDir, 'delivery_state_invalid');
-        return 'skipped';
-    }
-    if (($state['terminal'] ?? null) === 'abandoned' || stateIsComplete($state)) {
-        return 'skipped';
-    }
-
-    // Cheap age check before the CSV is read, so a backlog of not-yet-due
-    // submissions costs a stat-sized read each rather than a CSV scan.
-    $minAge = $minAgeOverride ?? retryBackoffSeconds((int) ($state['attempts'] ?? 0));
-    if (time() - (int) ($state['last_attempt_at'] ?? 0) < $minAge) {
-        return 'skipped';
-    }
-
-    $row = findCsvRow($storageDir . '/enquiries.csv', $submissionKey);
-    if ($row === null) {
-        logLine($storageDir, 'retry_row_missing');
-        return 'skipped';
-    }
-    $values = [(string) $row[1], (string) $row[2], (string) $row[3], (string) $row[4], (string) $row[5]];
-    $payloadHash = enquiryPayloadHash($values);
-    if (!is_string($state['payload_hash'] ?? null) || !hash_equals($payloadHash, $state['payload_hash'])) {
-        logLine($storageDir, 'retry_payload_mismatch');
-        return 'skipped';
-    }
-
-    $checked = checkDeliveryState($state, $payloadHash, array_keys($recipientsById));
-    if ($checked['problem'] !== null) {
-        logLine($storageDir, $checked['problem'] === 'recipients_changed' ? 'recipient_set_changed' : 'delivery_state_invalid');
-        return 'skipped';
-    }
-
-    runDeliveryAttempt(
-        $smtp,
-        $storageDir,
-        $statePath,
-        $checked['state'],
-        $recipientsById,
-        $values,
-        (string) $row[0],
-        $from,
-        'retry'
-    );
-    return 'attempted';
-}
-
-/**
- * Sweeps the outbox once. Returns the process exit code: 0 when the sweep ran,
- * 1 when the configuration prevents any delivery.
- *
- * @param string[] $recipients raw configured recipients
- */
-function runRetrySweep(string $storageDir, array $recipients, array $smtp, string $mailFrom): int
-{
-    $validated = validateRecipients($recipients);
-    if ($validated === null || !is_dir($storageDir)) {
-        logLine($storageDir, 'retry_config_invalid');
-        echo "retry_sweep config_invalid\n";
-        return 1;
-    }
-    $recipientsById = array_combine(recipientIds($validated), $validated);
-    $from = headerSafe($mailFrom);
-
-    // Test hook: a fixed minimum age replaces the backoff schedule.
-    $override = config('ASCENDREV_RETRY_MIN_AGE_SECONDS');
-    $minAgeOverride = ctype_digit($override) ? (int) $override : null;
-
-    $counts = ['scanned' => 0, 'attempted' => 0, 'busy' => 0];
-    foreach (glob($storageDir . '/delivery-*.json') ?: [] as $statePath) {
-        if (preg_match('/delivery-([a-f0-9]{64})\.json$/', $statePath, $match) !== 1) {
-            continue;
-        }
-        $counts['scanned']++;
-
-        $lock = @fopen($storageDir . '/submission-' . $match[1] . '.lock', 'c');
-        if ($lock === false) {
-            continue;
-        }
-        // Non-blocking: a held lock means a web request is delivering right now.
-        if (!flock($lock, LOCK_EX | LOCK_NB)) {
-            fclose($lock);
-            $counts['busy']++;
-            logLine($storageDir, 'delivery_retry_skipped reason=busy');
-            continue;
-        }
-        $outcome = retryLocked($storageDir, $match[1], $recipientsById, $smtp, $from, $minAgeOverride);
-        releaseSubmissionLock($lock);
-        if ($outcome === 'attempted') {
-            $counts['attempted']++;
-        }
-    }
-
-    // A cron job that never runs looks identical to one with nothing to do. The
-    // heartbeat's modified time is the one thing in File Manager that tells
-    // them apart, without writing a log line every five minutes.
-    @file_put_contents($storageDir . '/retry-heartbeat', gmdate('c') . "\n", LOCK_EX);
-
-    echo sprintf("retry_sweep scanned=%d attempted=%d busy=%d\n", $counts['scanned'], $counts['attempted'], $counts['busy']);
-    return 0;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1629,8 +622,12 @@ $finishRequest = $alreadyDelivered ? null : finishRequestFunction();
 ignore_user_abort(true);
 set_time_limit(120);
 
+
+// Built lazily, only if a recipient is still pending, from the persisted row.
+$buildMessage = static fn(string $from): array => buildEnquiryMessage($persistedValues, $submittedAt, true, $from);
+
 if ($finishRequest !== null) {
-    recordRateHit($rateFile, $hits, $now);
+    recordRateHit($rate['file'], $rate['hits'], $rate['now']);
     sendJson(200, ['ok' => true, 'recorded' => true, 'mailed' => false, 'queued' => true]);
     $finishRequest();
 
@@ -1640,8 +637,7 @@ if ($finishRequest !== null) {
         $deliveryStatePath,
         $deliveryState,
         $recipientsById,
-        $persistedValues,
-        $submittedAt,
+        $buildMessage,
         $from,
         'background'
     );
@@ -1657,13 +653,12 @@ $mailDelivered = $alreadyDelivered || runDeliveryAttempt(
     $deliveryStatePath,
     $deliveryState,
     $recipientsById,
-    $persistedValues,
-    $submittedAt,
+    $buildMessage,
     $from,
     'sync'
 );
 
-recordRateHit($rateFile, $hits, $now);
+recordRateHit($rate['file'], $rate['hits'], $rate['now']);
 releaseSubmissionLock($submissionLock);
 
 if (!$mailDelivered) {

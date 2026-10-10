@@ -4,6 +4,7 @@
 # a later step deletes it.
 ascendrev-enquiry.config.php
 ascendrev-enquiries/
+ascendrev-applications/
 .env
 .env.*
 *.env

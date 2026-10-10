@@ -44,3 +44,8 @@ ascendrev-enquiry.config.php
 
 # Enquiry handler test certificate and key (generated locally, never committed).
 tests/enquiry/*.pem
+.gstack/
+
+# Job applications and resumes (personal data). Normally stored above the docroot;
+# ignored here in case storage is ever pointed inside the repo.
+ascendrev-applications/

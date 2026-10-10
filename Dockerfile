@@ -49,6 +49,17 @@ RUN mkdir -p /var/www/ascendrev-enquiries \
  && chown -R www-data:www-data /var/www/ascendrev-enquiries \
  && chmod 750 /var/www/ascendrev-enquiries
 
+# Careers applications and uploaded resumes: same arrangement, outside the
+# document root. Personal data, so owner-only like the enquiries directory.
+RUN mkdir -p /var/www/ascendrev-applications \
+ && chown -R www-data:www-data /var/www/ascendrev-applications \
+ && chmod 750 /var/www/ascendrev-applications
+
+# The resume upload is capped at 5 MB by the handler. PHP's own defaults are
+# 2M and 8M, which would refuse a legal file, so raise them to match cPanel's
+# public_html/api/.user.ini.
+RUN printf 'upload_max_filesize=8M\npost_max_size=10M\n' > /usr/local/etc/php/conf.d/zelarion-uploads.ini
+
 # Render assigns a port at runtime and expects the process to listen on it.
 # Apache's port is baked into its config at build time, so it is rewritten on
 # start rather than hardcoded.

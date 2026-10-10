@@ -23,6 +23,17 @@ It does not cover any text a visitor reads on the page. Headings, body copy,
 buttons, alt text and labels stay locked. Rio's displayed role ("Founder") and
 adding Ralph to the site are visible changes and still need Sir Rio's approval.
 
+## Careers section (requested by Sir Rio, 10 October 2026)
+
+Sir Rio asked by chat for a Careers section: open roles posted on the site, advertised on
+Facebook, applicants submit a resume and answer five screening questions, applications go
+to his mailbox. That request authorizes the new `/careers/` page, one page per open role, a
+CAREERS navigation item, and the application form. His five questions are used word for
+word. All other careers copy (role summaries, responsibilities, requirements, hiring steps,
+FAQ, consent text, 12-month retention) is a DRAFT built only from his message and from facts
+already on the site, and must be approved by Sir Rio in the preview before deployment.
+Existing pages are unchanged apart from the navigation item.
+
 ## Blocked pending confirmation
 
 - Other meeting-note action items without a matching direct request from Sir Rio.

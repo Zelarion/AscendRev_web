@@ -221,6 +221,88 @@ this command, replacing `ACCOUNT` with the cPanel account's home directory name:
 - `ASCENDREV_SMTP_CAFILE` and `ASCENDREV_RETRY_MIN_AGE_SECONDS` exist for the
   local test harness in `tests/enquiry/` only. Do not set them on the host.
 
+## Careers application handler
+
+`public/api/careers.php` takes job applications (a form plus a resume) and works
+like the enquiry handler: it saves the application first, answers the applicant
+with a reference such as `AR-3F9A1C`, then emails the recruiting mailbox in the
+background with the resume attached. It shares its code with the enquiry handler
+through `public/api/lib/handler-core.php`.
+
+**Upload the whole `api/` folder, including `api/lib/` and its hidden
+`.htaccess`.** `careers.php` and `enquiry.php` both stop working without
+`public_html/api/lib/handler-core.php`. `lib/.htaccess` (`Require all denied`)
+keeps the shared code from being served; turn on "Show Hidden Files" in File
+Manager to confirm it arrived. `public_html/api/.user.ini` (upload limits, see
+below) is hidden too.
+
+### Config keys
+
+Add to `ascendrev-enquiry.config.php`, one level above `public_html/`, next to the
+existing keys. Values are never written down in this repository.
+
+| Key | Purpose |
+|---|---|
+| `ASCENDREV_CAREERS_TO` | Required. The recruiting mailbox. One address is enough; several can be comma separated. Empty means applications are saved but not emailed, and the form answers 500 until it is set. |
+| `ASCENDREV_CAREERS_STORAGE` | Optional. Defaults to `ascendrev-applications/` above `public_html/`. |
+| `ASCENDREV_CAREERS_RATE_LIMIT_MAX` | Optional. Applications per IP per hour, default 5. Leave unset on cPanel. |
+| `ASCENDREV_CAREERS_RETENTION_DAYS` | Optional. Days before `purge` deletes an application and its resume, default 365. |
+
+SMTP settings, the sender (`ASCENDREV_ENQUIRY_FROM`) and `ASCENDREV_ALLOWED_HOSTS`
+are shared with the enquiry form and need no new keys. The applicant gets no
+automatic acknowledgment email: the reference on screen is the confirmation.
+
+### Where applications are kept
+
+`ascendrev-applications/` above `public_html/`, created by the handler with
+owner-only permissions:
+
+- `applications.csv`: one row per application (answers, no resume)
+- `resumes/<64 hex characters>.pdf` or `.docx`: the uploaded resume, named by the
+  submission key, never by anything the applicant typed
+- `careers.log`: codes and counts only, never names, addresses or file names
+- `delivery-*.json`, `submission-*.lock`, `rate-*.json`, `retry-heartbeat`: bookkeeping
+
+Resumes are PDF or DOCX up to 5 MB, checked by content, not by file name. Legacy
+`.doc` files are refused. This folder holds personal data: keep it out of the
+deployment zip and out of backups that leave the account.
+
+### Cron jobs
+
+Two jobs, using the same PHP 8.2 **CLI** binary as the enquiry retry job (see
+"Delivery retry cron" above for why php-cgi will not work). Replace `ACCOUNT`:
+
+```
+*/5 * * * * /usr/local/bin/php /home/ACCOUNT/public_html/api/careers.php retry >/dev/null 2>&1
+17 3 * * * /usr/local/bin/php /home/ACCOUNT/public_html/api/careers.php purge >/dev/null 2>&1
+```
+
+- `retry` finishes any email a web request could not send, with the same backoff
+  and 8-attempt limit as enquiries. Its heartbeat is
+  `ascendrev-applications/retry-heartbeat`; ten minutes after adding the job its
+  modified time should be recent.
+- `purge` deletes applications older than the retention period (the CSV row, the
+  resume and the delivery bookkeeping) for data-privacy retention. It prints only
+  counts, for example `purge removed_rows=2 removed_resumes=2 ...`. It never
+  prints a name. Run `php careers.php purge` by hand once after setting
+  `ASCENDREV_CAREERS_RETENTION_DAYS` to confirm it reports what you expect before
+  trusting the schedule.
+
+### Upload size check
+
+Many cPanel hosts default `upload_max_filesize` to 2M, which is below the 5 MB
+resume limit; a larger file would then fail with a 413 even though it is within
+the stated limit. `public_html/api/.user.ini` raises it to 8M (with
+`post_max_size` 10M) on hosts that read `.user.ini`. If a 4 MB file still fails,
+set the same two values in cPanel, **MultiPHP INI Editor**, for `ascend-rev.ca`.
+(Do not use `php_value` in `.htaccess`: on hosts that run PHP as CGI or LSAPI it
+returns a 500 for the whole site.)
+
+To verify, submit the live form with a real 4 MB PDF. It must be accepted and the
+email must arrive with the PDF attached. A 5 MB file is the largest accepted; a
+6 MB one must be refused with the "file too large" message. `.user.ini` changes
+can take a few minutes to take effect.
+
 ## Remaining static-site items
 
 - `public/logo.svg`. The header currently uses the client's supplied `new-logo.png`. The

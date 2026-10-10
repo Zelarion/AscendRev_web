@@ -27,6 +27,8 @@ stage 2   php:8.2-apache     out/ -> /var/www/html
                              mod_rewrite, headers, deflate, expires enabled
                              AllowOverride All so .htaccess is honoured
                              storage at /var/www/ascendrev-enquiries
+                             and /var/www/ascendrev-applications
+                             upload_max_filesize 8M, post_max_size 10M
 ```
 
 `out/` is byte-identical to what would be uploaded to cPanel. `AllowOverride`
@@ -58,6 +60,7 @@ file, so no credential is ever committed. Set these by hand under
 | Variable | Value |
 |---|---|
 | `ASCENDREV_ENQUIRY_TO` | A review mailbox, **not** the client's real addresses |
+| `ASCENDREV_CAREERS_TO` | A review mailbox for job applications (the careers form), **not** the real recruiting address |
 | `ASCENDREV_ENQUIRY_FROM` | The Gmail account used for SMTP, or a verified alias |
 | `ASCENDREV_ALLOWED_HOSTS` | Must include `ascendrev-preview.onrender.com` |
 | `ASCENDREV_SMTP_USER` | The Gmail address |
@@ -105,6 +108,14 @@ does not.
 so PHP sees the same source address for every request. The blueprint raises the
 limit to 100 for that reason. **Deployment to cPanel must not set this
 variable**, because there the default of 5 an hour is correct.
+
+**Careers resumes are ephemeral too.** The careers form saves applications and
+uploaded resumes under `/var/www/ascendrev-applications`, which is wiped on every
+deploy. The email to `ASCENDREV_CAREERS_TO` carries the resume as an attachment,
+so that copy is the record here. The image raises PHP's upload limits to 8M so a
+5 MB resume is accepted. There is no cron on this service, so the retention
+`purge` and the delivery `retry` jobs do not run; a failed first send is not
+retried on Render.
 
 **`mail()` cannot work in this image.** There is no local mail server, so SMTP
 is mandatory on Render. On cPanel it is the other way round: leave SMTP unset

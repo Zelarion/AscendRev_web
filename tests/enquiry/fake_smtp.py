@@ -14,7 +14,8 @@ connection, so a test can "fix the server" between attempts without a restart:
       "auth_reject": false,            # answer AUTH with 535 5.7.8
       "rcpt_reject": ["b@x.test"],     # answer RCPT for these with 550 5.1.1
       "drop_after": null,              # close the connection after N accepted messages
-      "greeting_delay": 0              # seconds to sleep before the 220 greeting
+      "greeting_delay": 0,             # seconds to sleep before the 220 greeting
+      "keep_data": false               # also store each message's full text under "data"
     }
 """
 
@@ -140,6 +141,8 @@ def serve(sock, args, ctx):
                 conn.send("354 Go ahead")
                 message = conn.read_data()
                 record = {"rcpt": rcpt, "subject": header_value(message, "Subject"), "to": header_value(message, "To"), "t": time.time()}
+                if control.get("keep_data"):
+                    record["data"] = message
                 update_state(args.state, lambda s: s["messages"].append(record))
                 delivered_here += 1
                 conn.send("250 2.0.0 OK queued")

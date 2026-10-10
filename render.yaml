@@ -38,6 +38,11 @@ services:
       - key: ASCENDREV_ENQUIRY_TO
         sync: false
 
+      # Where job applications go (the careers form). Review traffic, so NOT the
+      # real recruiting mailbox. One address is enough.
+      - key: ASCENDREV_CAREERS_TO
+        sync: false
+
       # With Gmail SMTP this must be the authenticated account or a verified
       # alias, or Gmail rewrites or rejects the envelope sender.
       - key: ASCENDREV_ENQUIRY_FROM
@@ -87,3 +92,8 @@ services:
       # and the CSV is a convenience. See RENDER.md.
       - key: ASCENDREV_ENQUIRY_STORAGE
         value: /var/www/ascendrev-enquiries
+
+      # Applications and uploaded resumes. Ephemeral on Render like the enquiries
+      # directory, so the emailed copy (with the resume attached) is the record.
+      - key: ASCENDREV_CAREERS_STORAGE
+        value: /var/www/ascendrev-applications

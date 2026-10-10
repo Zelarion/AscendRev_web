@@ -22,6 +22,8 @@ export const navItems: NavItem[] = [
   { label: 'CAPABILITIES', href: '/capabilities/' },
   { label: 'OUR DIFFERENCE', href: '/advantage/' },
   { label: 'OUR VALUES', href: '/values/' },
+  // Added 2026-10-11 at Rio Vidal's request: open roles, advertised on Facebook.
+  { label: 'CAREERS', href: '/careers/' },
   { label: 'CONTACT', href: '/contact/' },
 ];
 

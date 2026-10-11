@@ -11,6 +11,12 @@ const ROUTE_STABILITY_MS = 60;
 const BOOT_MAX_MS = 1200;
 const ROUTE_SHOW_DELAY_MS = 200;
 const ROUTE_MAX_MS = 1500;
+/**
+ * The longest the cover may stay up while a navigation has not arrived. The cover only lifts once
+ * the address changes, so a navigation that stalls (slow mobile data), is cancelled (Back pressed
+ * mid-load) or falls back to a full page load would otherwise leave it up for good.
+ */
+const ROUTE_STALL_MS = 4000;
 
 /**
  * Wait for the requested route's React commit, parsed HTML, loaded stylesheets,
@@ -110,6 +116,7 @@ export default function PageLoader(): JSX.Element | null {
   const queryPollTimer = useRef<number | null>(null);
   const leaveTimer = useRef<number | null>(null);
   const showTimer = useRef<number | null>(null);
+  const stallTimer = useRef<number | null>(null);
   const coverShown = useRef(false);
   const isBootTransition = useRef(true);
   const [phase, setPhase] = useState<LoaderPhase | null>('boot');
@@ -120,9 +127,11 @@ export default function PageLoader(): JSX.Element | null {
     if (queryPollTimer.current !== null) window.clearInterval(queryPollTimer.current);
     if (leaveTimer.current !== null) window.clearTimeout(leaveTimer.current);
     if (showTimer.current !== null) window.clearTimeout(showTimer.current);
+    if (stallTimer.current !== null) window.clearTimeout(stallTimer.current);
     queryPollTimer.current = null;
     leaveTimer.current = null;
     showTimer.current = null;
+    stallTimer.current = null;
   }, []);
 
   const finishTransition = useCallback((id: number) => {
@@ -130,6 +139,10 @@ export default function PageLoader(): JSX.Element | null {
     if (showTimer.current !== null) {
       window.clearTimeout(showTimer.current);
       showTimer.current = null;
+    }
+    if (stallTimer.current !== null) {
+      window.clearTimeout(stallTimer.current);
+      stallTimer.current = null;
     }
     leaveTimer.current = null;
     readinessWaitStartedFor.current = null;
@@ -168,8 +181,12 @@ export default function PageLoader(): JSX.Element | null {
       coverShown.current = true;
       setPhase('entering');
     }, ROUTE_SHOW_DELAY_MS);
+    stallTimer.current = window.setTimeout(() => {
+      stallTimer.current = null;
+      finishTransition(id);
+    }, ROUTE_STALL_MS);
     return id;
-  }, [clearPendingTimers]);
+  }, [clearPendingTimers, finishTransition]);
 
   const waitForCurrentPage = useCallback((id: number) => {
     if (readinessWaitStartedFor.current === id) return;
@@ -212,6 +229,26 @@ export default function PageLoader(): JSX.Element | null {
 
     return clearPendingTimers;
   }, [clearPendingTimers, waitForCurrentPage]);
+
+  // A page restored from the browser's back/forward cache comes back exactly as it was left,
+  // which can be mid-transition with the cover up and timers that will never fire. Start clean.
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      clearPendingTimers();
+      transitionId.current += 1;
+      targetPathname.current = null;
+      targetUrl.current = null;
+      readinessWaitStartedFor.current = null;
+      coverShown.current = false;
+      previousPathname.current = window.location.pathname;
+      delete document.documentElement.dataset.ascendrevLoader;
+      delete document.documentElement.dataset.ascendrevLoaderStartedAt;
+      setPhase(null);
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, [clearPendingTimers]);
 
   useEffect(() => {
     if (phase === 'leaving') {

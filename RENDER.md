@@ -85,7 +85,13 @@ GET  /contact/              200
 GET  /nonexistent/          404   proves .htaccess is being read
 GET  /api/enquiry.php       405   method gate
 POST /api/enquiry.php       403   when Origin is not allow-listed
+GET  /careers               302   to https://<service>.onrender.com/careers/, no :10000
+OPTIONS /api/careers.php    204   with Origin: https://<service>.onrender.com
 ```
+
+Re-run the last two after creating or renaming a service. A new hostname is
+not in `ASCENDREV_ALLOWED_HOSTS` until you add it, and both forms then return
+403 while every page looks fine.
 
 Then submit the form from the Render URL in a browser and confirm the email
 arrives. A 200 with `{"ok":true,"mailed":true}` is the proof.

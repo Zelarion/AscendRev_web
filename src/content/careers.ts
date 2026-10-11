@@ -36,7 +36,7 @@ export interface CareerRole {
   schemaEmploymentType: ('FULL_TIME' | 'PART_TIME' | 'CONTRACTOR' | 'TEMPORARY')[];
   /** ISO date the role was published. */
   datePosted: string;
-  /** The card's one-line description: the posting's own first sentence of About the Role. */
+  /** The card's one-line description: his opening line of About the Role, as edited on 11 Oct 2026. */
   summary: string;
   sections: RoleSection[];
   /** False hides the role everywhere without deleting its copy. */
@@ -69,17 +69,26 @@ export const careersPage = {
   postingsHeading: 'Ready to grow with us?',
 } as const;
 
+/**
+ * Rio's edits of 11 October 2026: the role is titled in the plural and his opening line is
+ * plural too. Both are defined once so the card, the posting page, the apply screen, the page
+ * title, the structured data and llms.txt cannot drift apart. The URL slug stays singular: it is
+ * a contract with public/api/careers.php.
+ */
+const outboundTitle = 'Outbound Sales Representatives';
+const outboundOpeningLine =
+  'We are looking for high-performing Outbound Sales Representatives who know how to create opportunities, build relationships and move prospects toward a sale.';
+
 export const careerRoles: CareerRole[] = [
   {
     slug: 'outbound-sales-representative',
-    title: 'Outbound Sales Representative',
+    title: outboundTitle,
     location: 'Onsite | Ayala Alabang Town Centre',
     employmentType: 'Contract | Full time',
     experience: '3+ years of Outbound B2B sales experience',
     schemaEmploymentType: ['FULL_TIME', 'CONTRACTOR'],
     datePosted: '2026-10-11',
-    summary:
-      'We are looking for a high-performing Outbound Sales Representative who knows how to create opportunities, build relationships and move prospects toward a sale.',
+    summary: outboundOpeningLine,
     sections: [
       {
         heading: 'About AscendRev',
@@ -92,7 +101,7 @@ export const careerRoles: CareerRole[] = [
       {
         heading: 'About the Role',
         paragraphs: [
-          'We are looking for a high-performing Outbound Sales Representative who knows how to create opportunities, build relationships and move prospects toward a sale.',
+          outboundOpeningLine,
           'This is a proactive, phone-based sales role focused on outbound prospecting, lead generation, customer engagement, customer sign up and consistent follow-up.',
           'The ideal candidate is customer-centric, highly motivated, comfortable making outbound calls and confident asking for the appointment and next step.',
         ],

@@ -44,6 +44,20 @@ a Data Privacy Act consent checkbox with 12-month retention, file-type and size 
 and the posted date (11 Oct 2026, the day the posting went up). Nothing else may be added
 to the careers pages without his approval.
 
+Rio's wording edits, 11 October 2026 (chat):
+
+- The role is titled **"Outbound Sales Representatives"** (plural), and his opening line is
+  "We are looking for high-performing Outbound Sales Representatives who know how to create
+  opportunities, build relationships and move prospects toward a sale." Applied everywhere the
+  title or that line appears: the job card, the posting page (heading, About the Role line, page
+  title), the apply screen, the structured data and `llms.txt`. By his mark-up of the card, the
+  card **title** is underlined and the sentence is not. The URL slug stays singular (contract with `api/careers.php`), and the
+  notification email to Rio still names the role in the singular because each email is one applicant.
+- The job card's apply control is the **briefcase icon** (top right, also on phones) with the word
+  "Apply" under it, instead of a button. Rio asked for it in chat after seeing the icon on desktop;
+  Ver confirmed it replaces the button and should be a small animated interaction, not a generic
+  button. It opens the apply screen directly. The posting page keeps his "Apply for this Job" button.
+
 ## Blocked pending confirmation
 
 - Other meeting-note action items without a matching direct request from Sir Rio.

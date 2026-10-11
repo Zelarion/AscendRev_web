@@ -94,18 +94,76 @@
   transform: scaleX(1);
 }
 
-/* The briefcase drifts up and warms in tone when the card is pointed at. */
-.roleCardIcon {
-  transition:
-    transform var(--dur-slow, 600ms) var(--ease-out-expo, ease),
-    opacity var(--dur-base, 250ms) ease;
-  opacity: 0.55;
+/*
+ * The briefcase is the card's apply control. Idle, it breathes a gold ring and every few seconds
+ * hops like a briefcase being picked up, which is what tells a phone user (no hover) that it can be
+ * tapped. Pointed at or pressed, a navy fill rises from the bottom of the badge and the icon
+ * swaps to its filled white twin. Only transform, opacity and clip-path move (DESIGN.md section 4).
+ */
+.applyTile {
+  transition: transform var(--dur-base, 250ms) var(--ease-out-expo, ease);
 }
 
-.roleCard:hover .roleCardIcon,
-.roleCard:focus-within .roleCardIcon {
-  transform: translateY(-4px) rotate(-6deg);
+.applyTile:active {
+  transform: scale(0.94);
+}
+
+.applyRing {
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  border: 2px solid var(--gold-500, #c59731);
+  opacity: 0;
+  pointer-events: none;
+  animation: careersApplyRing 3.2s var(--ease-out-quart, ease) 1s infinite;
+}
+
+.applyFill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--navy-800, #12305a);
+  clip-path: circle(0% at 50% 100%);
+  transition: clip-path var(--dur-slow, 600ms) var(--ease-out-expo, ease);
+}
+
+.applyIconDark,
+.applyIconLight {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  transition:
+    opacity var(--dur-base, 250ms) ease,
+    transform var(--dur-slow, 600ms) var(--ease-out-expo, ease);
+}
+
+.applyIconDark {
+  animation: careersApplyHop 5s ease-in-out 1.6s infinite;
+}
+
+.applyIconLight {
+  opacity: 0;
+  color: #fff;
+}
+
+.applyTile:hover .applyFill,
+.applyTile:focus-visible .applyFill,
+.applyTile:active .applyFill {
+  clip-path: circle(150% at 50% 100%);
+}
+
+.applyTile:hover .applyIconDark,
+.applyTile:focus-visible .applyIconDark,
+.applyTile:active .applyIconDark {
+  opacity: 0;
+  animation: none;
+}
+
+.applyTile:hover .applyIconLight,
+.applyTile:focus-visible .applyIconLight,
+.applyTile:active .applyIconLight {
   opacity: 1;
+  transform: translateY(-2px) rotate(-8deg);
 }
 
 .cardEnter {
@@ -169,6 +227,19 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes careersApplyRing {
+  0% { transform: scale(0.92); opacity: 0; }
+  18% { opacity: 0.85; }
+  70%, 100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes careersApplyHop {
+  0%, 84%, 100% { transform: translateY(0) rotate(0); }
+  89% { transform: translateY(-4px) rotate(-9deg); }
+  94% { transform: translateY(0) rotate(6deg); }
+  97% { transform: translateY(-1px) rotate(-3deg); }
+}
+
 @keyframes careersPop {
   from { transform: scale(0.6); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
@@ -184,8 +255,13 @@
   .heroWord,
   .heroFade,
   .cardEnter,
-  .successMark {
+  .successMark,
+  .applyIconDark {
     animation: none;
+  }
+
+  .applyRing {
+    display: none;
   }
 
   .heroSweep {
@@ -199,7 +275,10 @@
 
   .roleCard,
   .roleCardAccent,
-  .roleCardIcon,
+  .applyTile,
+  .applyFill,
+  .applyIconDark,
+  .applyIconLight,
   .dropzone {
     transition: none;
   }

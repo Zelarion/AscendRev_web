@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { JSX } from 'react';
 import { Briefcase, CalendarBlank, MapPin } from '@phosphor-icons/react/dist/ssr';
-import { careersPage, formatPostedDate, openRoles } from '@/content/careers';
+import { applicationForm, careersPage, formatPostedDate, openRoles } from '@/content/careers';
 import styles from './careers.module.css';
 
 /**
@@ -33,16 +33,26 @@ export default function JobPostings(): JSX.Element {
               style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}
             >
               <span aria-hidden="true" className={`${styles.roleCardAccent} absolute inset-x-0 top-0 h-[3px] bg-[linear-gradient(90deg,var(--green-600),var(--gold-500))]`} />
-              <Briefcase
-                size={56}
-                weight="fill"
-                aria-hidden="true"
-                className={`${styles.roleCardIcon} absolute right-6 top-6 hidden text-[var(--border-strong)] sm:block`}
-              />
-              <h3 className="pr-0 font-display text-[clamp(1.45rem,2.6vw,1.9rem)] leading-tight text-[var(--navy-900)] sm:pr-20">
+              {/* The briefcase is the apply control. It sits above the card's stretched link so it goes straight to the form. */}
+              <Link
+                href={`/careers/${role.slug}/apply/`}
+                aria-label={`${applicationForm.applyCta}: ${role.title}`}
+                className={`${styles.applyTile} absolute right-5 top-5 z-[1] flex w-16 flex-col items-center gap-1.5 rounded-[12px] text-[var(--navy-900)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--focus-ring)] sm:right-7 sm:top-7`}
+              >
+                <span className="relative grid size-12 place-items-center rounded-full border border-[var(--border-strong)] bg-[var(--surface-raised)] shadow-[0_6px_16px_rgba(13,39,70,0.12)]">
+                  <span aria-hidden="true" className={styles.applyRing} />
+                  <span aria-hidden="true" className={styles.applyFill} />
+                  <Briefcase size={26} aria-hidden="true" className={styles.applyIconDark} />
+                  <Briefcase size={26} weight="fill" aria-hidden="true" className={styles.applyIconLight} />
+                </span>
+                <span aria-hidden="true" className="text-xs font-semibold leading-none">
+                  Apply
+                </span>
+              </Link>
+              <h3 className="pr-[5.25rem] font-display text-[clamp(1.45rem,2.6vw,1.9rem)] leading-tight text-[var(--navy-900)] sm:pr-24">
                 <Link
                   href={`/careers/${role.slug}/`}
-                  className="after:absolute after:inset-0 after:content-[''] hover:text-[var(--steel-600)] focus-visible:outline-none"
+                  className="underline decoration-1 underline-offset-[6px] after:absolute after:inset-0 after:content-[''] hover:text-[var(--steel-600)] focus-visible:outline-none"
                 >
                   {role.title}
                 </Link>

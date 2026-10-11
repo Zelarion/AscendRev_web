@@ -224,9 +224,9 @@ this command, replacing `ACCOUNT` with the cPanel account's home directory name:
 ## Careers application handler
 
 `public/api/careers.php` takes job applications (a form plus a resume) and works
-like the enquiry handler: it saves the application first, answers the applicant
-with a reference such as `AR-3F9A1C`, then emails the recruiting mailbox in the
-background with the resume attached. It shares its code with the enquiry handler
+like the enquiry handler: it saves the application first, shows the applicant
+Rio's thank-you message, then emails the recruiting mailbox in the background
+with the resume attached and a reference such as `AR-3F9A1C`. It shares its code with the enquiry handler
 through `public/api/lib/handler-core.php`.
 
 **Upload the whole `api/` folder, including `api/lib/` and its hidden
@@ -250,7 +250,7 @@ existing keys. Values are never written down in this repository.
 
 SMTP settings, the sender (`ASCENDREV_ENQUIRY_FROM`) and `ASCENDREV_ALLOWED_HOSTS`
 are shared with the enquiry form and need no new keys. The applicant gets no
-automatic acknowledgment email: the reference on screen is the confirmation.
+automatic acknowledgment email: the thank-you screen is the confirmation.
 
 ### Where applications are kept
 

@@ -31,9 +31,12 @@
 # can expose Render's container port (for example :10000). Render enforces
 # public HTTPS, so canonicalize directory URLs directly from the public Host
 # header instead of letting mod_dir build a Location header.
+# Matches any *.onrender.com host rather than fixed service names: a new or
+# renamed service (ascendrev-web became ascendrev-web-1) silently fell outside
+# the old list and brought the :10000 redirect back. cPanel hosts never match.
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteCond %{HTTP_HOST} ^(?:ascendrev-web|ascendrev-api)\.onrender\.com$ [NC]
+  RewriteCond %{HTTP_HOST} ^[a-z0-9-]+\.onrender\.com$ [NC]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteCond %{REQUEST_URI} !/$
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}/ [R=302,L]

@@ -285,6 +285,12 @@
   transform: translateY(-2px) scale(1.045) rotate(-2deg);
 }
 
+/* Keeps the heading clear of the faint index number in the card's top-right corner at every width:
+   a long word wraps instead of running underneath it. */
+.cardHeading {
+  padding-right: 2.25rem;
+}
+
 .cardHeading h3 {
   max-width: 14rem;
   color: #102344;
@@ -540,6 +546,18 @@
 
   .closingAction {
     min-height: 7rem;
+  }
+}
+
+/* Two cards per row (between the 40rem and 58rem breakpoints) leaves the heading about 95px beside
+   the icon at the narrow end, and a single word such as "Customer" at the site-wide card heading size
+   (globals.css, --type-card-heading) is wider than that, so it ran underneath the card's index number.
+   In this range the icon sits above the heading, which then gets the card's full width. */
+@media (min-width: 40.0625rem) and (max-width: 58rem) {
+  .cardLead {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    row-gap: 0.85rem;
   }
 }
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { RoleSlug, YearsValue, YesNo } from '@/content/careers';
+import type { RoleSlug, YearsValue } from '@/content/careers';
 import {
   DISPOSABLE_MAILBOX_DOMAINS,
   PHONE_CHARACTERS_PATTERN,
@@ -15,23 +15,15 @@ import {
  * not companies, and most of them use Gmail.
  */
 
-export const ROLE_SLUGS = [
-  'outbound-sales-representative',
-  'customer-service-representative',
-  'team-leader',
-  'general-application',
-] as const satisfies readonly RoleSlug[];
+export const ROLE_SLUGS = ['outbound-sales-representative'] as const satisfies readonly RoleSlug[];
 
 const YEARS_VALUES = ['none', 'lt1', '1to2', '3to5', '5plus'] as const satisfies readonly YearsValue[];
-const YES_NO = ['yes', 'no'] as const satisfies readonly YesNo[];
 
 export const RESUME_MAX_BYTES = 5 * 1024 * 1024;
 /** PDF and DOCX only (client decision, 11 Oct 2026). The legacy binary .doc format is refused. */
 export const RESUME_EXTENSIONS = ['pdf', 'docx'] as const;
-export const PAY_MIN = 5_000;
-export const PAY_MAX = 1_000_000;
-export const SUPERVISORY_DETAILS_MIN = 20;
-export const SUPERVISORY_DETAILS_MAX = 800;
+export const SALARY_MIN = 5_000;
+export const SALARY_MAX = 1_000_000;
 
 const disposable = new Set<string>(DISPOSABLE_MAILBOX_DOMAINS);
 
@@ -47,12 +39,8 @@ export function parsePeso(value: string): number | null {
   return /^\d{1,7}$/.test(digits) ? Number(digits) : null;
 }
 
-/**
- * Per-field rules. Cross-field rules live in `crossFieldIssues` instead of a
- * zod superRefine, because zod skips refinements once any field is missing,
- * and in a wizard the later steps are always missing while the first is checked.
- */
 export const careersSchema = z.object({
+  role: choice(ROLE_SLUGS, 'This role is no longer open.'),
   fullName: z
     .string()
     .trim()
@@ -79,93 +67,59 @@ export const careersSchema = z.object({
       const digits = value.replace(/\D/g, '').length;
       return digits >= 10 && digits <= 13;
     }, 'Enter a full mobile number, for example 0917 123 4567.'),
-  role: choice(ROLE_SLUGS, 'Choose the role you are applying for.'),
-  linkedin: z
-    .string()
-    .trim()
-    .max(200, 'That link is too long.')
-    .refine((value) => value === '' || /^https:\/\/\S+$/i.test(value), 'Paste the full link, starting with https://'),
   outboundYears: choice(YEARS_VALUES, 'Choose one answer.'),
   csYears: choice(YEARS_VALUES, 'Choose one answer.'),
-  onsiteNightShift: choice(YES_NO, 'Choose Yes or No.'),
-  supervisoryExperience: choice(YES_NO, 'Choose Yes or No.'),
-  supervisoryDetails: z.string().trim().max(SUPERVISORY_DETAILS_MAX, `Keep this under ${SUPERVISORY_DETAILS_MAX} characters.`),
-  payMin: z.string().trim(),
-  payMax: z.string().trim(),
+  expectedSalary: z.string().refine((value) => {
+    const amount = parsePeso(value);
+    return amount !== null && amount >= SALARY_MIN && amount <= SALARY_MAX;
+  }, 'Enter a monthly amount in pesos, for example 25,000.'),
+  siteShiftConfirmed: z.literal(true, {
+    errorMap: () => ({ message: 'Please tick this to confirm before you submit.' }),
+  }),
   consent: z.literal(true, {
     errorMap: () => ({ message: 'Please confirm you agree so we can process your application.' }),
   }),
 });
 
 export type CareersValues = {
+  role: string;
   fullName: string;
   email: string;
   phone: string;
-  role: string;
-  linkedin: string;
   outboundYears: string;
   csYears: string;
-  onsiteNightShift: string;
-  supervisoryExperience: string;
-  supervisoryDetails: string;
-  payMin: string;
-  payMax: string;
+  expectedSalary: string;
+  siteShiftConfirmed: boolean;
   consent: boolean;
 };
 
-/** Rules that compare fields, run on every check regardless of other errors. */
-export function crossFieldIssues(values: CareersValues): Partial<Record<keyof CareersValues, string>> {
-  const issues: Partial<Record<keyof CareersValues, string>> = {};
-  if (values.supervisoryExperience === 'yes' && values.supervisoryDetails.trim().length < SUPERVISORY_DETAILS_MIN) {
-    issues.supervisoryDetails = 'Tell us a little more: team size, how long, and what you were responsible for.';
-  }
-  const min = parsePeso(values.payMin);
-  const max = parsePeso(values.payMax);
-  const inRange = (n: number | null): n is number => n !== null && n >= PAY_MIN && n <= PAY_MAX;
-  if (!inRange(min)) issues.payMin = 'Enter a monthly amount in pesos, for example 25,000.';
-  if (!inRange(max)) issues.payMax = 'Enter a monthly amount in pesos, for example 30,000.';
-  else if (inRange(min) && max < min) issues.payMax = 'The upper amount should not be lower than the first one.';
-  return issues;
-}
+export type CareersField = keyof CareersValues | 'resume';
 
-/** First message per field, from both the per-field and the cross-field rules. */
-export function validateCareers(values: CareersValues): Partial<Record<keyof CareersValues, string>> {
-  const errors: Partial<Record<keyof CareersValues, string>> = {};
+/** Fields in on-screen order, for focusing the first invalid one. */
+export const FIELD_ORDER: CareersField[] = [
+  'resume',
+  'fullName',
+  'email',
+  'phone',
+  'outboundYears',
+  'csYears',
+  'expectedSalary',
+  'siteShiftConfirmed',
+  'consent',
+];
+
+/** First message per field. */
+export function validateCareers(values: CareersValues): Partial<Record<CareersField, string>> {
+  const errors: Partial<Record<CareersField, string>> = {};
   const result = careersSchema.safeParse(values);
   if (!result.success) {
     for (const issue of result.error.issues) {
-      const field = issue.path[0] as keyof CareersValues;
+      const field = issue.path[0] as CareersField;
       errors[field] ??= issue.message;
     }
   }
-  for (const [field, message] of Object.entries(crossFieldIssues(values))) {
-    errors[field as keyof CareersValues] ??= message;
-  }
   return errors;
 }
-
-export type CareersField = keyof CareersValues | 'resume';
-
-/** Which wizard step owns each field, so a server error can send the applicant back to it. */
-export const FIELD_STEP: Record<CareersField, 0 | 1 | 2> = {
-  fullName: 0,
-  email: 0,
-  phone: 0,
-  role: 0,
-  linkedin: 0,
-  outboundYears: 1,
-  csYears: 1,
-  onsiteNightShift: 1,
-  supervisoryExperience: 1,
-  supervisoryDetails: 1,
-  payMin: 1,
-  payMax: 1,
-  resume: 2,
-  consent: 2,
-};
-
-/** Fields in on-screen order, for focusing the first invalid one. */
-export const FIELD_ORDER = Object.keys(FIELD_STEP) as CareersField[];
 
 const SIGNATURES: Record<(typeof RESUME_EXTENSIONS)[number], number[]> = {
   pdf: [0x25, 0x50, 0x44, 0x46, 0x2d], // %PDF-

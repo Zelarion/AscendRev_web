@@ -24,6 +24,7 @@ import csv
 import email
 import email.policy
 import hashlib
+import html as html_lib
 import http.client
 import importlib.util
 import io
@@ -111,18 +112,33 @@ def answers(key, **overrides):
         "role": "outbound-sales-representative",
         "outboundYears": "3to5",
         "csYears": "1to2",
-        "onsiteNightShift": "yes",
-        "supervisoryExperience": "no",
-        "supervisoryDetails": "",
-        "payMin": "25000",
-        "payMax": "30000",
-        "linkedin": "https://www.linkedin.com/in/jane-doe",
+        "expectedSalary": "25000",
+        "siteShiftConfirmed": "yes",
         "source": "facebook",
         "consent": "yes",
         "idempotencyKey": key,
     }
     data.update(overrides)
     return data
+
+
+QUESTION_LABELS = [
+    "How many years of international outbound sales experience do you have?",
+    "How many years of international customer service experience do you have?",
+    "What's your expected monthly salary?",
+    "Alabang-site location (not work from home) and night-shift",
+]
+NEW_CSV_HEADER = [
+    "submitted_at_utc", "full_name", "email", "phone", "role", "outbound_years", "cs_years",
+    "expected_salary", "site_shift_confirmed", "source", "resume_file", "ip_hash", "submission_key",
+]
+OLD_CSV_HEADER = [
+    "submitted_at_utc", "full_name", "email", "phone", "role", "outbound_years", "cs_years",
+    "onsite_night_shift", "supervisory_experience", "supervisory_details", "pay_min", "pay_max",
+    "linkedin", "source", "resume_file", "ip_hash", "submission_key",
+]
+# Words from the retired fields; none may appear in a new email.
+REMOVED_WORDS = ["LinkedIn", "Supervisory", "base pay", "Alabang Town Centre"]
 
 
 def reference_for(key):
@@ -318,7 +334,7 @@ def attachment_of(parsed):
 def happy(extension, content, key, filename):
     acct = Account()
     try:
-        status, body, _ = acct.post(answers(key, supervisoryDetails=""), resume=(filename, content))
+        status, body, _ = acct.post(answers(key), resume=(filename, content))
         seen = acct.smtp_seen()
         results = [
             check("HTTP 200 recorded with the stable reference",
@@ -341,31 +357,36 @@ def happy(extension, content, key, filename):
                                  and attachment.get_content_type() == expected_type,
                                  str(None if attachment is None else (attachment.get_filename(), attachment.get_content_type()))))
             results.append(check("%s: subject, To, Reply-To, From" % message["rcpt"],
-                                 parsed["Subject"] == "[AscendRev Careers] International Outbound Sales Representative: Jane Doe"
+                                 parsed["Subject"] == "[AscendRev Careers] Outbound Sales Representative: Jane Doe"
                                  and parsed["To"] == message["rcpt"]
                                  and "jane.doe@gmail.com" in parsed["Reply-To"] and "Jane Doe" in parsed["Reply-To"]
                                  and "sender@example.test" in parsed["From"],
                                  str((parsed["Subject"], parsed["To"], parsed["Reply-To"], parsed["From"]))))
             text = parsed.get_body(preferencelist=("plain",)).get_content()
             html = parsed.get_body(preferencelist=("html",)).get_content()
-            wanted = ["Years of international outbound sales experience", "3 to 5 years",
-                      "Years of international customer service experience", "1 to 2 years",
-                      "Able to commit to onsite work at Alabang Town Centre, night shift",
-                      "Supervisory or team leader experience in BPO", "Monthly base pay expectation",
-                      "PHP 25,000 to 30,000", "https://www.linkedin.com/in/jane-doe", "facebook", reference_for(key)]
-            results.append(check("%s: plain text and HTML carry every answer" % message["rcpt"],
-                                 all(w in text for w in wanted) and all(w in html for w in wanted) and "Reply to Jane" in html,
-                                 str([w for w in wanted if w not in text or w not in html])))
+            # The HTML escapes the apostrophe in "What's"; compare what a mail client shows.
+            html_text = html_lib.unescape(html)
+            wanted = QUESTION_LABELS + ["3 to 5 years", "1 to 2 years", "PHP 25,000", "Confirmed", "facebook", reference_for(key)]
+            results.append(check("%s: plain text and HTML carry the four questions and every answer" % message["rcpt"],
+                                 all(w in text for w in wanted) and all(w in html_text for w in wanted) and "Reply to Jane" in html,
+                                 str([w for w in wanted if w not in text or w not in html_text])))
+            results.append(check("%s: question order matches the form" % message["rcpt"],
+                                 [text.index(q) for q in QUESTION_LABELS] == sorted(text.index(q) for q in QUESTION_LABELS)
+                                 and [html_text.index(q) for q in QUESTION_LABELS] == sorted(html_text.index(q) for q in QUESTION_LABELS)))
+            results.append(check("%s: no removed field leaks into the email" % message["rcpt"],
+                                 not any(w.lower() in (text + html_text).lower() for w in REMOVED_WORDS),
+                                 str([w for w in REMOVED_WORDS if w.lower() in (text + html_text).lower()])))
         rows = acct.csv_rows()
         stored = acct.resumes()
         stored_key = hashlib.sha256(("client:" + key).encode()).hexdigest()
         results += [
-            check("CSV has the header and one row of 17 columns",
-                  len(rows) == 2 and len(rows[0]) == 17 and len(rows[1]) == 17 and rows[0][-1] == "submission_key", str(rows[:1])),
+            check("CSV has the new header and one row of 13 columns",
+                  len(rows) == 2 and rows[0] == NEW_CSV_HEADER and len(rows[1]) == 13, str(rows[:1])),
             check("CSV row holds the answers and the generated resume path",
                   rows[1][1] == "Jane Doe" and rows[1][2] == "jane.doe@gmail.com" and rows[1][4] == "outbound-sales-representative"
-                  and rows[1][10] == "25000" and rows[1][11] == "30000" and rows[1][13] == "facebook"
-                  and rows[1][14] == "resumes/%s.%s" % (stored_key, extension) and rows[1][16] == stored_key, str(rows[1])),
+                  and rows[1][5] == "3to5" and rows[1][6] == "1to2" and rows[1][7] == "25000" and rows[1][8] == "yes"
+                  and rows[1][9] == "facebook"
+                  and rows[1][10] == "resumes/%s.%s" % (stored_key, extension) and rows[1][12] == stored_key, str(rows[1])),
             check("exactly one stored resume named from the key, identical bytes",
                   stored == ["%s.%s" % (stored_key, extension)]
                   and open(os.path.join(acct.storage, "resumes", stored[0]), "rb").read() == content, str(stored)),
@@ -481,13 +502,25 @@ def case8():
         bad = [
             ("missing consent", {"consent": ""}, ["consent"]),
             ("consent not yes", {"consent": "true"}, ["consent"]),
-            ("supervisory yes without details", {"supervisoryExperience": "yes", "supervisoryDetails": ""}, ["supervisoryDetails"]),
-            ("supervisory yes with 19 characters", {"supervisoryExperience": "yes", "supervisoryDetails": "x" * 19}, ["supervisoryDetails"]),
-            ("details over 800", {"supervisoryDetails": "x" * 801}, ["supervisoryDetails"]),
-            ("unknown role", {"role": "ceo"}, ["role"]),
+            ("role team-leader (retired)", {"role": "team-leader"}, ["role"]),
+            ("role customer-service-representative (retired)", {"role": "customer-service-representative"}, ["role"]),
+            ("role general-application (retired)", {"role": "general-application"}, ["role"]),
+            ("empty role", {"role": ""}, ["role"]),
             ("unknown experience value", {"outboundYears": "10plus"}, ["outboundYears"]),
             ("unknown cs experience", {"csYears": ""}, ["csYears"]),
-            ("onsite not yes/no", {"onsiteNightShift": "maybe"}, ["onsiteNightShift"]),
+            ("site/shift missing", {"siteShiftConfirmed": ""}, ["siteShiftConfirmed"]),
+            ("site/shift 'no'", {"siteShiftConfirmed": "no"}, ["siteShiftConfirmed"]),
+            ("site/shift 'true'", {"siteShiftConfirmed": "true"}, ["siteShiftConfirmed"]),
+            ("site/shift 'YES' (exact match only)", {"siteShiftConfirmed": "YES"}, ["siteShiftConfirmed"]),
+            ("salary 4999", {"expectedSalary": "4999"}, ["expectedSalary"]),
+            ("salary 1000001", {"expectedSalary": "1000001"}, ["expectedSalary"]),
+            ("salary '25,000'", {"expectedSalary": "25,000"}, ["expectedSalary"]),
+            ("salary empty", {"expectedSalary": ""}, ["expectedSalary"]),
+            ("salary with decimals", {"expectedSalary": "25000.50"}, ["expectedSalary"]),
+            ("salary negative", {"expectedSalary": "-25000"}, ["expectedSalary"]),
+            ("salary with a currency prefix", {"expectedSalary": "PHP25000"}, ["expectedSalary"]),
+            ("salary of 8 digits", {"expectedSalary": "00025000"}, ["expectedSalary"]),
+            ("two bad fields are both named", {"siteShiftConfirmed": "no", "expectedSalary": "1"}, ["expectedSalary", "siteShiftConfirmed"]),
             ("name with a digit", {"fullName": "Jane 2"}, ["fullName"]),
             ("name with a newline", {"fullName": "Jane\nBcc: x@y.test"}, ["fullName"]),
             ("one-character name", {"fullName": "J"}, ["fullName"]),
@@ -496,13 +529,6 @@ def case8():
             ("phone with letters", {"phone": "0917abc4567"}, ["phone"]),
             ("phone with 9 digits", {"phone": "091712345"}, ["phone"]),
             ("phone with 14 digits", {"phone": "09171234567890"}, ["phone"]),
-            ("pay below 5000", {"payMin": "4999"}, ["payMin"]),
-            ("pay above 1,000,000", {"payMax": "1000001"}, ["payMax"]),
-            ("pay min above max", {"payMin": "40000", "payMax": "30000"}, ["payMax"]),
-            ("pay not digits", {"payMin": "25,000"}, ["payMin"]),
-            ("linkedin over http", {"linkedin": "http://www.linkedin.com/in/jane"}, ["linkedin"]),
-            ("linkedin javascript", {"linkedin": "javascript:alert(1)"}, ["linkedin"]),
-            ("linkedin with a space", {"linkedin": "https://www.linkedin.com/in/ja ne"}, ["linkedin"]),
         ]
         for index, (label, overrides, fields) in enumerate(bad):
             status, body, _ = acct.post(answers("val-%d" % index, **overrides))
@@ -517,14 +543,22 @@ def case8():
         results.append(check("the response never echoes a submitted value", "Jane" not in json.dumps(body) and "mailinator" not in json.dumps(body)))
 
         # Things that must be accepted.
-        status, body, _ = acct.post(answers("val-ok-1", supervisoryExperience="yes", supervisoryDetails="Led a team of 12 agents for two years."))
-        results.append(check("supervisory yes with 20+ characters -> 200", status == 200, "%s %s" % (status, body)))
-        status, body, _ = acct.post(answers("val-ok-2", source="not valid!!", phone="+639171234567", linkedin="", payMin="5000", payMax="5000"))
+        status, body, _ = acct.post(answers("val-ok-1", expectedSalary="5000"))
+        results.append(check("salary at the 5000 floor -> 200", status == 200, "%s %s" % (status, body)))
+        status, body, _ = acct.post(answers("val-ok-2", expectedSalary="1000000"))
+        results.append(check("salary at the 1,000,000 ceiling -> 200", status == 200, "%s %s" % (status, body)))
+        status, body, _ = acct.post(answers("val-ok-3", expectedSalary="05000"))
+        results.append(check("salary with a leading zero is stored in canonical form",
+                             status == 200 and acct.csv_rows()[-1][7] == "5000", "%s %s" % (status, acct.csv_rows()[-1])))
+        status, body, _ = acct.post(answers("val-ok-4", source="not valid!!", phone="+639171234567"))
         row = acct.csv_rows()[-1]
-        results.append(check("+639 phone, empty linkedin, pay 5000 to 5000 -> 200", status == 200, "%s %s" % (status, body)))
-        results.append(check("a source with illegal characters is dropped, not rejected", row[13] == "", str(row)))
-        status, body, _ = acct.post(answers("val-ok-3", source="x" * 41))
-        results.append(check("a source over 40 characters is dropped", status == 200 and acct.csv_rows()[-1][13] == "", "%s %s" % (status, body)))
+        results.append(check("+639 phone accepted -> 200", status == 200, "%s %s" % (status, body)))
+        results.append(check("a source with illegal characters is dropped, not rejected", row[9] == "", str(row)))
+        status, body, _ = acct.post(answers("val-ok-5", source="x" * 41))
+        results.append(check("a source over 40 characters is dropped", status == 200 and acct.csv_rows()[-1][9] == "", "%s %s" % (status, body)))
+        for index, value in enumerate(("none", "lt1", "1to2", "3to5", "5plus")):
+            status, body, _ = acct.post(answers("val-yrs-%d" % index, outboundYears=value, csYears=value))
+            results.append(check("experience '%s' accepted" % value, status == 200, "%s %s" % (status, body)))
         return results
     finally:
         acct.close()
@@ -534,6 +568,9 @@ def case9():
     acct = Account()
     try:
         status, body, _ = acct.post(dict(answers("unk-1"), extra="1"))
+        retired = {}
+        for name in ("linkedin", "onsiteNightShift", "supervisoryExperience", "supervisoryDetails", "payMin", "payMax"):
+            retired[name] = acct.post(dict(answers("unk-" + name), **{name: "x"}))
         content_type, payload = multipart(answers("unk-2"), [("resume", "cv.pdf", pdf_bytes()), ("attachment", "x.pdf", pdf_bytes())])
         conn = http.client.HTTPConnection("127.0.0.1", acct.web_port, timeout=30)
         conn.request("POST", "/api/careers.php", payload, {"Content-Type": content_type, "Origin": "http://localhost"})
@@ -543,6 +580,11 @@ def case9():
         return [
             check("unknown field -> 422 unknown_field", status == 422 and body.get("error") == "unknown_field", "%s %s" % (status, body)),
             check("unknown file field -> 422 unknown_field", second.status == 422 and second_body.get("error") == "unknown_field", "%s %s" % (second.status, second_body)),
+            check("each retired field (linkedin, onsiteNightShift, supervisoryExperience, supervisoryDetails, payMin, payMax) -> 422 unknown_field",
+                  all(r[0] == 422 and r[1].get("error") == "unknown_field" for r in retired.values()),
+                  str({k: (r[0], r[1]) for k, r in retired.items()})),
+            check("the old payMin/payMax pair in place of expectedSalary is rejected too, nothing stored",
+                  acct.post({k: v for k, v in dict(answers("unk-old"), payMin="25000", payMax="30000").items() if k != "expectedSalary"})[0] == 422),
             check("nothing stored or mailed", acct.nothing_stored() and acct.smtp_seen()["messages"] == []),
         ]
     finally:
@@ -633,7 +675,7 @@ def case14():
         acct.post(answers("conflict-1"), resume=("cv.pdf", content))
         stored_before = open(os.path.join(acct.storage, "resumes", acct.resumes()[0]), "rb").read()
         other_file = acct.post(answers("conflict-1"), resume=("cv.pdf", pdf_bytes(5000)))
-        other_answers = acct.post(answers("conflict-1", payMax="99999"), resume=("cv.pdf", content))
+        other_answers = acct.post(answers("conflict-1", expectedSalary="99999"), resume=("cv.pdf", content))
         other_type = acct.post(answers("conflict-1"), resume=("cv.docx", docx_bytes()))
         stored_after = open(os.path.join(acct.storage, "resumes", acct.resumes()[0]), "rb").read()
         return [
@@ -816,28 +858,34 @@ def case20():
     acct = Account()
     try:
         name = "José Núñez, Jr."
-        details = "=HYPERLINK(\"http://evil.example\",\"x\") <script>alert(1)</script> & more text"
-        status, body, _ = acct.post(answers("odd-1", fullName=name, supervisoryExperience="yes", supervisoryDetails=details))
+        status, body, _ = acct.post(answers("odd-1", fullName=name))
         seen = acct.smtp_seen()
         parsed = acct.parsed(seen["messages"][0]) if seen["messages"] else None
-        html = parsed.get_body(preferencelist=("html",)).get_content() if parsed else ""
         raw = seen["messages"][0]["data"] if seen["messages"] else ""
         header_block = raw.split("\r\n\r\n")[0]
         attachment = attachment_of(parsed) if parsed else None
-        row = acct.csv_rows()[-1]
-        return [
+        results = [
             check("200 and mailed", status == 200 and len(seen["messages"]) == 2, "%s %s" % (status, body)),
-            check("subject decodes to the real name", parsed is not None and parsed["Subject"] == "[AscendRev Careers] International Outbound Sales Representative: " + name, str(parsed and parsed["Subject"])),
+            check("subject decodes to the real name", parsed is not None and parsed["Subject"] == "[AscendRev Careers] Outbound Sales Representative: " + name, str(parsed and parsed["Subject"])),
             check("subject is RFC 2047 encoded on the wire, not raw UTF-8",
                   "=?UTF-8?B?" in header_block and header_block.isascii()),
             check("Reply-To keeps the address intact and the name as one display name",
                   parsed is not None and parsed["Reply-To"].addresses[0].addr_spec == "jane.doe@gmail.com" and parsed["Reply-To"].addresses[0].display_name == name
                   and len(parsed["Reply-To"].addresses) == 1, str(parsed and parsed["Reply-To"])),
             check("attachment name is reduced to the safe set", attachment is not None and attachment.get_filename() == "Resume - Jos Nez Jr.pdf", str(attachment and attachment.get_filename())),
-            check("HTML escapes the applicant's text", "&lt;script&gt;" in html and "<script>" not in html and "&amp; more text" in html),
-            check("CSV cell starting with = is stored as text (leading apostrophe)", row[9].startswith("'=HYPERLINK"), row[9]),
-            check("name round-trips through the CSV as UTF-8", row[1] == name, row[1]),
+            check("name round-trips through the CSV as UTF-8", acct.csv_rows()[-1][1] == name, acct.csv_rows()[-1][1]),
         ]
+
+        # The name is the only free text left, and it is shown in the HTML.
+        before = len(acct.smtp_seen()["messages"])
+        status, body, _ = acct.post(answers("odd-2", fullName="Pat O'Brien & Sons"))
+        html = acct.parsed(acct.smtp_seen()["messages"][before]).get_body(preferencelist=("html",)).get_content()
+        results.append(check("HTML escapes the applicant's text", status == 200 and "O&#039;Brien &amp; Sons" in html and "O'Brien & Sons" not in html, "%s" % status))
+
+        status, body, _ = acct.post(answers("odd-3", fullName="-Cmd Doe"))
+        results.append(check("CSV cell starting with - is stored as text (leading apostrophe)",
+                             status == 200 and acct.csv_rows()[-1][1] == "'-Cmd Doe", str(acct.csv_rows()[-1])))
+        return results
     finally:
         acct.close()
 
@@ -862,6 +910,130 @@ def case21():
                   "upload_max_filesize = 8M" in user_ini and "post_max_size = 10M" in user_ini, user_ini),
             check(".user.ini does not use php_value", "php_value" not in user_ini),
         ]
+    finally:
+        acct.close()
+
+
+def case23():
+    """siteShiftConfirmed must be exactly 'yes': missing or 'no' is a 422 naming it, with no side effects."""
+    acct = Account()
+    try:
+        results = []
+        for label, overrides in (("'no'", {"siteShiftConfirmed": "no"}), ("empty", {"siteShiftConfirmed": ""})):
+            status, body, _ = acct.post(answers("shift-" + label, **overrides))
+            results.append(check("siteShiftConfirmed %s -> 422 with the field named" % label,
+                                 status == 422 and body.get("error") == "validation_failed" and "siteShiftConfirmed" in body.get("fields", []), "%s %s" % (status, body)))
+        # Field absent altogether, not just empty.
+        fields = answers("shift-absent")
+        del fields["siteShiftConfirmed"]
+        status, body, _ = acct.post(fields)
+        results.append(check("siteShiftConfirmed absent -> 422 with the field named",
+                             status == 422 and "siteShiftConfirmed" in body.get("fields", []), "%s %s" % (status, body)))
+        results.append(check("nothing stored, no delivery state, no mail", acct.nothing_stored() and acct.smtp_seen()["messages"] == []))
+        return results
+    finally:
+        acct.close()
+
+
+def case24():
+    """The email to Rio: four questions in Rio's wording, the answers, the resume, and nothing from the old form."""
+    acct = Account()
+    try:
+        content = pdf_bytes()
+        status, body, _ = acct.post(answers("mail-1", expectedSalary="25000"), resume=("cv.pdf", content))
+        seen = acct.smtp_seen()
+        message = seen["messages"][0] if seen["messages"] else None
+        parsed = acct.parsed(message) if message else None
+        text = parsed.get_body(preferencelist=("plain",)).get_content() if parsed else ""
+        html = html_lib.unescape(parsed.get_body(preferencelist=("html",)).get_content()) if parsed else ""
+        attachment = attachment_of(parsed) if parsed else None
+        detail_labels = ("Email", "Phone", "Source", "Reference")
+        results = [
+            check("200 and one message per recipient", status == 200 and len(seen["messages"]) == 2, "%s %s" % (status, body)),
+            check("all four question labels in the HTML", all(q in html for q in QUESTION_LABELS), str([q for q in QUESTION_LABELS if q not in html])),
+            check("all four question labels in the plain text", all(q in text for q in QUESTION_LABELS), str([q for q in QUESTION_LABELS if q not in text])),
+            check("salary renders as 'PHP 25,000' and the site/shift answer as 'Confirmed' in both parts",
+                  "PHP 25,000" in html and "PHP 25,000" in text and "Confirmed" in html and "Confirmed" in text),
+            check("detail rows are Email, Phone, Source, Reference (no LinkedIn)",
+                  all((">%s<" % label) in parsed.get_body(preferencelist=("html",)).get_content() for label in detail_labels)
+                  and "LinkedIn" not in html and "LinkedIn" not in text),
+            check("the resume attachment is present and byte-identical", attachment is not None and attachment.get_content() == content),
+            check("subject uses the new role title", parsed is not None and parsed["Subject"] == "[AscendRev Careers] Outbound Sales Representative: Jane Doe", str(parsed and parsed["Subject"])),
+            check("exactly one attachment and the header image stays inline",
+                  len(list(parsed.iter_attachments())) == 1 and "cid:ascendrev-header" in html),
+            check("no acknowledgment mail went to the applicant", acct.delivered_to("jane.doe@gmail.com") == []),
+        ]
+        return results
+    finally:
+        acct.close()
+
+
+def case25():
+    """An applications.csv in the old column layout is rotated aside, never appended to; cron retry and purge work on the new one."""
+    acct = Account(extra_config={"ASCENDREV_CAREERS_RETENTION_DAYS": "30"})
+    try:
+        os.makedirs(acct.storage, exist_ok=True)
+        old_path = os.path.join(acct.storage, "applications.csv")
+        old_row = ["2025-01-01T00:00:00+00:00", "Old Applicant", "old@example.test", "09170000000", "team-leader", "none",
+                   "none", "yes", "no", "", "20000", "25000", "", "", "resumes/" + "a" * 64 + ".pdf", "0" * 16, "b" * 64]
+        with open(old_path, "w", encoding="utf-8", newline="") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(OLD_CSV_HEADER)
+            writer.writerow(old_row)
+
+        status, body, _ = acct.post(answers("rot-1", fullName="New Applicant"))
+        rotated = [n for n in os.listdir(acct.storage) if n.startswith("applications-") and n.endswith(".csv")]
+        rotated_rows = []
+        if rotated:
+            with open(os.path.join(acct.storage, rotated[0]), encoding="utf-8", newline="") as handle:
+                rotated_rows = list(csv.reader(handle))
+        current = acct.csv_rows()
+        results = [
+            check("application accepted", status == 200 and body.get("recorded") is True, "%s %s" % (status, body)),
+            check("the old file was renamed aside, exactly once", len(rotated) == 1, str(rotated)),
+            check("the rotated file is untouched: old header, the one old row, nothing appended",
+                  rotated_rows == [OLD_CSV_HEADER, old_row], str(rotated_rows)),
+            check("the live applications.csv has the new header and only the new row",
+                  len(current) == 2 and current[0] == NEW_CSV_HEADER and current[1][1] == "New Applicant", str(current)),
+            check("the email went out", len(acct.smtp_seen()["messages"]) == 2),
+        ]
+
+        # Cron retry and purge keep working against the new layout.
+        acct.set_faults(auth_reject=True)
+        status, body, _ = acct.post(answers("rot-2", fullName="Retry Applicant"))
+        acct.set_faults()
+        state_path = [p for p in acct.state_paths() if hashlib.sha256(b"client:rot-2").hexdigest() in p][0]
+        with open(state_path, encoding="utf-8") as handle:
+            state = json.load(handle)
+        state["last_attempt_at"] -= 5000
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump(state, handle)
+        before = len(acct.smtp_seen()["messages"])
+        out, code = acct.cli("retry")
+        retried = acct.smtp_seen()["messages"][before:]
+        retried_parsed = acct.parsed(retried[0]) if retried else None
+        results += [
+            check("first send failed with 503, then cron retry exits 0 and sends the rebuilt email to each recipient",
+                  code == 0 and len(retried) == 2 and "attempted=1" in out, "%s %s" % (code, out)),
+            check("the retried email carries the new question labels and the resume",
+                  retried_parsed is not None and QUESTION_LABELS[2] in retried_parsed.get_body(preferencelist=("plain",)).get_content()
+                  and attachment_of(retried_parsed) is not None),
+        ]
+
+        rows = acct.csv_rows()
+        for row in rows[1:]:
+            if row[1] == "New Applicant":
+                row[0] = "2020-01-01T00:00:00+00:00"
+        with open(os.path.join(acct.storage, "applications.csv"), "w", encoding="utf-8", newline="") as handle:
+            csv.writer(handle).writerows(rows)
+        out, code = acct.cli("purge")
+        remaining = acct.csv_rows()
+        results += [
+            check("purge on the new layout exits 0 and removes the aged row only",
+                  code == 0 and "removed_rows=1" in out and "removed_resumes=1" in out and len(remaining) == 2 and remaining[1][1] == "Retry Applicant", "%s %s" % (out, remaining)),
+            check("the rotated old-layout CSV is left alone by purge", rotated and os.path.exists(os.path.join(acct.storage, rotated[0]))),
+        ]
+        return results
     finally:
         acct.close()
 
@@ -901,6 +1073,9 @@ CASES = [
     ("20 non-ASCII name, header encoding, HTML escaping, CSV formula guard", case20),
     ("21 lib not served and silent; .user.ini limits", case21),
     ("22 MUST-FAIL sanity: wrong expectation reports FAIL", case22),
+    ("23 siteShiftConfirmed missing or not 'yes' -> 422, nothing stored or mailed", case23),
+    ("24 email to Rio: four question labels, PHP 25,000, Confirmed, attachment", case24),
+    ("25 old-header CSV rotated aside; retry and purge work on the new layout", case25),
 ]
 
 

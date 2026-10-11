@@ -69,8 +69,8 @@ const MAX_RESUME_BYTES = 5 * 1024 * 1024;
  */
 const CSV_HEADER = [
     'submitted_at_utc', 'full_name', 'email', 'phone', 'role', 'outbound_years',
-    'cs_years', 'onsite_night_shift', 'supervisory_experience', 'supervisory_details',
-    'pay_min', 'pay_max', 'linkedin', 'source', 'resume_file', 'ip_hash', 'submission_key',
+    'cs_years', 'expected_salary', 'site_shift_confirmed', 'source', 'resume_file',
+    'ip_hash', 'submission_key',
 ];
 const COL_SUBMITTED_AT = 0;
 const COL_FULL_NAME = 1;
@@ -79,35 +79,30 @@ const COL_PHONE = 3;
 const COL_ROLE = 4;
 const COL_OUTBOUND_YEARS = 5;
 const COL_CS_YEARS = 6;
-const COL_ONSITE = 7;
-const COL_SUPERVISORY = 8;
-const COL_SUPERVISORY_DETAILS = 9;
-const COL_PAY_MIN = 10;
-const COL_PAY_MAX = 11;
-const COL_LINKEDIN = 12;
-const COL_SOURCE = 13;
-const COL_RESUME_FILE = 14;
-const COL_SUBMISSION_KEY = 16;
+const COL_EXPECTED_SALARY = 7;
+const COL_SITE_SHIFT = 8;
+const COL_SOURCE = 9;
+const COL_RESUME_FILE = 10;
+const COL_SUBMISSION_KEY = 12;
 
 /**
  * The columns that define "the same application" for idempotency: the applicant's
- * own answers, up to and including LinkedIn. Source is analytics, so a retry that
- * arrives with a different utm_source is still the same application.
+ * own answers, up to and including the site and shift confirmation. Source is
+ * analytics, so a retry that arrives with a different utm_source is still the
+ * same application.
  */
 const HASHED_COLUMNS = [
     COL_FULL_NAME, COL_EMAIL, COL_PHONE, COL_ROLE, COL_OUTBOUND_YEARS, COL_CS_YEARS,
-    COL_ONSITE, COL_SUPERVISORY, COL_SUPERVISORY_DETAILS, COL_PAY_MIN, COL_PAY_MAX, COL_LINKEDIN,
+    COL_EXPECTED_SALARY, COL_SITE_SHIFT,
 ];
 
 /* ---------------------------------------------------------------------------
  * Vocabularies. Anything not listed is rejected (fail closed).
  * ------------------------------------------------------------------------ */
 
+/** One open role. Adding another is one line here; nothing else keys off the list. */
 const ROLE_TITLES = [
-    'outbound-sales-representative' => 'International Outbound Sales Representative',
-    'customer-service-representative' => 'International Customer Service Representative',
-    'team-leader' => 'Team Leader',
-    'general-application' => 'General application',
+    'outbound-sales-representative' => 'Outbound Sales Representative',
 ];
 
 const EXPERIENCE_LABELS = [
@@ -118,8 +113,6 @@ const EXPERIENCE_LABELS = [
     '5plus' => 'More than 5 years',
 ];
 
-const YES_NO_LABELS = ['yes' => 'Yes', 'no' => 'No'];
-
 /** Accepted resume types: extension => Content-Type sent on the email attachment. */
 const RESUME_CONTENT_TYPES = [
     'pdf' => 'application/pdf',
@@ -128,14 +121,13 @@ const RESUME_CONTENT_TYPES = [
 
 /** The complete set of accepted field names. Anything else is rejected. */
 const ALLOWED_FIELDS = [
-    'fullName', 'email', 'phone', 'role', 'outboundYears', 'csYears', 'onsiteNightShift',
-    'supervisoryExperience', 'supervisoryDetails', 'payMin', 'payMax', 'linkedin', 'source',
-    'consent', 'website', 'idempotencyKey',
+    'fullName', 'email', 'phone', 'role', 'outboundYears', 'csYears', 'expectedSalary',
+    'siteShiftConfirmed', 'source', 'consent', 'website', 'idempotencyKey',
 ];
 
-const MIN_PAY = 5000;
-const MAX_PAY = 1000000;
-const MIN_SUPERVISORY_DETAILS = 20;
+/** Monthly expected salary bounds, in PHP. */
+const MIN_SALARY = 5000;
+const MAX_SALARY = 1000000;
 
 /* ---------------------------------------------------------------------------
  * Cron entry points (CLI only, dispatched before any HTTP gate).
@@ -485,49 +477,18 @@ function validateAnswers(array $v): array
             $errors[] = $name;
         }
     }
-    foreach (['onsiteNightShift', 'supervisoryExperience'] as $name) {
-        if (!array_key_exists($v[$name], YES_NO_LABELS)) {
-            $errors[] = $name;
-        }
-    }
-
-    $details = $v['supervisoryDetails'];
-    if (
-        mb_strlen($details) > 800
-        || !mb_check_encoding($details, 'UTF-8')
-        || ($v['supervisoryExperience'] === 'yes' && mb_strlen($details) < MIN_SUPERVISORY_DETAILS)
-    ) {
-        $errors[] = 'supervisoryDetails';
-    }
-
     // Digits only and at most 7 of them, so (int) can never overflow or surprise.
-    $payOk = true;
-    foreach (['payMin', 'payMax'] as $name) {
-        if (preg_match('/^[0-9]{1,7}$/', $v[$name]) !== 1) {
-            $errors[] = $name;
-            $payOk = false;
-        } elseif ((int) $v[$name] < MIN_PAY || (int) $v[$name] > MAX_PAY) {
-            $errors[] = $name;
-            $payOk = false;
-        }
-    }
-    if ($payOk && (int) $v['payMin'] > (int) $v['payMax']) {
-        $errors[] = 'payMax';
+    if (
+        preg_match('/^[0-9]{1,7}$/', $v['expectedSalary']) !== 1
+        || (int) $v['expectedSalary'] < MIN_SALARY
+        || (int) $v['expectedSalary'] > MAX_SALARY
+    ) {
+        $errors[] = 'expectedSalary';
     }
 
-    if ($v['linkedin'] !== '') {
-        $scheme = strtolower((string) parse_url($v['linkedin'], PHP_URL_SCHEME));
-        $host = (string) parse_url($v['linkedin'], PHP_URL_HOST);
-        // Printable ASCII only: the value becomes an href in the recruiter's mail client.
-        if (
-            mb_strlen($v['linkedin']) > 200
-            || preg_match('/^[\x21-\x7e]+$/', $v['linkedin']) !== 1
-            || $scheme !== 'https'
-            || $host === ''
-            || !filter_var($v['linkedin'], FILTER_VALIDATE_URL)
-        ) {
-            $errors[] = 'linkedin';
-        }
+    // The applicant's own tick on "Alabang site, not work from home, night shift".
+    if ($v['siteShiftConfirmed'] !== 'yes') {
+        $errors[] = 'siteShiftConfirmed';
     }
 
     if ($v['consent'] !== 'yes') {
@@ -579,10 +540,10 @@ function attachmentFileName(string $fullName, string $extension): string
     return 'Resume - ' . ($clean !== '' ? $clean : 'Applicant') . '.' . $extension;
 }
 
-/** "PHP 25,000 to 30,000". */
-function payRange(string $min, string $max): string
+/** "PHP 25,000". */
+function formatSalary(string $amount): string
 {
-    return 'PHP ' . number_format((int) $min) . ' to ' . number_format((int) $max);
+    return 'PHP ' . number_format((int) $amount);
 }
 
 /** The first word of the name, for the reply button. */
@@ -633,13 +594,12 @@ function buildCareersMessage(array $row, string $resumePath, string $from): arra
     $fileName = attachmentFileName($fullName, $extension);
     $submittedAt = $row[COL_SUBMITTED_AT];
 
+    // The question wording is the client's own, as the applicant saw it.
     $answers = [
-        ['Years of international outbound sales experience', EXPERIENCE_LABELS[$row[COL_OUTBOUND_YEARS]] ?? ''],
-        ['Years of international customer service experience', EXPERIENCE_LABELS[$row[COL_CS_YEARS]] ?? ''],
-        ['Able to commit to onsite work at Alabang Town Centre, night shift', YES_NO_LABELS[$row[COL_ONSITE]] ?? ''],
-        ['Supervisory or team leader experience in BPO', YES_NO_LABELS[$row[COL_SUPERVISORY]] ?? ''],
-        ['Details', $row[COL_SUPERVISORY_DETAILS]],
-        ['Monthly base pay expectation', payRange($row[COL_PAY_MIN], $row[COL_PAY_MAX])],
+        ['How many years of international outbound sales experience do you have?', EXPERIENCE_LABELS[$row[COL_OUTBOUND_YEARS]] ?? ''],
+        ['How many years of international customer service experience do you have?', EXPERIENCE_LABELS[$row[COL_CS_YEARS]] ?? ''],
+        ["What's your expected monthly salary?", formatSalary($row[COL_EXPECTED_SALARY])],
+        ['Alabang-site location (not work from home) and night-shift', $row[COL_SITE_SHIFT] === 'yes' ? 'Confirmed' : ''],
     ];
 
     $lines = [
@@ -650,7 +610,6 @@ function buildCareersMessage(array $row, string $resumePath, string $from): arra
         'Name      : ' . $fullName,
         'Email     : ' . $email,
         'Phone     : ' . $row[COL_PHONE],
-        'LinkedIn  : ' . ($row[COL_LINKEDIN] !== '' ? $row[COL_LINKEDIN] : '(none)'),
         'Source    : ' . ($row[COL_SOURCE] !== '' ? $row[COL_SOURCE] : '(none)'),
         '',
     ];
@@ -708,7 +667,6 @@ function buildCareersMessage(array $row, string $resumePath, string $from): arra
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">'
         . row('Email', $email)
         . row('Phone', $row[COL_PHONE])
-        . row('LinkedIn', $row[COL_LINKEDIN], true)
         . row('Source', $row[COL_SOURCE])
         . row('Reference', $reference)
         . '</table></td></tr>'
@@ -717,10 +675,6 @@ function buildCareersMessage(array $row, string $resumePath, string $from): arra
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">';
 
     foreach ($answers as [$question, $answer]) {
-        // Details only means something when there are some.
-        if ($question === 'Details' && $answer === '') {
-            continue;
-        }
         $html .= answerRow($question, $answer);
     }
 
@@ -963,13 +917,17 @@ function runPurge(string $storageDir, ?int $retentionDays): int
 
 $answers = [];
 foreach ([
-    'fullName', 'email', 'phone', 'role', 'outboundYears', 'csYears', 'onsiteNightShift',
-    'supervisoryExperience', 'supervisoryDetails', 'payMin', 'payMax', 'linkedin', 'consent',
+    'fullName', 'email', 'phone', 'role', 'outboundYears', 'csYears', 'expectedSalary',
+    'siteShiftConfirmed', 'consent',
 ] as $name) {
     $answers[$name] = field($name);
 }
 $answers['fullName'] = csvSafe($answers['fullName']);
-$answers['supervisoryDetails'] = csvSafe($answers['supervisoryDetails']);
+// "05000" and "5000" are the same salary; store one canonical form. Anything that
+// is not plain digits is left as typed for validation to reject.
+if (preg_match('/^[0-9]{1,7}$/', $answers['expectedSalary']) === 1) {
+    $answers['expectedSalary'] = (string) (int) $answers['expectedSalary'];
+}
 
 // Utm tags and similar, kept only when they are the harmless shape; a bad one is
 // dropped, not an error, because the applicant did not type it.
@@ -1043,12 +1001,8 @@ if ($csvLock !== false && flock($csvLock, LOCK_EX)) {
                 $answers['role'],
                 $answers['outboundYears'],
                 $answers['csYears'],
-                $answers['onsiteNightShift'],
-                $answers['supervisoryExperience'],
-                $answers['supervisoryDetails'],
-                $answers['payMin'],
-                $answers['payMax'],
-                $answers['linkedin'],
+                $answers['expectedSalary'],
+                $answers['siteShiftConfirmed'],
                 $source,
                 $resumeFile,
                 substr(hash('sha256', $clientIp), 0, 16),
@@ -1091,12 +1045,8 @@ $incomingRow = [
     COL_ROLE => $answers['role'],
     COL_OUTBOUND_YEARS => $answers['outboundYears'],
     COL_CS_YEARS => $answers['csYears'],
-    COL_ONSITE => $answers['onsiteNightShift'],
-    COL_SUPERVISORY => $answers['supervisoryExperience'],
-    COL_SUPERVISORY_DETAILS => $answers['supervisoryDetails'],
-    COL_PAY_MIN => $answers['payMin'],
-    COL_PAY_MAX => $answers['payMax'],
-    COL_LINKEDIN => $answers['linkedin'],
+    COL_EXPECTED_SALARY => $answers['expectedSalary'],
+    COL_SITE_SHIFT => $answers['siteShiftConfirmed'],
 ];
 $payloadHash = careersPayloadHash($persistedRow, $storedResumeSha);
 if (!hash_equals($payloadHash, careersPayloadHash($incomingRow, $upload['sha256']))) {

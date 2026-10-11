@@ -67,11 +67,6 @@
   animation: careersFadeUp 900ms var(--ease-out-expo, ease) both;
 }
 
-.chip {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
 /* ---------- Role cards ---------- */
 
 .roleCard {
@@ -99,59 +94,25 @@
   transform: scaleX(1);
 }
 
+/* The briefcase drifts up and warms in tone when the card is pointed at. */
+.roleCardIcon {
+  transition:
+    transform var(--dur-slow, 600ms) var(--ease-out-expo, ease),
+    opacity var(--dur-base, 250ms) ease;
+  opacity: 0.55;
+}
+
+.roleCard:hover .roleCardIcon,
+.roleCard:focus-within .roleCardIcon {
+  transform: translateY(-4px) rotate(-6deg);
+  opacity: 1;
+}
+
 .cardEnter {
   animation: careersFadeUp 500ms var(--ease-out-expo, ease) both;
 }
 
-/* ---------- Workplace gallery ---------- */
-
-.photo {
-  overflow: hidden;
-}
-
-.photo img {
-  transition: transform 900ms var(--ease-out-expo, ease);
-}
-
-.photo:hover img {
-  transform: scale(1.05);
-}
-
-/* ---------- Hiring process ---------- */
-
-.processLine {
-  transform-origin: left;
-  animation: careersDraw 1.4s var(--ease-out-expo, ease) 0.3s both;
-}
-
-/* ---------- FAQ ---------- */
-
-.faqItem summary::-webkit-details-marker {
-  display: none;
-}
-
-.faqIcon {
-  transition: transform var(--dur-base, 250ms) var(--ease-out-expo, ease);
-}
-
-.faqItem[open] .faqIcon {
-  transform: rotate(45deg);
-}
-
-.faqItem[open] .faqAnswer {
-  animation: careersFadeUp 350ms var(--ease-out-expo, ease) both;
-}
-
 /* ---------- Application form ---------- */
-
-.progressFill {
-  transform-origin: left;
-  transition: transform var(--dur-slow, 600ms) var(--ease-out-expo, ease);
-}
-
-.stepEnter {
-  animation: careersStepIn 450ms var(--ease-out-expo, ease) both;
-}
 
 .option input:focus-visible + span {
   outline: 3px solid var(--focus-ring, #326292);
@@ -208,16 +169,6 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes careersStepIn {
-  from { transform: translateX(18px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes careersDraw {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
 @keyframes careersPop {
   from { transform: scale(0.6); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
@@ -233,10 +184,7 @@
   .heroWord,
   .heroFade,
   .cardEnter,
-  .processLine,
-  .stepEnter,
-  .successMark,
-  .faqItem[open] .faqAnswer {
+  .successMark {
     animation: none;
   }
 
@@ -251,10 +199,8 @@
 
   .roleCard,
   .roleCardAccent,
-  .photo img,
-  .progressFill,
-  .dropzone,
-  .faqIcon {
+  .roleCardIcon,
+  .dropzone {
     transition: none;
   }
 }

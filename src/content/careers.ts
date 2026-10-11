@@ -1,13 +1,12 @@
 /**
- * `/careers/` and `/careers/<role>/` copy.
+ * `/careers/`, `/careers/<role>/` and `/careers/<role>/apply/` copy.
  *
- * Requested by Rio Vidal on 10 October 2026: a careers section where AscendRev
- * posts open roles, advertised on Facebook, with applications (resume plus five
- * screening questions) going to his mailbox. The five questions are his own
- * wording. Everything else here is a DRAFT for his approval in the preview, per
- * CONTENT-CHANGE-BLOCKER.md: role summaries are built only from what he told
- * us (onsite at Alabang Town Centre, night shift, the three role types his
- * questions imply) and from facts already published on the site.
+ * Rio Vidal's exact content, sent by email on 11 October 2026 ("Career Section
+ * in our website"), with the instruction "No other details / content." The page
+ * lines, the questions and the thank-you message are his wording; each posting
+ * is his job description document word for word ("Web Career_ Outbound Sales
+ * Representative.docx"). Do not add copy here without his approval
+ * (CONTENT-CHANGE-BLOCKER.md).
  *
  * `src/lib/careersSchema.ts` validates the form and `public/api/careers.php`
  * re-validates the same rules. Role slugs and answer values are a contract with
@@ -16,252 +15,168 @@
 
 import type { PageMeta } from './home';
 
-export type RoleSlug =
-  | 'outbound-sales-representative'
-  | 'customer-service-representative'
-  | 'team-leader'
-  | 'general-application';
+export type RoleSlug = 'outbound-sales-representative';
 
-export type RoleTeam = 'Sales' | 'Customer Experience' | 'Leadership';
+export interface RoleSection {
+  heading: string;
+  paragraphs?: string[];
+  bullets?: string[];
+  /** Paragraphs after the bullets, where the document has them. */
+  closing?: string[];
+}
 
 export interface CareerRole {
-  slug: Exclude<RoleSlug, 'general-application'>;
+  slug: RoleSlug;
   title: string;
-  team: RoleTeam;
-  /** One or two sentences for the card and the search snippet. */
-  summary: string;
-  responsibilities: string[];
-  requirements: string[];
-  /** Short facts shown as chips on the card. */
-  facts: string[];
-  /** schema.org employmentType. */
-  employmentType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACTOR';
-  /** ISO date the role was published, and the date it stops being advertised. */
+  /** The posting's own one-line facts, as written in the document. */
+  location: string;
+  employmentType: string;
+  experience: string;
+  /** schema.org employmentType values for Google for Jobs. */
+  schemaEmploymentType: ('FULL_TIME' | 'PART_TIME' | 'CONTRACTOR' | 'TEMPORARY')[];
+  /** ISO date the role was published. */
   datePosted: string;
-  validThrough: string;
+  /** The card's one-line description: the posting's own first sentence of About the Role. */
+  summary: string;
+  sections: RoleSection[];
   /** False hides the role everywhere without deleting its copy. */
   open: boolean;
 }
 
-export interface CareersStat {
-  value: string;
-  label: string;
-}
-
-export interface WorkplacePhoto {
-  src: string;
-  alt: string;
-  caption: string;
-  width: number;
-  height: number;
-}
-
-export interface ProcessStep {
-  title: string;
-  body: string;
-}
-
-export interface FaqItem {
-  question: string;
-  answer: string;
-}
+export type YearsValue = 'none' | 'lt1' | '1to2' | '3to5' | '5plus';
 
 export interface ChoiceOption<Value extends string> {
   value: Value;
   label: string;
 }
 
-export type YearsValue = 'none' | 'lt1' | '1to2' | '3to5' | '5plus';
-export type YesNo = 'yes' | 'no';
-
-/* Shared facts, so the page, the roles and the structured data cannot drift. */
-
+/** Address for the structured data only; the visible location line is the posting's own. */
 export const workLocation = {
-  name: 'Alabang Town Centre',
   street: 'Alabang Town Centre, Ayala Alabang',
   locality: 'Muntinlupa',
   region: 'Metro Manila',
-  postalCode: '1780',
   country: 'PH',
-  shift: 'Night shift, aligned to North American business hours',
 } as const;
 
 export const careersMeta: PageMeta = {
-  title: 'Careers in Alabang: Sales, Customer Service and Team Leader Roles',
-  description:
-    'Join AscendRev at Alabang Town Centre. Night-shift sales, customer service and team leader roles serving North American clients. Apply online in about five minutes.',
+  title: 'Careers',
+  description: 'Join our team, grow your career, and build your future with us.',
 };
 
-export const careersHero = {
-  headline: 'Your next seat is in Alabang.',
-  intro:
-    'AscendRev builds dedicated sales and customer experience teams for North American companies, from our office at Alabang Town Centre. We are hiring people who want to grow with a team that is still being built.',
-  primaryCta: 'See open roles',
-  secondaryCta: 'Apply now',
-  chips: ['Onsite, Alabang Town Centre', 'Night shift', 'North American clients'],
+export const careersPage = {
+  heading: 'Careers',
+  description: 'Join our team, grow your career, and build your future with us.',
+  postingsHeading: 'Ready to grow with us?',
 } as const;
 
 export const careerRoles: CareerRole[] = [
   {
     slug: 'outbound-sales-representative',
-    title: 'International Outbound Sales Representative',
-    team: 'Sales',
-    summary:
-      'Open conversations with North American businesses by phone, qualify their needs and move them toward a meeting or a sale.',
-    responsibilities: [
-      'Make outbound calls to business prospects in Canada and the United States.',
-      'Qualify needs, handle objections and book meetings or close sales.',
-      'Keep every call, note and next step up to date in the CRM.',
-      'Work to daily and weekly activity and results targets.',
-    ],
-    requirements: [
-      'Experience in international outbound sales, ideally in a BPO.',
-      'Clear, confident spoken and written English.',
-      'Able to work onsite at Alabang Town Centre on the night shift.',
-    ],
-    facts: ['Onsite, Alabang Town Centre', 'Night shift', 'Full-time'],
-    employmentType: 'FULL_TIME',
+    title: 'Outbound Sales Representative',
+    location: 'Onsite | Ayala Alabang Town Centre',
+    employmentType: 'Contract | Full time',
+    experience: '3+ years of Outbound B2B sales experience',
+    schemaEmploymentType: ['FULL_TIME', 'CONTRACTOR'],
     datePosted: '2026-10-11',
-    validThrough: '2027-01-31',
-    open: true,
-  },
-  {
-    slug: 'customer-service-representative',
-    title: 'International Customer Service Representative',
-    team: 'Customer Experience',
     summary:
-      'Be the voice North American customers reach when they need help: answer, solve and follow through on every contact.',
-    responsibilities: [
-      'Handle customer calls, emails and chats for North American clients.',
-      'Resolve issues on first contact where possible, and escalate clearly when not.',
-      'Record every interaction accurately in the client\'s systems.',
-      'Meet quality, response time and customer satisfaction targets.',
+      'We are looking for a high-performing Outbound Sales Representative who knows how to create opportunities, build relationships and move prospects toward a sale.',
+    sections: [
+      {
+        heading: 'About AscendRev',
+        paragraphs: [
+          'AscendRev is a startup Calgary, Alberta Canada-headquartered outsourcing company experiencing rapid growth. We build dedicated sales and operational teams that help businesses expand capacity, create opportunities and grow revenue.',
+          'We are looking for talented sales professionals who want more than just a job. This is an opportunity to build a career, contribute to our growth strategy and have a direct influence on the path of a growing company.',
+          'We are looking for people who can confidently and proudly represent the AscendRev and our Client’s brand in the market.',
+        ],
+      },
+      {
+        heading: 'About the Role',
+        paragraphs: [
+          'We are looking for a high-performing Outbound Sales Representative who knows how to create opportunities, build relationships and move prospects toward a sale.',
+          'This is a proactive, phone-based sales role focused on outbound prospecting, lead generation, customer engagement, customer sign up and consistent follow-up.',
+          'The ideal candidate is customer-centric, highly motivated, comfortable making outbound calls and confident asking for the appointment and next step.',
+        ],
+      },
+      {
+        heading: 'Key Responsibilities',
+        bullets: [
+          'Generate new sales opportunities through outbound calling and prospecting',
+          'Contact prospective customers and identify their needs, projects and timelines',
+          'Qualify prospects and determine genuine sales opportunities',
+          'Manage leads through the sales cycle from initial contact through qualified opportunity and close',
+          'Follow up consistently with prospects and previous inquiries',
+          'Re-engage past customers and dormant opportunities',
+          'Maintain accurate lead and customer information',
+          'Use a sales dialer and other sales technology to maintain consistent activity',
+          'Record call outcomes, customer information and next steps accurately',
+          'Meet defined activity, appointment and sales targets',
+          'Work closely with the sales team to ensure qualified opportunities are properly handed off',
+          'Participate in coaching and continuously improve sales performance',
+        ],
+      },
+      {
+        heading: 'What We’re Looking For',
+        bullets: [
+          '3+ years of outbound sales experience',
+          'Strong track record of generating and converting sales opportunities',
+          'Confident and professional telephone communication skills',
+          'Comfortable making a high volume of outbound calls',
+          'Strong discovery, qualification and objection-handling skills',
+          'Customer-centric approach with a strong commercial mindset',
+          'Persistent, disciplined and highly organized with follow-up',
+          'Confident asking for the appointment and moving the customer toward a decision',
+          'Experience using a CRM is an asset',
+          'Experience using a sales dialer is an asset',
+          'Strong written and verbal communication skills',
+          'Highly coachable and motivated by measurable results',
+        ],
+      },
+      {
+        heading: 'The Person We’re Looking For',
+        paragraphs: [
+          'We are looking for people who strive to deliver results while upholding accuracy, honesty and quality in every customer interaction.',
+          'You understand that great outbound sales are not about simply making calls or pushing for a sale. It is about creating a professional, helpful and memorable customer experience while identifying genuine opportunities to do business.',
+          'You are a hunter, not an order taker.',
+          'You are comfortable starting conversations with people who may not know you, uncovering a need, building trust and creating a reason for the customer to take the next step.',
+          'You know how to listen and put the customer first—but you are also confident enough to ask for the appointment, overcome objections, create momentum and/-or close the deal.',
+          'You take ownership of your pipeline, your follow-up and your results.',
+          'Most importantly, you take pride in how you represent AscendRev and the clients we serve.',
+        ],
+      },
+      {
+        heading: 'Why Join AscendRev?',
+        paragraphs: ['AscendRev is growing quickly, and we want our people to grow with us.', 'You will have the opportunity to:'],
+        bullets: [
+          'Build a potential long-term career with us',
+          'Contribute ideas and influence how we build and scale our business',
+          'Develop your sales skills through coaching, technology and real-world experience',
+          'Earn performance-based commissions on top of your base pay',
+          'Pursue career progression and leadership opportunities',
+          'Be part of a team where individual performance and contribution matter',
+        ],
+        closing: [
+          'We are building something with long-term potential, and we are looking for driven sales professionals who want to be part of that journey.',
+          'If you are an experienced outbound salesperson who enjoys prospecting, connecting with customers, creating opportunities and closing, we want to hear from you.',
+        ],
+      },
     ],
-    requirements: [
-      'Experience in international customer service, ideally in a BPO.',
-      'Clear, confident spoken and written English.',
-      'Able to work onsite at Alabang Town Centre on the night shift.',
-    ],
-    facts: ['Onsite, Alabang Town Centre', 'Night shift', 'Full-time'],
-    employmentType: 'FULL_TIME',
-    datePosted: '2026-10-11',
-    validThrough: '2027-01-31',
-    open: true,
-  },
-  {
-    slug: 'team-leader',
-    title: 'Team Leader',
-    team: 'Leadership',
-    summary:
-      'Lead a sales or customer service team on the floor: coach people, own the numbers and keep the client confident.',
-    responsibilities: [
-      'Lead, coach and support a team of sales or customer service representatives.',
-      'Track daily performance and act early when results slip.',
-      'Run call reviews, feedback sessions and new-hire onboarding.',
-      'Report on team results and work directly with client stakeholders.',
-    ],
-    requirements: [
-      'Supervisory or team leader experience in a BPO.',
-      'Background in international sales or customer service.',
-      'Able to work onsite at Alabang Town Centre on the night shift.',
-    ],
-    facts: ['Onsite, Alabang Town Centre', 'Night shift', 'Full-time'],
-    employmentType: 'FULL_TIME',
-    datePosted: '2026-10-11',
-    validThrough: '2027-01-31',
     open: true,
   },
 ];
 
 export const openRoles = careerRoles.filter((role) => role.open);
 
-/** Derived, so the count can never disagree with the roles actually listed. */
-export const careersStats: CareersStat[] = [
-  { value: String(openRoles.length), label: openRoles.length === 1 ? 'role open now' : 'roles open now' },
-  { value: '5 min', label: 'to apply online' },
-  { value: 'No', label: 'account needed' },
-];
+/** "11 Oct 2026", the format of Rio's example postings. */
+export function formatPostedDate(isoDate: string): string {
+  return new Date(`${isoDate}T00:00:00+08:00`).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Manila',
+  });
+}
 
-export const generalApplication = {
-  slug: 'general-application' as const,
-  title: 'General application',
-  summary: 'Do not see your role? Send your resume and we will keep it for the next opening that fits.',
-};
-
-/** Real photographs of AscendRev's own office, as used elsewhere on the site. */
-export const workplacePhotos: WorkplacePhoto[] = [
-  {
-    src: '/images/office4.webp',
-    alt: 'Rows of workstations with blue partitions on the AscendRev production floor',
-    caption: 'The production floor',
-    width: 1672,
-    height: 941,
-  },
-  {
-    src: '/images/ascendrev-training-room.webp',
-    alt: 'Training room with long desks and chairs along both walls',
-    caption: 'Training room',
-    width: 1206,
-    height: 664,
-  },
-  {
-    src: '/images/boardroom-gallery-wide.webp',
-    alt: 'AscendRev boardroom with a long meeting table',
-    caption: 'Boardroom',
-    width: 1672,
-    height: 941,
-  },
-  {
-    src: '/images/hallway-gallery-wide.webp',
-    alt: 'Office hallway with wooden ceiling slats and framed wall art',
-    caption: 'Our Alabang office',
-    width: 1672,
-    height: 941,
-  },
-];
-
-export const whyJoin = {
-  heading: 'Where you will work',
-  intro:
-    'A professional office in the heart of Alabang Town Centre, built for teams that serve clients in North America through the night.',
-} as const;
-
-export const hiringProcess = {
-  heading: 'How hiring works',
-  steps: [
-    { title: 'Apply online', body: 'Answer five short questions and attach your resume. It takes about five minutes.' },
-    { title: 'Screening call', body: 'If your experience fits, our team calls you to talk about the role and your background.' },
-    { title: 'Interview', body: 'Meet the team at our office in Alabang Town Centre.' },
-    { title: 'Offer and onboarding', body: 'Successful applicants receive an offer, then start with training before joining the floor.' },
-  ] satisfies ProcessStep[],
-} as const;
-
-export const careersFaq: FaqItem[] = [
-  {
-    question: 'Is the work onsite or work from home?',
-    answer: 'Onsite, at our office in Alabang Town Centre.',
-  },
-  {
-    question: 'What schedule should I expect?',
-    answer: 'Night shift, so our teams work during North American business hours.',
-  },
-  {
-    question: 'What file can I upload as my resume?',
-    answer: 'A PDF or DOCX file, up to 5 MB. Other formats are not accepted. A PDF keeps your layout exactly as you made it.',
-  },
-  {
-    question: 'How will I know you received my application?',
-    answer:
-      'You see a confirmation with a reference number as soon as you submit. Keep it in case you contact us about your application.',
-  },
-  {
-    question: 'How is my personal information used?',
-    answer:
-      'Only to assess your application and contact you about this and future openings at AscendRev. We keep applications for up to 12 months, then delete them. You can ask us to correct or delete your data at any time.',
-  },
-];
-
-/* The form. The five screening questions are Rio Vidal's own wording. */
+/* The application screen. Questions and the thank-you line are Rio's wording. */
 
 export const yearsOptions: ChoiceOption<YearsValue>[] = [
   { value: 'none', label: 'None' },
@@ -271,65 +186,41 @@ export const yearsOptions: ChoiceOption<YearsValue>[] = [
   { value: '5plus', label: 'More than 5 years' },
 ];
 
-export const yesNoOptions: ChoiceOption<YesNo>[] = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-];
-
 export const applicationForm = {
-  heading: 'Apply in three short steps',
-  intro: 'No account needed. Your answers stay on this page until you send them.',
-  steps: ['About you', 'Your experience', 'Resume and send'],
+  applyCta: 'Apply for this Job',
+  submit: 'Submit',
+  sending: 'Submitting',
   fields: {
-    fullName: { label: 'Full name' },
-    email: { label: 'Email address' },
-    phone: { label: 'Mobile number', helper: 'For example 0917 123 4567 or +63 917 123 4567.' },
-    role: { label: 'Role you are applying for' },
-    linkedin: { label: 'LinkedIn profile (optional)', helper: 'The full link, starting with https://' },
-    outboundYears: { label: 'How many years of international outbound sales experience do you have?' },
-    csYears: { label: 'How many years of international customer service experience do you have?' },
-    onsiteNightShift: {
-      label: 'This is onsite based in our Alabang Town Centre, night shift. Are you able to commit?',
-    },
-    supervisoryExperience: { label: 'Do you have a supervisory or Team Leader experience in BPO?' },
-    supervisoryDetails: { label: 'Please tell us more.', helper: 'Team size, how long, and what you were responsible for.' },
-    pay: {
-      label: 'What is your monthly base pay range expectation?',
-      helper: 'Monthly base pay in Philippine pesos, before allowances.',
-      minLabel: 'From',
-      maxLabel: 'To',
-    },
     resume: {
-      label: 'Resume',
+      label: 'Attach your resume',
       helper: 'PDF or DOCX only. Maximum file size 5 MB.',
       dropPrompt: 'Drag your resume here, or',
       browse: 'choose a file',
       replace: 'Replace file',
     },
-    consent: {
+    fullName: { label: 'Full name' },
+    email: { label: 'Email address' },
+    phone: { label: 'Mobile number' },
+    outboundYears: { label: 'How many years of international outbound sales experience do you have?' },
+    csYears: { label: 'How many years of international customer service experience do you have?' },
+    expectedSalary: { label: 'What’s your expected monthly salary?' },
+    siteShiftConfirmed: {
       label:
-        'I agree that AscendRev may use the information and resume I submit to assess my application and to contact me about this and future openings. AscendRev keeps applications for up to 12 months, then deletes them.',
+        'These are for our Alabang-site location (not work from home) and night-shift. Submit your application if these are clear.',
+    },
+    // Required by the Data Privacy Act for collecting a resume; not part of Rio's copy.
+    consent: {
+      label: 'I agree that AscendRev may use my resume and answers to assess my application, and keep them for up to 12 months.',
     },
   },
-  review: { heading: 'Check your answers', edit: 'Edit' },
-  nav: { next: 'Continue', back: 'Back', submit: 'Send application', sending: 'Sending your application' },
   states: {
-    validationSummary: 'A few answers need attention before you continue.',
-    failure:
-      'Your application did not go through. Please check your connection and press Send again; your answers are still here.',
+    validationSummary: 'A few answers need attention.',
+    failure: 'Your application did not go through. Please check your connection and press Submit again; your answers are still here.',
     rateLimited: 'Too many attempts from this connection. Please try again in an hour.',
-    tooLarge: 'That file is larger than the 5 MB maximum. Please upload a smaller PDF or DOCX, for example by saving it without large images.',
+    tooLarge: 'That file is larger than the 5 MB maximum. Please upload a smaller PDF or DOCX.',
     wrongType: 'Only PDF or DOCX files are accepted. Please save your resume as a PDF or a Word (.docx) file and upload it again.',
   },
-  success: {
-    heading: 'Application received',
-    body: 'Thank you. Our team reviews every application. If your experience fits the role, we will call or email you.',
-    referenceLabel: 'Your reference',
-    share: 'Know someone who would fit? Share this role.',
-    copied: 'Link copied',
-    copy: 'Copy link',
-    another: 'Apply for another role',
-  },
+  thankYou: 'Thank you for applying. We’ll review and reach out when there’s a right fit.',
   privacyLinkLabel: 'Privacy Policy',
   privacyHref: '/privacy/',
 } as const;

@@ -23,16 +23,26 @@ It does not cover any text a visitor reads on the page. Headings, body copy,
 buttons, alt text and labels stay locked. Rio's displayed role ("Founder") and
 adding Ralph to the site are visible changes and still need Sir Rio's approval.
 
-## Careers section (requested by Sir Rio, 10 October 2026)
+## Careers section (requested by Sir Rio, 10 October 2026; exact copy by email, 11 October 2026)
 
-Sir Rio asked by chat for a Careers section: open roles posted on the site, advertised on
-Facebook, applicants submit a resume and answer five screening questions, applications go
-to his mailbox. That request authorizes the new `/careers/` page, one page per open role, a
-CAREERS navigation item, and the application form. His five questions are used word for
-word. All other careers copy (role summaries, responsibilities, requirements, hiring steps,
-FAQ, consent text, 12-month retention) is a DRAFT built only from his message and from facts
-already on the site, and must be approved by Sir Rio in the preview before deployment.
-Existing pages are unchanged apart from the navigation item.
+Sir Rio's email "Career Section in our website" (11 October 2026) gives the exact content
+and says "No other details / content." The site carries only that:
+
+- A CAREERS tab; the page heading "Careers" and the line "Join our team, grow your career,
+  and build your future with us."
+- "Ready to grow with us?" as a section heading at the site's subtitle size, followed only
+  by the job postings (title, Location, Posted, one line from the posting).
+- Each posting's page is his job description document word for word (first posting:
+  "Web Career_ Outbound Sales Representative.docx"), with an "Apply for this Job" button.
+- The apply screen: attach resume, his four questions in his wording, a Submit button, and
+  his automatic response "Thank you for applying. We'll review and reach out when there's
+  a right fit." Applications and resumes go to rio.vidal@ascend-rev.ca.
+
+Added by Zelarion for function and law, to confirm with Sir Rio: full name, email and
+mobile fields (needed to reply to the applicant), answer options for the years questions,
+a Data Privacy Act consent checkbox with 12-month retention, file-type and size messages,
+and the posted date (11 Oct 2026, the day the posting went up). Nothing else may be added
+to the careers pages without his approval.
 
 ## Blocked pending confirmation
 

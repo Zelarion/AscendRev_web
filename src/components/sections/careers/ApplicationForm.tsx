@@ -13,6 +13,7 @@ import {
   type CareersField,
   type CareersValues,
 } from '@/lib/careersSchema';
+import { careersSourceForApplication } from './careersSource';
 import styles from './careers.module.css';
 
 /**
@@ -121,13 +122,11 @@ export default function ApplicationForm({ role }: { role: RoleSlug }): JSX.Eleme
 
   const id = (name: string) => `${formId}-${name}`;
 
-  // Restore a draft and remember where the applicant came from (the Facebook
-  // post links carry ?utm_source=facebook).
+  // Restore a draft, and pick up where the applicant came from, which may have
+  // been captured on the posting page before they clicked Apply.
   useEffect(() => {
     setValues((current) => ({ ...current, ...readDraft() }));
-    const params = new URLSearchParams(window.location.search);
-    const utm = (params.get('utm_source') ?? params.get('source') ?? '').slice(0, 40);
-    setSource(/^[A-Za-z0-9_.-]*$/.test(utm) ? utm : '');
+    setSource(careersSourceForApplication());
     draftLoaded.current = true;
   }, []);
 

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ArrowLeft, Briefcase, CalendarBlank, MapPin, Medal } from '@phosphor-icons/react/dist/ssr';
+import { CareersSourceCapture } from '@/components/sections/careers/careersSource';
 import JsonLdScript from '@/components/seo/JsonLdScript';
 import PageJsonLd from '@/components/seo/PageJsonLd';
 import { applicationForm, formatPostedDate, openRoles, workLocation, type CareerRole, type RoleSection } from '@/content/careers';
@@ -102,6 +103,7 @@ export default async function RolePage({ params }: { params: Promise<{ role: str
     <>
       <PageJsonLd {...seo} />
       <JsonLdScript data={jobPosting(role)} />
+      <CareersSourceCapture />
 
       <section aria-labelledby="role-heading" className="relative isolate overflow-hidden bg-[var(--navy-900)] text-white">
         <Image src="/images/ascendrev-training-room.webp" alt="" fill priority sizes="100vw" className="-z-20 object-cover opacity-35" />

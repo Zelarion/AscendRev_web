@@ -1,4 +1,5 @@
 import CareersHero from '@/components/sections/careers/CareersHero';
+import { CareersSourceCapture } from '@/components/sections/careers/careersSource';
 import JobPostings from '@/components/sections/careers/JobPostings';
 import PageJsonLd from '@/components/seo/PageJsonLd';
 import { careersMeta } from '@/content/careers';
@@ -24,6 +25,7 @@ export default function CareersPage() {
   return (
     <>
       <PageJsonLd {...seo} />
+      <CareersSourceCapture />
       <CareersHero />
       <JobPostings />
     </>

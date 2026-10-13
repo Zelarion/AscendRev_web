@@ -503,7 +503,7 @@ def case8():
             ("missing consent", {"consent": ""}, ["consent"]),
             ("consent not yes", {"consent": "true"}, ["consent"]),
             ("role team-leader (retired)", {"role": "team-leader"}, ["role"]),
-            ("role customer-service-representative (retired)", {"role": "customer-service-representative"}, ["role"]),
+            ("role customer-service (near miss of a live slug)", {"role": "customer-service"}, ["role"]),
             ("role general-application (retired)", {"role": "general-application"}, ["role"]),
             ("empty role", {"role": ""}, ["role"]),
             ("unknown experience value", {"outboundYears": "10plus"}, ["outboundYears"]),
@@ -1050,6 +1050,31 @@ def case22():
             check("and the real happy path under it still passes", all(p for _, p, _ in results))]
 
 
+def case26():
+    """The second role (13 Oct): accepted, labelled in the email and CSV; an unknown role still fails closed."""
+    acct = Account()
+    try:
+        status, body, _ = acct.post(answers("csr-1", role="customer-service-representative"), resume=("cv.pdf", pdf_bytes()))
+        seen = acct.smtp_seen()
+        parsed = acct.parsed(seen["messages"][0]) if seen["messages"] else None
+        rows = acct.csv_rows()
+        bad_status, bad_body, _ = acct.post(answers("csr-2", role="chief-executive-officer"), resume=("cv.pdf", pdf_bytes()))
+        return [
+            check("customer-service-representative -> 200 recorded, one message per recipient",
+                  status == 200 and body.get("recorded") is True and len(seen["messages"]) == 2, "%s %s" % (status, body)),
+            check("subject names the Customer Service role",
+                  parsed is not None and parsed["Subject"] == "[AscendRev Careers] Customer Service Representative: Jane Doe",
+                  str(parsed and parsed["Subject"])),
+            check("CSV row records the customer-service slug",
+                  len(rows) == 2 and "customer-service-representative" in rows[1], str(rows[1:] if len(rows) > 1 else rows)),
+            check("unknown role -> 422 naming role, nothing more stored or mailed",
+                  bad_status == 422 and "role" in bad_body.get("fields", []) and len(acct.csv_rows()) == 2 and len(acct.smtp_seen()["messages"]) == 2,
+                  "%s %s" % (bad_status, bad_body)),
+        ]
+    finally:
+        acct.close()
+
+
 CASES = [
     ("1  happy path PDF: attachment, filename, bytes, one message per recipient", case1),
     ("2  happy path DOCX", case2),
@@ -1076,6 +1101,7 @@ CASES = [
     ("23 siteShiftConfirmed missing or not 'yes' -> 422, nothing stored or mailed", case23),
     ("24 email to Rio: four question labels, PHP 25,000, Confirmed, attachment", case24),
     ("25 old-header CSV rotated aside; retry and purge work on the new layout", case25),
+    ("26 second role: customer service accepted and labelled; unknown role 422", case26),
 ]
 
 

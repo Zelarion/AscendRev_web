@@ -103,6 +103,7 @@ const HASHED_COLUMNS = [
 /** One open role. Adding another is one line here; nothing else keys off the list. */
 const ROLE_TITLES = [
     'outbound-sales-representative' => 'Outbound Sales Representative',
+    'customer-service-representative' => 'Customer Service Representative',
 ];
 
 const EXPERIENCE_LABELS = [

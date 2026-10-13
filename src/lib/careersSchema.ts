@@ -15,7 +15,7 @@ import {
  * not companies, and most of them use Gmail.
  */
 
-export const ROLE_SLUGS = ['outbound-sales-representative'] as const satisfies readonly RoleSlug[];
+export const ROLE_SLUGS = ['outbound-sales-representative', 'customer-service-representative'] as const satisfies readonly RoleSlug[];
 
 const YEARS_VALUES = ['none', 'lt1', '1to2', '3to5', '5plus'] as const satisfies readonly YearsValue[];
 

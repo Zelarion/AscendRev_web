@@ -5,7 +5,7 @@
  * in our website"), with the instruction "No other details / content." The page
  * lines, the questions and the thank-you message are his wording; each posting
  * is his job description document word for word ("Web Career_ Outbound Sales
- * Representative.docx"). Do not add copy here without his approval
+ * Representative.docx", 11 Oct; "Customer Service Representative.docx", 13 Oct). Do not add copy here without his approval
  * (CONTENT-CHANGE-BLOCKER.md).
  *
  * `src/lib/careersSchema.ts` validates the form and `public/api/careers.php`
@@ -15,7 +15,7 @@
 
 import type { PageMeta } from './home';
 
-export type RoleSlug = 'outbound-sales-representative';
+export type RoleSlug = 'outbound-sales-representative' | 'customer-service-representative';
 
 export interface RoleSection {
   heading: string;
@@ -78,6 +78,14 @@ export const careersPage = {
 const outboundTitle = 'Outbound Sales Representatives';
 const outboundOpeningLine =
   'We are looking for high-performing Outbound Sales Representatives who know how to create opportunities, build relationships and move prospects toward a sale.';
+
+/**
+ * Second posting (Rio, 13 October 2026), titled in the plural like the first and listed
+ * under it. Its card line is the opening sentence of his About the Role.
+ */
+const customerServiceTitle = 'Customer Service Representatives';
+const customerServiceOpeningLine =
+  'AscendRev is looking for proactive, customer-focused Customer Service Representatives to help build and shape our customer service operations.';
 
 export const careerRoles: CareerRole[] = [
   {
@@ -166,6 +174,74 @@ export const careerRoles: CareerRole[] = [
         closing: [
           'We are building something with long-term potential, and we are looking for driven sales professionals who want to be part of that journey.',
           'If you are an experienced outbound salesperson who enjoys prospecting, connecting with customers, creating opportunities and closing, we want to hear from you.',
+        ],
+      },
+    ],
+    open: true,
+  },
+  {
+    slug: 'customer-service-representative',
+    title: customerServiceTitle,
+    location: 'Onsite | Ayala Alabang Town Centre',
+    employmentType: 'Contract | Full time',
+    experience: '2 years',
+    schemaEmploymentType: ['FULL_TIME', 'CONTRACTOR'],
+    datePosted: '2026-10-12',
+    summary: customerServiceOpeningLine,
+    sections: [
+      {
+        heading: 'About AscendRev',
+        paragraphs: [
+          'AscendRev is a startup Calgary, Alberta Canada-headquartered outsourcing company experiencing rapid growth. We build dedicated sales and operational teams that help businesses expand capacity, create opportunities and grow revenue.',
+          'We are looking for talented professionals who want more than just a job. This is an opportunity to build a career, contribute to our growth strategy and have a direct influence on the path of a growing company.',
+          'We are looking for people who can confidently and proudly represent the AscendRev and our Client’s brand in the market.',
+        ],
+      },
+      {
+        heading: 'About the Role',
+        paragraphs: [
+          `${customerServiceOpeningLine} As one of our foundational team members, you will have the opportunity to influence our service framework, workflows, customer satisfaction (CSAT) standards, and performance measures while delivering exceptional customer experiences.`,
+          'This is more than a customer service role—it’s an opportunity to make an impact, contribute ideas, improve processes, and grow into greater responsibilities as AscendRev expands.',
+        ],
+      },
+      {
+        heading: 'Key Responsibilities',
+        bullets: [
+          'Manage customer inquiries through phone, web, email, and chat.',
+          'Process orders, maintain accurate customer records, and schedule appointments.',
+          'Conduct timely follow-ups to ensure customer satisfaction and issue resolution.',
+          'Identify cross-selling opportunities and contribute to business growth.',
+          'Help establish customer service workflows, service standards, CSAT initiatives, and performance measures.',
+          'Identify opportunities to improve efficiency, service quality, and the overall customer experience.',
+        ],
+      },
+      {
+        heading: 'Qualifications',
+        bullets: [
+          'Minimum 2 years of international customer service experience.',
+          'Excellent verbal and written communication skills.',
+          'Strong data entry, data management, and organizational skills.',
+          'Exceptional attention to detail, accuracy, and due diligence.',
+          'Proactive problem-solving skills, accountability, and initiative.',
+          'Experience using CRM systems, scheduling tools, and dialer platforms is preferred.',
+          'A customer-first mindset with a commitment to service excellence.',
+          'A willingness to take ownership, contribute ideas, and grow with a developing organization.',
+        ],
+      },
+      {
+        heading: 'Why Join AscendRev?',
+        paragraphs: ['AscendRev is growing quickly, and we want our people to grow with us.', 'You will have the opportunity to:'],
+        bullets: [
+          'Build a potential long-term career with us',
+          'Contribute ideas and influence how we build and scale our business',
+          'Develop your sales skills through coaching, technology and real-world experience',
+          'Earn performance-based commissions on top of your base pay',
+          'Pursue career progression and leadership opportunities',
+          'Be part of a team where individual performance and contribution matter',
+        ],
+        closing: [
+          'We are building something with long-term potential, and we are looking for driven customer service professionals who want to be part of that journey.',
+          'If you are an experienced customer service professional who enjoys connecting with customers while creating and closing opportunities, we want to hear from you.',
         ],
       },
     ],
